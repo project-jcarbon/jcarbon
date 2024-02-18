@@ -1,0 +1,8 @@
+# maven build targets
+src/jrapl/target/
+src/native/target/
+
+# eclipse integration
+.project
+.classpath
+.settings
