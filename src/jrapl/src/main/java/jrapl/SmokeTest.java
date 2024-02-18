@@ -57,8 +57,9 @@ final class SmokeTest {
             System.lineSeparator(),
             "rapl report",
             String.format(
-                "- microarchitecture: %s, time: %s",
-                MicroArchitecture.NAME, Duration.between(interval.start, interval.end)),
+                " - microarchitecture: %s, elapsed time: %.6fs",
+                MicroArchitecture.NAME,
+                Duration.between(interval.start, interval.end).toNanos() / 1000000000),
             IntStream.range(0, MicroArchitecture.SOCKETS)
                 .mapToObj(
                     socket ->
@@ -98,7 +99,9 @@ final class SmokeTest {
         String.join(
             System.lineSeparator(),
             "powercap report",
-            String.format("- time: %s", Duration.between(interval.start, interval.end)),
+            String.format(
+                " - elapsed time: %.6fs",
+                Duration.between(interval.start, interval.end).toNanos() / 1000000000),
             IntStream.range(0, MicroArchitecture.SOCKETS)
                 .mapToObj(
                     socket ->
