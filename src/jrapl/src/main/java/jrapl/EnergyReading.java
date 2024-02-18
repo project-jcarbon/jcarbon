@@ -25,7 +25,7 @@ public final class EnergyReading {
   public String toString() {
     // TODO: temporarily using json
     return String.format(
-        "{\"socket\":%d,\"package\":%d,\"dram\":%d,\"core\":%d,\"gpu\":%d}",
+        "{\"socket\":%d,\"package\":%.6f,\"dram\":%.6f,\"core\":%.6f,\"gpu\":%.6f}",
         socket, pkg, dram, core, gpu);
   }
 }
