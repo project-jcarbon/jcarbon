@@ -7,6 +7,8 @@ import java.util.stream.IntStream;
 
 /** A smoke test to check which components are available and if they are reporting similarly. */
 final class SmokeTest {
+  private static final Duration ONE_SECOND = Duration.ofSeconds(1L);
+
   private static int fib(int n) {
     if (n == 0 || n == 1) {
       return 1;
@@ -163,7 +165,7 @@ final class SmokeTest {
 
   private static boolean validateTimestamps(EnergyInterval powercap, EnergyInterval rapl) {
     boolean passed = true;
-    if (Duration.between(rapl.start, powercap.start).toNanos() > 2000000) {
+    if (Duration.between(rapl.start, powercap.start).compareTo(Duration.ONE_SECOND) > 0) {
       LoggerUtil.LOGGER.info(
           String.format(
               "powercap start time (%s) does not match rapl start time (%s)",
@@ -171,11 +173,10 @@ final class SmokeTest {
       passed = false;
     }
 
-    if (Duration.between(rapl.end, powercap.end).toNanos() > 2000000) {
+    if (Duration.between(rapl.end, powercap.end).compareTo(Duration.ONE_SECOND) > 0) {
       LoggerUtil.LOGGER.info(
           String.format(
-              "powercap start time (%s) does not match rapl start time (%s)",
-              powercap.end, rapl.end));
+              "powercap end time (%s) does not match rapl end time (%s)", powercap.end, rapl.end));
       passed = false;
     }
     return passed;
