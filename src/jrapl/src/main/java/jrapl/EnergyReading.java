@@ -1,7 +1,11 @@
 package jrapl;
 
+/** A reading from a rapl energy system. */
 public final class EnergyReading {
+  // TODO: immutable data structures are "safe" as public
+  // energy domain
   public final int socket;
+  // energy readings by component in joules
   public final double pkg;
   public final double dram;
   public final double core;
