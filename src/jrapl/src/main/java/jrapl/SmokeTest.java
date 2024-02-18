@@ -59,7 +59,7 @@ final class SmokeTest {
             String.format(
                 " - microarchitecture: %s, elapsed time: %.6fs",
                 MicroArchitecture.NAME,
-                Duration.between(interval.start, interval.end).toNanos() / 1000000000),
+                (double) Duration.between(interval.start, interval.end).toNanos() / 1000000000),
             IntStream.range(0, MicroArchitecture.SOCKETS)
                 .mapToObj(
                     socket ->
@@ -101,7 +101,7 @@ final class SmokeTest {
             "powercap report",
             String.format(
                 " - elapsed time: %.6fs",
-                Duration.between(interval.start, interval.end).toNanos() / 1000000000),
+                (double) Duration.between(interval.start, interval.end).toNanos() / 1000000000),
             IntStream.range(0, MicroArchitecture.SOCKETS)
                 .mapToObj(
                     socket ->
