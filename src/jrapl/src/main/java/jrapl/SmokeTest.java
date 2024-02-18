@@ -165,7 +165,7 @@ final class SmokeTest {
 
   private static boolean validateTimestamps(EnergyInterval powercap, EnergyInterval rapl) {
     boolean passed = true;
-    if (Duration.between(rapl.start, powercap.start).compareTo(Duration.ONE_SECOND) > 0) {
+    if (Duration.between(rapl.start, powercap.start).compareTo(ONE_SECOND) > 0) {
       LoggerUtil.LOGGER.info(
           String.format(
               "powercap start time (%s) does not match rapl start time (%s)",
@@ -173,7 +173,7 @@ final class SmokeTest {
       passed = false;
     }
 
-    if (Duration.between(rapl.end, powercap.end).compareTo(Duration.ONE_SECOND) > 0) {
+    if (Duration.between(rapl.end, powercap.end).compareTo(ONE_SECOND) > 0) {
       LoggerUtil.LOGGER.info(
           String.format(
               "powercap end time (%s) does not match rapl end time (%s)", powercap.end, rapl.end));
