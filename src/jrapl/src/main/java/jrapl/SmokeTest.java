@@ -61,7 +61,7 @@ final class SmokeTest {
                     socket ->
                         String.format(
                             " - socket: %d, package: %.3fJ, dram: %.3fJ, core: %.3fJ, gpu: %.3fJ",
-                            socket,
+                            socket + 1,
                             interval.getReadings()[socket].pkg,
                             interval.getReadings()[socket].dram,
                             interval.getReadings()[socket].core,
@@ -99,7 +99,7 @@ final class SmokeTest {
                     socket ->
                         String.format(
                             " - socket: %d, package: %.3fJ, dram: %.3fJ",
-                            socket,
+                            socket + 1,
                             interval.getReadings()[socket].pkg,
                             interval.getReadings()[socket].dram))
                 .collect(joining(System.lineSeparator()))));
@@ -151,8 +151,8 @@ final class SmokeTest {
                 .mapToObj(
                     socket ->
                         String.format(
-                            " - socket: %dJ, package difference: %.3fJ, dram difference: %.3fJ",
-                            socket,
+                            " - socket: %d, package difference: %.3fJ, dram difference: %.3fJ",
+                            socket + 1,
                             Math.abs(
                                 powercap.getReadings()[socket].pkg
                                     - rapl.getReadings()[socket].pkg),
