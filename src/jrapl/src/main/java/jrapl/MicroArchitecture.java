@@ -2,7 +2,7 @@ package jrapl;
 
 /** Simple wrapper around rapl access. */
 public final class MicroArchitecture {
-  public static final String UNKNOWN = "UNKNOWN_MICRO_ARCHITECTURE";
+  public static final String UNKNOWN = "UNDEFINED_MICROARCHITECTURE";
 
   public static final String NAME;
   public static final int SOCKETS;

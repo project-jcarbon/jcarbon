@@ -229,6 +229,7 @@ final class SmokeTest {
   public static void main(String[] args) throws Exception {
     LoggerUtil.LOGGER.info("warming up...");
     for (int i = 0; i < 5; i++) exercise();
+    LoggerUtil.LOGGER.info("testing rapl...");
     if ((raplAvailable() & powercapAvailable()) && checkEquivalence()) {
       LoggerUtil.LOGGER.info("all smoke tests passed!");
     } else {
