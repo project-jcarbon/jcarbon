@@ -6,18 +6,18 @@ import java.util.function.Supplier;
 /** Very simple energy monitor that reports energy consumption over 10 millisecond intervals. */
 final class EnergyMonitor {
   private static Supplier<EnergySample> getEnergySource() {
-    if (MicroArchitecture.SOCKETS > 1) {
+    if (MicroArchitecture.SOCKETS > 0) {
       return Rapl::sample;
-    } else if (Powercap.SOCKETS > 1) {
+    } else if (Powercap.SOCKETS > 0) {
       return Powercap::sample;
     }
     throw new IllegalStateException("no energy source found!");
   }
 
   private static BiFunction<EnergySample, EnergySample, EnergyInterval> getEnergyDiffer() {
-    if (MicroArchitecture.SOCKETS > 1) {
+    if (MicroArchitecture.SOCKETS > 0) {
       return Rapl::difference;
-    } else if (Powercap.SOCKETS > 1) {
+    } else if (Powercap.SOCKETS > 0) {
       return Powercap::difference;
     }
     throw new IllegalStateException("no energy source found!");
