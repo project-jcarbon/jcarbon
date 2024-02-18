@@ -13,7 +13,7 @@ public final class EnergySample {
     this.readings = Arrays.copyOf(readings, readings.length);
   }
 
-  public EnergyReading getReading(int socket) {
-    return readings[socket];
+  public EnergyReading[] getReadings() {
+    return Arrays.copyOf(readings, readings.length);
   }
 }

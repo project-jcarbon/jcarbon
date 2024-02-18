@@ -41,7 +41,7 @@ final class SmokeTest {
     EnergyInterval interval = Rapl.difference(start, Rapl.sample());
 
     if (IntStream.range(0, MicroArchitecture.SOCKETS)
-            .mapToDouble(socket -> interval.getReading(socket).total)
+            .mapToDouble(socket -> interval.getReadings()[socket].total)
             .sum()
         == 0) {
       LoggerUtil.LOGGER.info("no energy consumed with the difference of two rapl samples!");
@@ -60,10 +60,10 @@ final class SmokeTest {
                         String.format(
                             " - socket: %d, package: %.3fJ, dram: %.3fJ, core: %.3fJ, gpu: %.3fJ",
                             socket,
-                            interval.getReading(socket).pkg,
-                            interval.getReading(socket).dram,
-                            interval.getReading(socket).core,
-                            interval.getReading(socket).gpu))
+                            interval.getReadings()[socket].pkg,
+                            interval.getReadings()[socket].dram,
+                            interval.getReadings()[socket].core,
+                            interval.getReadings()[socket].gpu))
                 .collect(joining(System.lineSeparator()))));
     return true;
   }
@@ -80,7 +80,7 @@ final class SmokeTest {
     EnergyInterval interval = Powercap.difference(start, Powercap.sample());
 
     if (IntStream.range(0, MicroArchitecture.SOCKETS)
-            .mapToDouble(socket -> interval.getReading(socket).total)
+            .mapToDouble(socket -> interval.getReadings()[socket].total)
             .sum()
         == 0) {
       LoggerUtil.LOGGER.info("no energy consumed with the difference of two powercap samples!");
@@ -98,8 +98,8 @@ final class SmokeTest {
                         String.format(
                             " - socket: %d, package: %.3fJ, dram: %.3fJ",
                             socket,
-                            interval.getReading(socket).pkg,
-                            interval.getReading(socket).dram))
+                            interval.getReadings()[socket].pkg,
+                            interval.getReadings()[socket].dram))
                 .collect(joining(System.lineSeparator()))));
     return true;
   }
@@ -123,86 +123,94 @@ final class SmokeTest {
     exercise();
 
     return isSimilar(
-        Rapl.difference(rapl, Rapl.sample()), Powercap.difference(powercap, Powercap.sample()));
+        Powercap.difference(powercap, Powercap.sample()), Rapl.difference(rapl, Rapl.sample()));
   }
 
-  private static boolean isSimilar(EnergyInterval rapl, EnergyInterval powercap) {
-    // if (Durations.between(rapl.start, powercap.start) > 2000) {
-    //   LoggerUtil.LOGGER.info(
-    //       String.format(
-    //           "powercap start time (%s) does not match rapl start time (%s)",
-    //           powercap.getStart(), rapl.getStart()));
-    //   return false;
-    // }
+  private static boolean isSimilar(EnergyInterval powercap, EnergyInterval rapl) {
+    if (!validateTimestamps(powercap, rapl)) {
+      return false;
+    }
 
-    // if (Durations.toMicros(Timestamps.between(rapl.getEnd(), powercap.getEnd())) > 2000) {
-    //   LoggerUtil.LOGGER.info(
-    //       String.format(
-    //           "powercap end time (%s) does not match rapl end time (%s)",
-    //           powercap.getEnd(), rapl.getEnd()));
-    //   return false;
-    // }
+    if (!validateComponents(powercap, rapl)) {
+      return false;
+    }
 
-    // if (powercap.getReadingCount() != rapl.getReadingCount()) {
-    //   LoggerUtil.LOGGER.info(
-    //       String.format(
-    //           "powercap reading count (%s) does not match rapl reading count (%s)",
-    //           powercap.getReadingCount(), rapl.getReadingCount()));
-    //   return false;
-    // }
-
-    // Map<Integer, JRaplReading> raplReadings =
-    //     rapl.getReadingList().stream().collect(toMap(r -> r.getSocket(), r -> r));
-    // Map<Integer, JRaplReading> powercapReadings =
-    //     powercap.getReadingList().stream().collect(toMap(r -> r.getSocket(), r -> r));
-    // raplReadings.keySet().equals(powercapReadings.keySet());
-    // for (int socket : raplReadings.keySet()) {
-    //   if (Math.abs(
-    //           raplReadings.get(socket).getPackage() - powercapReadings.get(socket).getPackage())
-    //       > 1) {
-    //     LoggerUtil.LOGGER.info(
-    //         String.format(
-    //             "powercap package energy (%f) does not match rapl package energy (%f)",
-    //             powercapReadings.get(socket).getPackage(),
-    // raplReadings.get(socket).getPackage()));
-    //     return false;
-    //   }
-
-    //   if (Math.abs(raplReadings.get(socket).getDram() - powercapReadings.get(socket).getDram())
-    //       > 1) {
-    //     LoggerUtil.LOGGER.info(
-    //         String.format(
-    //             "powercap dram energy (%f) does not match rapl dram energy (%f)",
-    //             powercapReadings.get(socket).getDram(), raplReadings.get(socket).getDram()));
-    //     return false;
-    //   }
-    // }
-
-    // LoggerUtil.LOGGER.info(
-    //     String.join(
-    //         System.lineSeparator(),
-    //         String.format(
-    //             "equivalence report - elapsed time difference: %.6fs",
-    //             Math.abs(
-    //                 (double)
-    //                         (Durations.toMicros(Timestamps.between(rapl.getStart(),
-    // rapl.getEnd()))
-    //                             - Durations.toMicros(
-    //                                 Timestamps.between(powercap.getStart(), powercap.getEnd())))
-    //                     / 1000000)),
-    //         raplReadings.values().stream()
-    //             .map(
-    //                 r ->
-    //                     String.format(
-    //                         " - socket: %dJ, package difference: %.3fJ, dram difference: %.3fJ",
-    //                         r.getSocket(),
-    //                         Math.abs(
-    //                             r.getPackage() -
-    // powercapReadings.get(r.getSocket()).getPackage()),
-    //                         Math.abs(r.getDram() -
-    // powercapReadings.get(r.getSocket()).getDram())))
-    //             .collect(joining(System.lineSeparator()))));
+    LoggerUtil.LOGGER.info(
+        String.join(
+            System.lineSeparator(),
+            String.format(
+                "equivalence report - elapsed time difference: %.6fs",
+                Math.abs(
+                        (double)
+                            (Duration.between(rapl.start, rapl.end).toNanos()
+                                - Duration.between(powercap.start, powercap.end).toNanos()))
+                    / 1000000),
+            IntStream.range(0, powercap.getReadings().length)
+                .mapToObj(
+                    socket ->
+                        String.format(
+                            " - socket: %dJ, package difference: %.3fJ, dram difference: %.3fJ",
+                            socket,
+                            Math.abs(
+                                powercap.getReadings()[socket].pkg
+                                    - rapl.getReadings()[socket].pkg),
+                            Math.abs(
+                                powercap.getReadings()[socket].dram
+                                    - rapl.getReadings()[socket].dram)))
+                .collect(joining(System.lineSeparator()))));
     return true;
+  }
+
+  private static boolean validateTimestamps(EnergyInterval powercap, EnergyInterval rapl) {
+    boolean passed = true;
+    if (Duration.between(rapl.start, powercap.start).toNanos() > 2000000) {
+      LoggerUtil.LOGGER.info(
+          String.format(
+              "powercap start time (%s) does not match rapl start time (%s)",
+              powercap.start, rapl.start));
+      passed = false;
+    }
+
+    if (Duration.between(rapl.end, powercap.end).toNanos() > 2000000) {
+      LoggerUtil.LOGGER.info(
+          String.format(
+              "powercap start time (%s) does not match rapl start time (%s)",
+              powercap.end, rapl.end));
+      passed = false;
+    }
+    return passed;
+  }
+
+  private static boolean validateComponents(EnergyInterval powercap, EnergyInterval rapl) {
+    if (powercap.getReadings().length != rapl.getReadings().length) {
+      LoggerUtil.LOGGER.info(
+          String.format(
+              "powercap reading count (%s) does not match rapl reading count (%s)",
+              powercap.getReadings().length, rapl.getReadings().length));
+      return false;
+    }
+
+    boolean passed = true;
+    for (int socket = 0; socket < powercap.getReadings().length; socket++) {
+      EnergyReading powercapReading = powercap.getReadings()[socket];
+      EnergyReading raplReading = rapl.getReadings()[socket];
+      if (Math.abs(powercapReading.pkg - raplReading.pkg) > 1) {
+        LoggerUtil.LOGGER.info(
+            String.format(
+                "powercap package energy (%f) for socket %d does not match rapl package energy"
+                    + " (%f)",
+                powercapReading.pkg, socket, raplReading.pkg));
+        passed = false;
+      }
+      if (Math.abs(powercapReading.dram - raplReading.dram) > 1) {
+        LoggerUtil.LOGGER.info(
+            String.format(
+                "powercap dram energy (%f) for socket %d  does not match rapl dram energy (%f)",
+                powercapReading.dram, socket, raplReading.dram));
+        passed = false;
+      }
+    }
+    return passed;
   }
 
   public static void main(String[] args) throws Exception {

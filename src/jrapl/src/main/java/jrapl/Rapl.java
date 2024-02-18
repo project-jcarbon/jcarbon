@@ -105,7 +105,8 @@ public final class Rapl {
         first.timestamp,
         second.timestamp,
         IntStream.range(0, MicroArchitecture.SOCKETS)
-            .mapToObj(socket -> difference(first.getReading(socket), second.getReading(socket)))
+            .mapToObj(
+                socket -> difference(first.getReadings()[socket], second.getReadings()[socket]))
             .toArray(EnergyReading[]::new));
   }
 

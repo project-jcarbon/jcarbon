@@ -11,6 +11,6 @@ then
     exit
 fi
 
-mvn clean package install
+mvn clean install
 sudo LD_LIBRARY_PATH="${PWD}/src/native/target:${LD_LIBRARY_PATH}" \
     java -cp src/jrapl/target/jrapl-1.0-jar-with-dependencies.jar jrapl.SmokeTest
