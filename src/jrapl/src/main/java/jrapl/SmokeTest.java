@@ -146,7 +146,7 @@ final class SmokeTest {
                         (double)
                             (Duration.between(rapl.start, rapl.end).toNanos()
                                 - Duration.between(powercap.start, powercap.end).toNanos()))
-                    / 1000000),
+                    / 1000000000),
             IntStream.range(0, powercap.getReadings().length)
                 .mapToObj(
                     socket ->
