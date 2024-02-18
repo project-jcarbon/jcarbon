@@ -24,6 +24,7 @@ final class SmokeTest {
   /** Checks if rapl is available for sampling. */
   private static boolean raplAvailable() throws Exception {
     if (!NativeLibrary.initialize()) {
+      LoggerUtil.LOGGER.info("the native library isn't available!");
       return false;
     }
 
@@ -75,6 +76,7 @@ final class SmokeTest {
   /** Checks if powercap is available for sampling. */
   private static boolean powercapAvailable() throws Exception {
     if (Powercap.SOCKETS < 1) {
+      LoggerUtil.LOGGER.info("system has no energy domains through powercap!");
       return false;
     }
 
