@@ -20,4 +20,12 @@ public final class EnergyReading {
     this.gpu = gpu;
     this.total = pkg + dram + core + gpu;
   }
+
+  @Override
+  public String toString() {
+    // TODO: temporarily using json
+    return String.format(
+        "{\"socket\":%d,\"package\":%d,\"dram\":%d,\"core\":%d,\"gpu\":%d}",
+        socket, pkg, dram, core, gpu);
+  }
 }

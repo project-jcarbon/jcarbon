@@ -21,6 +21,7 @@ final class SmokeTest {
     fib(42);
   }
 
+  /** Checks if rapl is available for sampling. */
   private static boolean raplAvailable() throws Exception {
     if (!NativeLibrary.initialize()) {
       return false;
@@ -53,8 +54,9 @@ final class SmokeTest {
     LoggerUtil.LOGGER.info(
         String.join(
             System.lineSeparator(),
+            "rapl report",
             String.format(
-                "rapl report - microarchitecture: %s, time: %s",
+                "- microarchitecture: %s, time: %s",
                 MicroArchitecture.NAME, Duration.between(interval.start, interval.end)),
             IntStream.range(0, MicroArchitecture.SOCKETS)
                 .mapToObj(
@@ -70,6 +72,7 @@ final class SmokeTest {
     return true;
   }
 
+  /** Checks if powercap is available for sampling. */
   private static boolean powercapAvailable() throws Exception {
     if (Powercap.SOCKETS < 1) {
       return false;
@@ -92,8 +95,8 @@ final class SmokeTest {
     LoggerUtil.LOGGER.info(
         String.join(
             System.lineSeparator(),
-            String.format(
-                "powercap report - time: %s", Duration.between(interval.start, interval.end)),
+            "powercap report",
+            String.format("- time: %s", Duration.between(interval.start, interval.end)),
             IntStream.range(0, MicroArchitecture.SOCKETS)
                 .mapToObj(
                     socket ->
@@ -106,11 +109,11 @@ final class SmokeTest {
     return true;
   }
 
+  /**
+   * Checks if rapl and powercap report similarly. This acts as a correctness test since you will be
+   * able to determine if values are not sane.
+   */
   private static boolean checkEquivalence() throws Exception {
-    if (!NativeLibrary.initialize()) {
-      return false;
-    }
-
     if (Powercap.SOCKETS != MicroArchitecture.SOCKETS) {
       LoggerUtil.LOGGER.info(
           String.format(
@@ -140,8 +143,9 @@ final class SmokeTest {
     LoggerUtil.LOGGER.info(
         String.join(
             System.lineSeparator(),
+            "equivalence report",
             String.format(
-                "equivalence report - elapsed time difference: %.6fs",
+                "- elapsed time difference: %.6fs",
                 Math.abs(
                         (double)
                             (Duration.between(rapl.start, rapl.end).toNanos()
@@ -163,6 +167,9 @@ final class SmokeTest {
     return true;
   }
 
+  // TODO: Since Java's time precision is only guaranteed up to milliseconds
+  // (https://shorturl.at/cjuL8), there is some potential for mismatch between the microsecond unix
+  // time reported by Rapl and the native Java Instant time.
   private static boolean validateTimestamps(EnergyInterval powercap, EnergyInterval rapl) {
     boolean passed = true;
     if (Duration.between(rapl.start, powercap.start).compareTo(ONE_SECOND) > 0) {

@@ -1,5 +1,7 @@
 package jrapl;
 
+import static java.util.stream.Collectors.joining;
+
 import java.time.Instant;
 import java.util.Arrays;
 
@@ -19,5 +21,18 @@ public final class EnergyInterval {
 
   public EnergyReading[] getReadings() {
     return Arrays.copyOf(readings, readings.length);
+  }
+
+  @Override
+  public String toString() {
+    // TODO: temporarily using json
+    return String.format(
+        "{\"start\":{\"seconds\":%d,\"nanos\":%d},\"end\":"
+            + "{\"seconds\":%d,\"nanos\":%d},\"readings\":[%s]}",
+        start.getEpochSecond(),
+        start.getNano(),
+        end.getEpochSecond(),
+        end.getNano(),
+        Arrays.stream(readings).map(EnergyReading::toString).collect(joining(",")));
   }
 }
