@@ -1,5 +1,33 @@
 # jRAPL
 
+`jRAPL` is a small Java library that provides access for sampling energy from [RAPL]() within a Java runtime.
+
+To use `jRAPL` you will need an Intel Linux system. You need a verion of `Java`, `maven` to build, and the `jni` to read from the [`msr`s]() that contain the energy values. You might be able to install that all with the following:
+
+```bash
+sudo apt install openjdk-11-jdk maven libjna-jni
+```
+
+You can confirm if `jRAPL` works on your system by running `bash smoke_test.sh`. This should output a short report detailing what `jRAPL` is able to find for your system. Example log:
+
+```bash
+jrapl (2024-02-18 16:40:44 PM EST) [main]: warming up...
+jrapl (2024-02-18 16:40:54 PM EST) [main]: rapl report
+ - microarchitecture: BROADWELL2, elapsed time: 1.999534s
+ - socket: 1, package: 37.031J, dram: 1.510J, core: 0.000J, gpu: 0.000J
+jrapl (2024-02-18 16:40:55 PM EST) [main]: powercap report
+ - elapsed time: 1.517050s
+ - socket: 1, package: 36.124J, dram: 1.454J
+jrapl (2024-02-18 16:40:57 PM EST) [main]: equivalence report
+ - elapsed time difference: 0.484127s
+ - socket: 1, package difference: 0.025J, dram difference: 0.028J
+jrapl (2024-02-18 16:40:57 PM EST) [main]: all smoke tests passed!
+```
+
+# Legacy Documentation
+
+The below documentation is retained from the branch it was copied from. Eventually we'll do a reasonable clean up and reorganization.
+
 ## Background
 jRAPL is a computer energy monitoring API in Java. RAPL stands for Running Average Power Limiting, an interface that Intel provides to monitor power consumption
 and set power limits. jRAPL uses the energy monitoring technology and implements it in Java, abstracting out low-level details about register reading and how to
