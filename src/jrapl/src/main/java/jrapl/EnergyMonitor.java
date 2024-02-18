@@ -5,8 +5,10 @@ import java.util.function.Supplier;
 
 /** Very simple energy monitor that reports energy consumption over 10 millisecond intervals. */
 final class EnergyMonitor {
+  // TODO: this is cumbersome, should really have an `isAvailable` method somewhere
   private static Supplier<EnergySample> getEnergySource() {
-    if (MicroArchitecture.SOCKETS > 0) {
+    if (!MicroArchitecture.NAME.equals(MicroArchitecture.UNKNOWN)
+        && MicroArchitecture.SOCKETS > 0) {
       return Rapl::sample;
     } else if (Powercap.SOCKETS > 0) {
       return Powercap::sample;
@@ -15,7 +17,8 @@ final class EnergyMonitor {
   }
 
   private static BiFunction<EnergySample, EnergySample, EnergyInterval> getEnergyDiffer() {
-    if (MicroArchitecture.SOCKETS > 0) {
+    if (!MicroArchitecture.NAME.equals(MicroArchitecture.UNKNOWN)
+        && MicroArchitecture.SOCKETS > 0) {
       return Rapl::difference;
     } else if (Powercap.SOCKETS > 0) {
       return Powercap::difference;
