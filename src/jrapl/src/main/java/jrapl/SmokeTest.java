@@ -150,7 +150,7 @@ final class SmokeTest {
             System.lineSeparator(),
             "equivalence report",
             String.format(
-                "- elapsed time difference: %.6fs",
+                " - elapsed time difference: %.6fs",
                 Math.abs(
                         (double)
                             (Duration.between(rapl.start, rapl.end).toNanos()
@@ -227,6 +227,7 @@ final class SmokeTest {
   }
 
   public static void main(String[] args) throws Exception {
+    exercise();
     if ((raplAvailable() & powercapAvailable()) && checkEquivalence()) {
       LoggerUtil.LOGGER.info("all smoke tests passed!");
     } else {
