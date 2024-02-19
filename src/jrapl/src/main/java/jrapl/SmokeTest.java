@@ -56,9 +56,9 @@ final class SmokeTest {
         String.join(
             System.lineSeparator(),
             "rapl report",
+            String.format(" - microarchitecture: %s", MicroArchitecture.NAME),
             String.format(
-                " - microarchitecture: %s, elapsed time: %.6fs",
-                MicroArchitecture.NAME,
+                " - elapsed time: %.6fs",
                 (double) Duration.between(interval.start, interval.end).toNanos() / 1000000000),
             IntStream.range(0, MicroArchitecture.SOCKETS)
                 .mapToObj(
