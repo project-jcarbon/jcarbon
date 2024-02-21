@@ -25,8 +25,6 @@ public class EnergyUpdateBenchmark {
 
     @TearDown(Level.Iteration)
     public void iterationStart() {
-      System.out.println(samples);
-      System.out.println(currentIteration);
       if (!samples.containsKey(currentIteration.get())) {
         samples.put(currentIteration.get(), new ArrayList<>());
       }
