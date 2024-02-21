@@ -25,7 +25,9 @@ public class EnergyUpdateBenchmark {
 
     @TearDown(Level.Iteration)
     public void iterationStart() {
-      samples.computeIfAbsent(currentIteration.get(), unused -> new ArrayList<>());
+      if (!samples.containsKey(currentIteration.get())) {
+        samples.put(currentIteration.get(), new ArrayList<>());
+      }
     }
 
     @TearDown(Level.Iteration)
@@ -39,7 +41,7 @@ public class EnergyUpdateBenchmark {
   }
 
   @Benchmark
-  public void postProcessAddSample(SamplingState state) {
+  public void sample(SamplingState state) {
     state.sample();
   }
 
