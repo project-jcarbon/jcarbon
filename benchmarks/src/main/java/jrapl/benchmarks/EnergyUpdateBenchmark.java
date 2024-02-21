@@ -1,10 +1,14 @@
 package jrapl.benchmarks;
 
 import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toList;
 
+import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import jrapl.EnergyInterval;
 import jrapl.EnergySample;
 import jrapl.Rapl;
 import org.openjdk.jmh.annotations.*;
@@ -20,10 +24,9 @@ public class EnergyUpdateBenchmark {
 
   @State(Scope.Benchmark)
   public static class SamplingState {
-
     private final AtomicInteger currentIteration = new AtomicInteger();
 
-    @TearDown(Level.Iteration)
+    @Setup(Level.Iteration)
     public void iterationStart() {
       if (!samples.containsKey(currentIteration.get())) {
         samples.put(currentIteration.get(), new ArrayList<>());
@@ -35,10 +38,32 @@ public class EnergyUpdateBenchmark {
       currentIteration.getAndIncrement();
     }
 
+    @TearDown(Level.Trial)
+    public void trialEnd() {
+      // TODO: this feels like it should be a profiler that is reported with the jmh results
+      samples.entrySet().stream()
+          .forEach(
+              e -> {
+                List<EnergySample> s =
+                    e.getValue().stream().map(Rapl::readingToSample).collect(toList());
+                ArrayList<EnergyInterval> intervals = new ArrayList<>();
+                for (int i = 0; i < s.size() - 1; i++) {
+                  intervals.add(Rapl.difference(s.get(i), s.get(i + 1)));
+                }
+                try (FileWriter writer =
+                    new FileWriter(
+                        String.format("/tmp/jrapl-energy-update-benchmark-%d.json", e.getKey()))) {
+                  writer.write(
+                      String.format(
+                          "[%s]",
+                          intervals.stream().map(EnergyInterval::toString).collect(joining(","))));
+                } catch (Exception err) {
+                  System.out.println("couldn't write data!");
+                }
+              });
+    }
+
     public void sample() {
-      if (!samples.containsKey(currentIteration.get())) {
-        samples.put(currentIteration.get(), new ArrayList<>());
-      }
       samples.get(currentIteration.get()).add(Rapl.read());
     }
   }
@@ -59,20 +84,5 @@ public class EnergyUpdateBenchmark {
             .build();
 
     new Runner(opt).run();
-
-    System.out.println(
-        String.format(
-            "{%s}",
-            samples.entrySet().stream()
-                .map(
-                    e ->
-                        String.format(
-                            "\"%s\",[%s]",
-                            e.getKey(),
-                            e.getValue().stream()
-                                .map(Rapl::readingToSample)
-                                .map(EnergySample::toString)
-                                .collect(joining(","))))
-                .collect(joining(","))));
   }
 }
