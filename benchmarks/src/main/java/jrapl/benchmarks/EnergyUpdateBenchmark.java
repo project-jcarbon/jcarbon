@@ -21,10 +21,12 @@ public class EnergyUpdateBenchmark {
   @State(Scope.Benchmark)
   public static class SamplingState {
 
-    private AtomicInteger currentIteration = new AtomicInteger();
+    private final AtomicInteger currentIteration = new AtomicInteger();
 
     @TearDown(Level.Iteration)
     public void iterationStart() {
+      System.out.println(samples);
+      System.out.println(currentIteration);
       if (!samples.containsKey(currentIteration.get())) {
         samples.put(currentIteration.get(), new ArrayList<>());
       }
@@ -36,6 +38,9 @@ public class EnergyUpdateBenchmark {
     }
 
     public void sample() {
+      if (!samples.containsKey(currentIteration.get())) {
+        samples.put(currentIteration.get(), new ArrayList<>());
+      }
       samples.get(currentIteration.get()).add(Rapl.read());
     }
   }
