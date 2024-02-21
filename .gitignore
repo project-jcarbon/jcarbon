@@ -1,6 +1,7 @@
 # maven build targets
 src/jrapl/target/
 src/native/target/
+benchmarks/target/
 
 # eclipse integration
 .project

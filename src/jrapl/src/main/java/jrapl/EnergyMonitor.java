@@ -34,7 +34,8 @@ final class EnergyMonitor {
     while (true) {
       Thread.sleep(10);
       EnergySample current = source.get();
-      LoggerUtil.LOGGER.info(String.format("%s", differ.apply(last, current)));
+      EnergyInterval interval = differ.apply(last, current);
+      LoggerUtil.LOGGER.info(String.format("%s", interval));
       last = current;
     }
   }

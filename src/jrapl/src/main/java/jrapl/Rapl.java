@@ -33,15 +33,7 @@ public final class Rapl {
     return entries;
   }
 
-  /** Returns an {@link EnergySample} populated by parsing the string returned by {@ readNative}. */
-  public static EnergySample sample() {
-    if (COMPONENTS.isEmpty()) {
-      LoggerUtil.LOGGER.warning("no components founds; rapl likely not available");
-      return new EnergySample(Instant.now(), new EnergyReading[0]);
-    }
-
-    double[] entries = read();
-
+  public static EnergySample readingToSample(double[] entries) {
     // get the timestamp
     long secs = (long) entries[entries.length - 1];
     long nanos = (long) (1000000 * (entries[entries.length - 1] - (double) secs));
@@ -76,6 +68,16 @@ public final class Rapl {
     }
 
     return new EnergySample(timestamp, readings);
+  }
+
+  /** Returns an {@link EnergySample} populated by parsing the string returned by {@ readNative}. */
+  public static EnergySample sample() {
+    if (COMPONENTS.isEmpty()) {
+      LoggerUtil.LOGGER.warning("no components founds; rapl likely not available");
+      return new EnergySample(Instant.now(), new EnergyReading[0]);
+    }
+
+    return readingToSample(read());
   }
 
   /** Computes the difference of two {@link EnergyReadings}, applying the wraparound. */
