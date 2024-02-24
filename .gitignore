@@ -7,3 +7,6 @@ benchmarks/target/
 .project
 .classpath
 .settings
+
+# bazel build targets
+bazel-*
