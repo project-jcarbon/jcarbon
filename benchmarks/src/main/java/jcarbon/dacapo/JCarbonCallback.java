@@ -14,6 +14,7 @@ import jcarbon.cpu.jiffies.ProcStat;
 import jcarbon.cpu.jiffies.ProcTask;
 import jcarbon.cpu.jiffies.ProcessSample;
 import jcarbon.cpu.jiffies.SystemSample;
+import jcarbon.cpu.jiffies.TaskActivityInterval;
 import jcarbon.cpu.rapl.Powercap;
 import jcarbon.cpu.rapl.RaplInterval;
 import jcarbon.cpu.rapl.RaplSample;
@@ -55,12 +56,18 @@ public class JCarbonCallback extends Callback {
     super.stop(w);
 
     List<RaplInterval> rapl = forwardApply(raplFuture.get(), Powercap::difference);
+    List<TaskActivityInterval> activity =
+        JiffiesAccounting.accountTasks(taskFuture.get(), sysFuture.get());
     List<EnergyFootprint> footprints =
         EflectAccounting.accountTasks(
             JiffiesAccounting.accountTasks(taskFuture.get(), sysFuture.get()), rapl);
     System.out.println(
         rapl.stream()
             .mapToDouble(nrg -> Arrays.stream(nrg.data()).mapToDouble(e -> e.total).sum())
+            .summaryStatistics());
+    System.out.println(
+        activity.stream()
+            .mapToDouble(act -> act.data().stream().mapToDouble(a -> a.activity).sum())
             .summaryStatistics());
     System.out.println(
         footprints.stream()
