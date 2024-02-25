@@ -55,7 +55,7 @@ public class JCarbonCallback extends Callback {
             JiffiesAccounting.accountTasks(taskFuture.get(), sysFuture.get()), rapl);
     System.out.println(
         rapl.stream()
-            .mapToDouble(nrg -> Arrays.stream(nrg).stream().mapToDouble(e -> e.energy).sum())
+            .mapToDouble(nrg -> Arrays.stream(nrg.data()).mapToDouble(e -> e.energy).sum())
             .summaryStatistics());
     System.out.println(
         footprints.stream()
