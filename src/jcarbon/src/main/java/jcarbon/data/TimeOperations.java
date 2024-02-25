@@ -1,5 +1,6 @@
 package jcarbon.data;
 
+import java.time.Duration;
 import java.time.Instant;
 
 /** Utilities for algebra with {@link Instant}s. */
@@ -71,6 +72,10 @@ public final class TimeOperations {
       return Region.AFTER;
     }
     return Region.IN_RANGE;
+  }
+
+  public static double divide(Duration dividend, Duration divisor) {
+    return (double) dividend.toNanos() / divisor.toNanos();
   }
 
   private TimeOperations() {}

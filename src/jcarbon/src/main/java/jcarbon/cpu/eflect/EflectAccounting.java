@@ -4,6 +4,7 @@ import static jcarbon.data.DataOperations.forwardAlign;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -24,6 +25,12 @@ public final class EflectAccounting {
 
   private static Optional<EnergyFootprint> accountInterval(
       TaskActivityInterval task, RaplInterval energy) {
+    Instant start = TimeOperations.max(task.start(), energy.start());
+    Instant end = TimeOperations.min(task.end(), energy.end());
+    double intervalFraction =
+        TimeOperations.divide(
+            Duration.between(start, end), Duration.between(energy.start(), energy.end()));
+
     ArrayList<TaskEnergy> tasks = new ArrayList<>();
     double[] totalActivity = new double[Powercap.SOCKETS];
     for (TaskActivity activity : task.data()) {
@@ -39,15 +46,15 @@ public final class EflectAccounting {
         continue;
       }
 
-      double taskEnergy = energy.data()[socket].total * activity.activity / totalActivity[socket];
+      double taskEnergy =
+          energy.data()[socket].total
+              * intervalFraction
+              * activity.activity
+              / totalActivity[socket];
       tasks.add(new TaskEnergy(activity.taskId, activity.processId, activity.cpu, taskEnergy));
     }
     if (!tasks.isEmpty()) {
-      return Optional.of(
-          new EnergyFootprint(
-              TimeOperations.max(task.start(), energy.start()),
-              TimeOperations.min(task.end(), energy.end()),
-              tasks));
+      return Optional.of(new EnergyFootprint(start, end, tasks));
     } else {
       return Optional.empty();
     }
