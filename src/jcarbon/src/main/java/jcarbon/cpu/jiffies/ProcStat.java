@@ -37,9 +37,11 @@ public final class ProcStat {
 
   public static SystemSample sampleCpus() {
     String[] stats = new String[0];
+    // TODO: using the traditional java method to support android
     try {
       BufferedReader reader = new BufferedReader(new FileReader(SYSTEM_STAT_FILE));
       stats = readCpus(reader);
+      reader.close();
     } catch (Exception e) {
       System.out.println("unable to read " + SYSTEM_STAT_FILE);
     }

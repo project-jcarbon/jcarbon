@@ -54,9 +54,11 @@ public final class ProcTask {
         continue;
       }
       // TODO: if a task terminates while we try to read it, we hang here
+      // TODO: using the traditional java method to support android
       try {
         BufferedReader reader = new BufferedReader(new FileReader(statFile));
         stats.add(reader.readLine());
+        reader.close();
       } catch (Exception e) {
         System.out.println("unable to read task " + statFile + " before it terminated");
       }
