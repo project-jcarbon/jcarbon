@@ -2,6 +2,7 @@ package jcarbon.dacapo;
 
 import static jcarbon.data.DataOperations.forwardApply;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -22,7 +23,7 @@ import org.dacapo.harness.CommandLineArgs;
 
 public class JCarbonCallback extends Callback {
   private static final ScheduledExecutorService executor =
-      Executors.newSingleThreadScheduledExecutor();
+      Executors.newSingleThreadScheduledExecutor(r -> new Thread("jcarbon-sampling"));
 
   private final HashMap<Integer, List<EnergyFootprint>> energy = new HashMap<>();
 
@@ -54,7 +55,7 @@ public class JCarbonCallback extends Callback {
             JiffiesAccounting.accountTasks(taskFuture.get(), sysFuture.get()), rapl);
     System.out.println(
         rapl.stream()
-            .mapToDouble(nrg -> nrg.data().stream().mapToDouble(e -> e.energy).sum())
+            .mapToDouble(nrg -> Arrays.stream(nrg).stream().mapToDouble(e -> e.energy).sum())
             .summaryStatistics());
     System.out.println(
         footprints.stream()
