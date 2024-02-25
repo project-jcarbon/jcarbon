@@ -15,7 +15,7 @@ import jcarbon.data.TimeOperations;
 
 public final class EflectAccounting {
   private static final String CPU_INFO = "/proc/cpuinfo";
-  public static final int[] CPU_SOCKET_MAPPING = getCpuSocketMapping();
+  private static final int[] CPU_SOCKET_MAPPING = getCpuSocketMapping();
 
   public static List<EnergyFootprint> accountTasks(
       List<TaskActivityInterval> tasks, List<RaplInterval> energy) {

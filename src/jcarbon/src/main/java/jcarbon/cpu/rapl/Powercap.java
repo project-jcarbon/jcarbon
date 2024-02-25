@@ -28,7 +28,6 @@ public final class Powercap {
   /** Returns an {@link RaplSample} populated by parsing the string returned by {@ readNative}. */
   public static RaplSample sample() {
     if (!isAvailable()) {
-      logger.warning("no sockets founds; power likely not available");
       return new RaplSample(Instant.now(), new RaplReading[0]);
     }
 
