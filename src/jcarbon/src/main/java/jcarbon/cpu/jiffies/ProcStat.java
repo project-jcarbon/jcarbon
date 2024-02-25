@@ -35,7 +35,7 @@ public final class ProcStat {
     }
   }
 
-  public static SystemJiffiesSample sampleCpus() {
+  public static SystemSample sampleCpus() {
     String[] stats = new String[0];
     try {
       BufferedReader reader = new BufferedReader(new FileReader(SYSTEM_STAT_FILE));
@@ -44,7 +44,7 @@ public final class ProcStat {
       System.out.println("unable to read " + SYSTEM_STAT_FILE);
     }
 
-    return new SystemJiffiesSample(Instant.now(), parseCpus(stats));
+    return new SystemSample(Instant.now(), parseCpus(stats));
   }
 
   /** Reads the system's stat file and returns individual cpus. */
@@ -58,15 +58,15 @@ public final class ProcStat {
   }
 
   /** Turns stat strings into a {@link CpuSample}. */
-  private static CpuJiffiesReading[] parseCpus(String[] stats) {
-    CpuJiffiesReading[] readings = new CpuJiffiesReading[stats.length];
+  private static CpuJiffies[] parseCpus(String[] stats) {
+    CpuJiffies[] readings = new CpuJiffies[stats.length];
     for (int i = 0; i < stats.length; i++) {
       String[] stat = stats[i].split(" ");
       if (stat.length != 11) {
         continue;
       }
       readings[i] =
-          new CpuJiffiesReading(
+          new CpuJiffies(
               Integer.parseInt(stat[CpuIndex.CPU.index].substring(3)),
               Integer.parseInt(stat[CpuIndex.USER.index]),
               Integer.parseInt(stat[CpuIndex.NICE.index]),

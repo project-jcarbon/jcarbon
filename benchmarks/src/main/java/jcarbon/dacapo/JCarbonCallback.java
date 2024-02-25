@@ -8,8 +8,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import jcarbon.cpu.jiffies.ProcStat;
 import jcarbon.cpu.jiffies.ProcTask;
-import jcarbon.cpu.jiffies.ProcessJiffiesSample;
-import jcarbon.cpu.jiffies.SystemJiffiesSample;
+import jcarbon.cpu.jiffies.ProcessSample;
+import jcarbon.cpu.jiffies.SystemSample;
 import jcarbon.cpu.jiffies.TaskActivityInterval;
 import jcarbon.util.SamplingFuture;
 import org.dacapo.harness.Callback;
@@ -22,8 +22,8 @@ public class JCarbonCallback extends Callback {
   private final HashMap<Integer, List<TaskActivityInterval>> activity = new HashMap<>();
 
   private int iteration = 0;
-  private SamplingFuture<ProcessJiffiesSample> taskFuture;
-  private SamplingFuture<SystemJiffiesSample> sysFuture;
+  private SamplingFuture<ProcessSample> taskFuture;
+  private SamplingFuture<SystemSample> sysFuture;
 
   public JCarbonCallback(CommandLineArgs args) {
     super(args);

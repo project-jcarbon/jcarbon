@@ -7,14 +7,13 @@ import java.util.Arrays;
 import jcarbon.data.Sample;
 
 /** A sample of the system's jiffies (i.e. cycles) since boot. */
-public final class SystemJiffiesSample
-    implements Sample<CpuJiffiesReading[]>, Comparable<SystemJiffiesSample> {
+public final class SystemSample implements Sample<CpuJiffies[]>, Comparable<SystemSample> {
   private final Instant timestamp;
-  private final CpuJiffiesReading[] readings;
+  private final CpuJiffies[] jiffies;
 
-  SystemJiffiesSample(Instant timestamp, CpuJiffiesReading[] readings) {
+  SystemSample(Instant timestamp, CpuJiffies[] jiffies) {
     this.timestamp = timestamp;
-    this.readings = Arrays.copyOf(readings, readings.length);
+    this.jiffies = Arrays.copyOf(jiffies, jiffies.length);
   }
 
   @Override
@@ -23,8 +22,8 @@ public final class SystemJiffiesSample
   }
 
   @Override
-  public CpuJiffiesReading[] data() {
-    return Arrays.copyOf(readings, readings.length);
+  public CpuJiffies[] data() {
+    return Arrays.copyOf(jiffies, jiffies.length);
   }
 
   @Override
@@ -34,11 +33,11 @@ public final class SystemJiffiesSample
         "{\"timestamp\":{\"seconds\":%d,\"nanos\":%d},\"data\":[%s]}",
         timestamp.getEpochSecond(),
         timestamp.getNano(),
-        Arrays.stream(readings).map(CpuJiffiesReading::toString).collect(joining(",")));
+        Arrays.stream(jiffies).map(CpuJiffies::toString).collect(joining(",")));
   }
 
   @Override
-  public int compareTo(SystemJiffiesSample other) {
+  public int compareTo(SystemSample other) {
     return timestamp().compareTo(other.timestamp());
   }
 }

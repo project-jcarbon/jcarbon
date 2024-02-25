@@ -8,15 +8,52 @@ import jcarbon.data.Interval;
 
 /** A sample of rapl energy consumption since boot. */
 public final class SystemJiffiesInterval
-    implements Interval<CpuJiffiesReading[]>, Comparable<SystemJiffiesInterval> {
+    implements Interval<CpuJiffies[]>, Comparable<SystemJiffiesInterval> {
+  public static SystemJiffiesInterval between(SystemSample first, SystemSample second) {
+    if (first.compareTo(second) > -1) {
+      throw new IllegalArgumentException(
+          String.format(
+              "first sample is not before second sample (%s !< %s)",
+              first.timestamp(), second.timestamp()));
+    }
+    return new SystemJiffiesInterval(
+        first.timestamp(), second.timestamp(), difference(first.data(), second.data()));
+  }
+
+  private static CpuJiffies[] difference(CpuJiffies[] first, CpuJiffies[] second) {
+    if (first.length != second.length) {
+      throw new IllegalArgumentException(
+          String.format(
+              "readings do not have the same number of cpus (%s != %s)",
+              first.length, second.length));
+    }
+    CpuJiffies[] jiffies = new CpuJiffies[first.length];
+    for (CpuJiffies cpu : first) {
+      jiffies[cpu.cpu] =
+          new CpuJiffies(
+              cpu.cpu,
+              second[cpu.cpu].user - cpu.user,
+              second[cpu.cpu].nice - cpu.nice,
+              second[cpu.cpu].system - cpu.system,
+              second[cpu.cpu].idle - cpu.idle,
+              second[cpu.cpu].iowait - cpu.iowait,
+              second[cpu.cpu].irq - cpu.irq,
+              second[cpu.cpu].softirq - cpu.softirq,
+              second[cpu.cpu].steal - cpu.steal,
+              second[cpu.cpu].guest - cpu.guest,
+              second[cpu.cpu].guestNice - cpu.guestNice);
+    }
+    return jiffies;
+  }
+
   private final Instant start;
   private final Instant end;
-  private final CpuJiffiesReading[] readings;
+  private final CpuJiffies[] jiffies;
 
-  SystemJiffiesInterval(Instant start, Instant end, CpuJiffiesReading[] readings) {
+  SystemJiffiesInterval(Instant start, Instant end, CpuJiffies[] jiffies) {
     this.start = start;
     this.end = end;
-    this.readings = Arrays.copyOf(readings, readings.length);
+    this.jiffies = Arrays.copyOf(jiffies, jiffies.length);
   }
 
   @Override
@@ -30,8 +67,8 @@ public final class SystemJiffiesInterval
   }
 
   @Override
-  public CpuJiffiesReading[] data() {
-    return Arrays.copyOf(readings, readings.length);
+  public CpuJiffies[] data() {
+    return Arrays.copyOf(jiffies, jiffies.length);
   }
 
   @Override
@@ -43,7 +80,7 @@ public final class SystemJiffiesInterval
         start.getNano(),
         end.getEpochSecond(),
         end.getNano(),
-        Arrays.stream(readings).map(CpuJiffiesReading::toString).collect(joining(",")));
+        Arrays.stream(jiffies).map(CpuJiffies::toString).collect(joining(",")));
   }
 
   @Override

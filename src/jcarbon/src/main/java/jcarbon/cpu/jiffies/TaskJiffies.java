@@ -1,7 +1,7 @@
 package jcarbon.cpu.jiffies;
 
 /** A reading of jiffies from proc/<pid>/task/<tid>/stat. */
-public final class TaskJiffiesReading {
+public final class TaskJiffies {
   // TODO: immutable data structures are "safe" as public
   public final long taskId;
   public final long processId;
@@ -10,7 +10,7 @@ public final class TaskJiffiesReading {
   public final int systemJiffies;
   public final int totalJiffies;
 
-  TaskJiffiesReading(long taskId, long processId, int cpu, int userJiffies, int systemJiffies) {
+  TaskJiffies(long taskId, long processId, int cpu, int userJiffies, int systemJiffies) {
     this.taskId = taskId;
     this.processId = processId;
     this.cpu = cpu;

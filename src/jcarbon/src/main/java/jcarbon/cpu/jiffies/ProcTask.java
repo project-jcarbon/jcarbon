@@ -31,13 +31,13 @@ public final class ProcTask {
   };
 
   /** Reads from a process's tasks and returns a {@link Sample} of it. */
-  public static ProcessJiffiesSample sampleTasksFor(long pid) {
-    return new ProcessJiffiesSample(Instant.now(), pid, parseTasks(readTasks(pid), pid));
+  public static ProcessSample sampleTasksFor(long pid) {
+    return new ProcessSample(Instant.now(), pid, parseTasks(readTasks(pid), pid));
   }
 
   /** Reads this process's tasks and returns a {@link Sample} of it. */
-  public static ProcessJiffiesSample sampleTasks() {
-    return new ProcessJiffiesSample(Instant.now(), PID, parseTasks(readTasks(PID), PID));
+  public static ProcessSample sampleTasks() {
+    return new ProcessSample(Instant.now(), PID, parseTasks(readTasks(PID), PID));
   }
 
   /** Reads stat files of tasks directory of a process. */
@@ -65,15 +65,15 @@ public final class ProcTask {
   }
 
   /** Turns task stat strings into {@link TaskJiffiesReadings}. */
-  private static List<TaskJiffiesReading> parseTasks(ArrayList<String> stats, long pid) {
-    ArrayList<TaskJiffiesReading> readings = new ArrayList<>();
+  private static List<TaskJiffies> parseTasks(ArrayList<String> stats, long pid) {
+    ArrayList<TaskJiffies> readings = new ArrayList<>();
     for (String s : stats) {
       String[] stat = s.split(" ");
       if (stat.length >= STAT_LENGTH) {
         // task name can be space-delimited, so there may be extra entries
         int offset = stat.length - STAT_LENGTH;
         readings.add(
-            new TaskJiffiesReading(
+            new TaskJiffies(
                 Long.parseLong(stat[TaskIndex.TID.index]),
                 pid,
                 // TODO: the name is usually garbage unfortunately :/

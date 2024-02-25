@@ -7,17 +7,16 @@ import java.util.ArrayList;
 import java.util.List;
 import jcarbon.data.Sample;
 
-/** A sample of the jiffies of all tasks in a process. */
-public final class ProcessJiffiesSample
-    implements Sample<List<TaskJiffiesReading>>, Comparable<ProcessJiffiesSample> {
+/** A sample of the jiffies of all tasks in a process since task birth. */
+public final class ProcessSample implements Sample<List<TaskJiffies>>, Comparable<ProcessSample> {
   private final Instant timestamp;
   private final long processId;
-  private final ArrayList<TaskJiffiesReading> readings = new ArrayList<>();
+  private final ArrayList<TaskJiffies> jiffies = new ArrayList<>();
 
-  ProcessJiffiesSample(Instant timestamp, long processId, Iterable<TaskJiffiesReading> readings) {
+  ProcessSample(Instant timestamp, long processId, Iterable<TaskJiffies> jiffies) {
     this.timestamp = timestamp;
     this.processId = processId;
-    readings.forEach(this.readings::add);
+    jiffies.forEach(this.jiffies::add);
   }
 
   @Override
@@ -30,8 +29,8 @@ public final class ProcessJiffiesSample
   }
 
   @Override
-  public List<TaskJiffiesReading> data() {
-    return new ArrayList<>(readings);
+  public List<TaskJiffies> data() {
+    return new ArrayList<>(jiffies);
   }
 
   @Override
@@ -42,11 +41,11 @@ public final class ProcessJiffiesSample
         timestamp.getEpochSecond(),
         timestamp.getNano(),
         processId,
-        readings.stream().map(TaskJiffiesReading::toString).collect(joining(",")));
+        jiffies.stream().map(TaskJiffies::toString).collect(joining(",")));
   }
 
   @Override
-  public int compareTo(ProcessJiffiesSample other) {
+  public int compareTo(ProcessSample other) {
     return timestamp().compareTo(other.timestamp());
   }
 }
