@@ -25,7 +25,7 @@ public final class EflectAccounting {
   private static Optional<EnergyFootprint> accountInterval(
       TaskActivityInterval task, RaplInterval energy) {
     ArrayList<TaskEnergy> tasks = new ArrayList<>();
-    int[] totalActivity = new int[Powercap.SOCKETS];
+    double[] totalActivity = new double[Powercap.SOCKETS];
     for (TaskActivity activity : task.data()) {
       totalActivity[CPU_SOCKET_MAPPING[activity.cpu]] += activity.activity;
     }
