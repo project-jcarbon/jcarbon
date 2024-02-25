@@ -23,7 +23,12 @@ import org.dacapo.harness.CommandLineArgs;
 
 public class JCarbonCallback extends Callback {
   private static final ScheduledExecutorService executor =
-      Executors.newSingleThreadScheduledExecutor();
+      Executors.newSingleThreadScheduledExecutor(
+          r -> {
+            Thread t = new Thread(r, "jcarbon-sampling");
+            t.setDaemon(false);
+            return t;
+          });
 
   private final HashMap<Integer, List<EnergyFootprint>> energy = new HashMap<>();
 
