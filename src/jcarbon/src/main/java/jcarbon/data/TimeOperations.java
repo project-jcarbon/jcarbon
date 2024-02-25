@@ -65,7 +65,7 @@ public final class TimeOperations {
   }
 
   public static Region between(Instant timestamp, Instant start, Instant end) {
-    if (!atLeast(start, timestamp)) {
+    if (!atLeast(timestamp, start)) {
       return Region.BEFORE;
     } else if (!atMost(timestamp, end)) {
       return Region.AFTER;
