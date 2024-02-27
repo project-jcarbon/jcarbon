@@ -2,22 +2,12 @@ package jcarbon.dacapo;
 
 import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import jcarbon.cpu.eflect.Eflect;
 import jcarbon.cpu.eflect.EnergyFootprint;
 import org.dacapo.harness.Callback;
 import org.dacapo.harness.CommandLineArgs;
 
 public class JCarbonCallback extends Callback {
-  private static final ScheduledExecutorService executor =
-      Executors.newSingleThreadScheduledExecutor(
-          r -> {
-            Thread t = new Thread(r, "jcarbon-sampling");
-            t.setDaemon(false);
-            return t;
-          });
-
   private final HashMap<Integer, List<EnergyFootprint>> energy = new HashMap<>();
   private final Eflect eflect = new Eflect();
 
