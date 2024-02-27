@@ -1,6 +1,6 @@
 package jcarbon.cpu.jiffies;
 
-/** A reading of jiffies from /proc/stat. */
+/** Jiffies from /proc/stat. */
 public final class CpuJiffies {
   // TODO: immutable data structures are "safe" as public
   public final int cpu;

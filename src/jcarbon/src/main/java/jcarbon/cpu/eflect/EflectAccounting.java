@@ -1,9 +1,8 @@
 package jcarbon.cpu.eflect;
 
+import static jcarbon.cpu.jiffies.ProcStat.getCpuSocketMapping;
 import static jcarbon.data.DataOperations.forwardAlign;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -15,17 +14,23 @@ import jcarbon.cpu.rapl.Powercap;
 import jcarbon.cpu.rapl.RaplInterval;
 import jcarbon.data.TimeOperations;
 
+/** Class to compute the energy consumption of tasks based on fractional consumption. */
 public final class EflectAccounting {
-  private static final String CPU_INFO = "/proc/cpuinfo";
-  private static final int[] CPU_SOCKET_MAPPING = getCpuSocketMapping();
+  private static final int[] SOCKETS = getCpuSocketMapping();
 
-  public static List<EnergyFootprint> accountTasks(
+  /** Aligns activty and energy. */
+  public static List<EnergyFootprint> accountTaskEnergy(
       List<TaskActivityInterval> tasks, List<RaplInterval> energy) {
     return forwardAlign(tasks, energy, EflectAccounting::accountInterval);
   }
 
+  /**
+   * Computes the attributed energy of all tasks in the overlapping region of two intervals by using
+   * the fractional activity per socket.
+   */
   private static Optional<EnergyFootprint> accountInterval(
       TaskActivityInterval task, RaplInterval energy) {
+    // Get the fraction of time the interval encompasses.
     Instant start = TimeOperations.max(task.start(), energy.start());
     Instant end = TimeOperations.min(task.end(), energy.end());
     double intervalFraction =
@@ -34,19 +39,23 @@ public final class EflectAccounting {
 
     ArrayList<TaskEnergy> tasks = new ArrayList<>();
     double[] totalActivity = new double[Powercap.SOCKETS];
+    // Set this up for the conversation to sockets.
     for (TaskActivity activity : task.data()) {
-      totalActivity[CPU_SOCKET_MAPPING[activity.cpu]] += activity.activity;
+      totalActivity[SOCKETS[activity.cpu]] += activity.activity;
     }
     for (TaskActivity activity : task.data()) {
+      // Don't bother if there is no activity.
       if (activity.activity == 0) {
         continue;
       }
 
-      int socket = CPU_SOCKET_MAPPING[activity.cpu];
+      int socket = SOCKETS[activity.cpu];
+      // Don't bother if there is no energy.
       if (energy.data()[socket].total == 0) {
         continue;
       }
 
+      // Attribute a fraction of the total energy to the task based on its activity on the socket.
       double taskEnergy =
           energy.data()[socket].total
               * intervalFraction
@@ -59,29 +68,6 @@ public final class EflectAccounting {
     } else {
       return Optional.empty();
     }
-  }
-
-  private static int[] getCpuSocketMapping() {
-    int[] mapping = new int[Runtime.getRuntime().availableProcessors()];
-    // TODO: using the traditional java method to support android
-    try {
-      BufferedReader reader = new BufferedReader(new FileReader(CPU_INFO));
-      int lastCpu = -1;
-      while (true) {
-        String line = reader.readLine();
-        if (line == null) {
-          break;
-        } else if (line.contains("processor")) {
-          lastCpu = Integer.parseInt(line.split(":")[1].trim());
-        } else if (line.contains("physical id")) {
-          mapping[lastCpu] = Integer.parseInt(line.split(":")[1].trim());
-        }
-      }
-      reader.close();
-    } catch (Exception e) {
-      System.out.println("unable to read cpuinfo");
-    }
-    return mapping;
   }
 
   private EflectAccounting() {}

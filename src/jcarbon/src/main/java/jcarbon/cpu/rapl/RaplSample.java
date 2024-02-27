@@ -6,7 +6,7 @@ import java.time.Instant;
 import java.util.Arrays;
 import jcarbon.data.Sample;
 
-/** A sample of rapl energy consumption since boot. */
+/** A {@link Sample} of rapl energy consumption since boot. */
 public final class RaplSample implements Sample<RaplReading[]>, Comparable<RaplSample> {
   private final Instant timestamp;
   private final RaplReading[] readings;

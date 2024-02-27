@@ -8,6 +8,7 @@ import java.util.logging.Handler;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 
+/** Utility for a general jcarbon logger. Should only be used by owners of this codebase. */
 public final class LoggerUtil {
   private static final SimpleDateFormat dateFormatter =
       new SimpleDateFormat("yyyy-MM-dd HH:mm:ss a z");
@@ -20,6 +21,7 @@ public final class LoggerUtil {
         "[" + Thread.currentThread().getName() + "]:");
   }
 
+  /** (Sets up) and grabs a pre-configured logger that is verbose enough for debugging. */
   public static Logger getLogger() {
     ConsoleHandler handler = new ConsoleHandler();
     handler.setFormatter(

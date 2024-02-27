@@ -1,6 +1,6 @@
 package jcarbon.cpu.eflect;
 
-/** Fractional activity of a task. */
+/** Energy consumption of a task. */
 public final class TaskEnergy {
   // TODO: immutable data structures are "safe" as public
   public final long taskId;

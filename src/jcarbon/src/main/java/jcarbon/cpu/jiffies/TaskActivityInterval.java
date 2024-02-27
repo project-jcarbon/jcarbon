@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import jcarbon.data.Interval;
 
-/** A timestamp interval from a rapl energy system that represents consumption over a time range. */
+/** An {@link Interval} of fractional task activity for a process over a time range. */
 public final class TaskActivityInterval
     implements Interval<List<TaskActivity>>, Comparable<TaskActivityInterval> {
   private final Instant start;

@@ -4,7 +4,7 @@ import static jcarbon.util.LoggerUtil.getLogger;
 
 import java.util.logging.Logger;
 
-/** Simple wrapper around rapl access. */
+/** A class to expose the hardware's microarchitecture. */
 public final class MicroArchitecture {
   private static final Logger logger = getLogger();
 

@@ -6,7 +6,7 @@ import java.time.Instant;
 import java.util.Arrays;
 import jcarbon.data.Sample;
 
-/** A sample of the system's jiffies (i.e. cycles) since boot. */
+/** A {@link Sample} of cpu jiffies since boot. */
 public final class SystemSample implements Sample<CpuJiffies[]>, Comparable<SystemSample> {
   private final Instant timestamp;
   private final CpuJiffies[] jiffies;

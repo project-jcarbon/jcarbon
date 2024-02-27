@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Map;
 import jcarbon.data.Interval;
 
-/** A sample of the jiffies of all tasks in a process. */
+/** An {@link Interval} of task jiffies for a process over a time range. */
 public final class ProcessJiffiesInterval
     implements Interval<List<TaskJiffies>>, Comparable<ProcessJiffiesInterval> {
   public static ProcessJiffiesInterval between(ProcessSample first, ProcessSample second) {

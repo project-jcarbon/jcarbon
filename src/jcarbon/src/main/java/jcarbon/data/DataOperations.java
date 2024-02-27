@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.BiFunction;
 
+/** Utilities for complicated data operations across linear data. */
 public final class DataOperations {
   /** Applys a method between pairs of adjacent values in ascending order. */
   public static <T, U> List<U> forwardApply(List<T> data, BiFunction<T, T, U> func) {
@@ -16,7 +17,7 @@ public final class DataOperations {
     return diffs;
   }
 
-  /** Applys a method between pairs of intervals along their time axis. */
+  /** Applys a method between two {@link Lists} of {@link Intervals} along the time axis. */
   public static <T extends Interval<?>, U extends Interval<?>, V> List<V> forwardAlign(
       List<T> firstData, List<U> secondData, BiFunction<T, U, Optional<V>> func) {
     Iterator<T> firstIt = firstData.iterator();

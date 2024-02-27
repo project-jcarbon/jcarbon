@@ -1,6 +1,6 @@
 package jcarbon.cpu.jiffies;
 
-/** A reading of jiffies from proc/<pid>/task/<tid>/stat. */
+/** Jiffies from proc/<pid>/task/<tid>/stat. */
 public final class TaskJiffies {
   // TODO: immutable data structures are "safe" as public
   public final long taskId;

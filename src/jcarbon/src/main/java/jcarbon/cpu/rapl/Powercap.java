@@ -11,7 +11,7 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 /** Simple wrapper to read powercap's energy with pure Java. */
-// TODO: this doesn't appear to work on more modern implementations taht are hierarchical
+// TODO: this doesn't appear to work on more modern implementations that are hierarchical
 public final class Powercap {
   private static final Logger logger = getLogger();
 

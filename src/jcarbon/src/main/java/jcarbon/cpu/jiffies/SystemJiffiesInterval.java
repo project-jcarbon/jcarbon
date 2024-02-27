@@ -6,7 +6,7 @@ import java.time.Instant;
 import java.util.Arrays;
 import jcarbon.data.Interval;
 
-/** A sample of rapl energy consumption since boot. */
+/** An {@link Interval} of cpu jiffies over a time range. */
 public final class SystemJiffiesInterval
     implements Interval<CpuJiffies[]>, Comparable<SystemJiffiesInterval> {
   public static SystemJiffiesInterval between(SystemSample first, SystemSample second) {

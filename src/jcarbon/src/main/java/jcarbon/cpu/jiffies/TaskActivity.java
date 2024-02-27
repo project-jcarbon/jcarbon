@@ -1,6 +1,6 @@
 package jcarbon.cpu.jiffies;
 
-/** Fractional activity of a task. */
+/** Fractional activity (i.e. cpu utilization) of a task. */
 public final class TaskActivity {
   // TODO: immutable data structures are "safe" as public
   public final long taskId;

@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import jcarbon.data.Interval;
 
+/** An {@link Interval} of task energy for a process over a time range. */
 public final class EnergyFootprint
     implements Interval<List<TaskEnergy>>, Comparable<EnergyFootprint> {
   private final Instant start;

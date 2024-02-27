@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import jcarbon.data.Sample;
 
-/** A sample of the jiffies of all tasks in a process since task birth. */
+/** A {@link Sample} of task jiffies for a process since task birth. */
 public final class ProcessSample implements Sample<List<TaskJiffies>>, Comparable<ProcessSample> {
   private final Instant timestamp;
   private final long processId;

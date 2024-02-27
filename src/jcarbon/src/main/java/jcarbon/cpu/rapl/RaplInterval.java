@@ -6,7 +6,7 @@ import java.time.Instant;
 import java.util.Arrays;
 import jcarbon.data.Interval;
 
-/** A timestamp interval from a rapl energy system that represents consumption over a time range. */
+/** An {@link Interval} of rapl energy consumption over a time range. */
 public final class RaplInterval implements Interval<RaplReading[]>, Comparable<RaplInterval> {
   private final Instant start;
   private final Instant end;
