@@ -34,8 +34,9 @@ public class JCarbonCallback extends Callback {
   }
 
   @Override
-  public void stop(long w) {
-    super.stop(w);
+  public void complete(String benchmark, boolean valid, boolean warmup) {
+    super.complete(benchmark, valid, warmup);
+
     List<EnergyFootprint> footprints = eflect.stop();
     System.out.println(
         String.format(
