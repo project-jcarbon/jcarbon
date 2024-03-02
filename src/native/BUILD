@@ -34,5 +34,5 @@ cc_binary(
     name = "libjrapl.so",
     linkshared = True,
     data = glob(["*.h"]),
-    deps = [":rapl-lib"],
+    deps = [":jrapl-lib"],
 )
