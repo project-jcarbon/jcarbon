@@ -25,7 +25,7 @@ cc_library(
 cc_library(
     name = "jrapl-lib",
     srcs = glob(["src/main/c/*.c"]),
-    hdrs = glob(["*.h"]),
+    hdrs = glob(["src/main/c/*.h"]),
     deps = [":copy_jni_hdr_lib"],
     alwayslink = True,
 )
