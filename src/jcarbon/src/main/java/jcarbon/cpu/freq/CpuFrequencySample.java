@@ -8,11 +8,11 @@ import jcarbon.data.Sample;
 
 /** A sample from the cpufreq system that represents the current frequencies ordered by cpu id. */
 public final class CpuFrequencySample
-    implements Sample<CpuFrequencyReading[]>, Comparable<CpuFrequencySample> {
+    implements Sample<CpuFrequency[]>, Comparable<CpuFrequencySample> {
   private final Instant timestamp;
-  private final CpuFrequencyReading[] frequencies;
+  private final CpuFrequency[] frequencies;
 
-  CpuFrequencySample(Instant timestamp, CpuFrequencyReading[] frequencies) {
+  CpuFrequencySample(Instant timestamp, CpuFrequency[] frequencies) {
     this.timestamp = timestamp;
     this.frequencies = Arrays.copyOf(frequencies, frequencies.length);
   }
@@ -23,7 +23,7 @@ public final class CpuFrequencySample
   }
 
   @Override
-  public CpuFrequencyReading[] data() {
+  public CpuFrequency[] data() {
     return Arrays.copyOf(frequencies, frequencies.length);
   }
 
@@ -34,7 +34,7 @@ public final class CpuFrequencySample
         "{\"timestamp\":{\"seconds\":%d,\"nanos\":%d},\"frequencies\":[%s]}",
         timestamp.getEpochSecond(),
         timestamp.getNano(),
-        Arrays.stream(frequencies).map(CpuFrequencyReading::toString).collect(joining(",")));
+        Arrays.stream(frequencies).map(CpuFrequency::toString).collect(joining(",")));
   }
 
   @Override

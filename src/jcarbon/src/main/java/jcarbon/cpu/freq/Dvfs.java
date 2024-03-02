@@ -69,15 +69,15 @@ public final class Dvfs {
 
   public static CpuFrequencySample sample() {
     Instant timestamp = Instant.now();
-    CpuFrequencyReading[] readings = new CpuFrequencyReading[CPU_COUNT];
+    CpuFrequency[] readings = new CpuFrequency[CPU_COUNT];
     for (int cpu = 0; cpu < CPU_COUNT; cpu++) {
       String governor = getGovernor(cpu);
       int observedFrequency = getObservedFrequency(cpu);
       if (governor == SCALABLE_GOVERNOR) {
         readings[cpu] =
-            new CpuFrequencyReading(cpu, governor, observedFrequency, getFrequency(cpu));
+            new CpuFrequency(cpu, governor, observedFrequency, getFrequency(cpu));
       } else {
-        readings[cpu] = new CpuFrequencyReading(cpu, governor, observedFrequency);
+        readings[cpu] = new CpuFrequency(cpu, governor, observedFrequency);
       }
     }
     return new CpuFrequencySample(timestamp, readings);
