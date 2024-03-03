@@ -38,6 +38,7 @@ public final class ProcStat {
     }
   }
 
+  /** Returns the physical socket for each executable cpu. */
   public static int[] getCpuSocketMapping() {
     return Arrays.copyOf(CPU_TO_SOCKETS, CPU_COUNT);
   }
