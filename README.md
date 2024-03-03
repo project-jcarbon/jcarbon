@@ -66,7 +66,7 @@ $$ f_{k} = \frac{k}{\mathcal{K}} * max(f) + (1 - \frac{k}{\mathcal{K}}) * min(f)
 
 $$ \mathcal{C}_{T}(t, k) = \frac{|f'|}{|f_t|} , where \ f' \ \in f_k < f_t \ and \ f_t \leq f_k + \frac{k}{\mathcal{K}} $$
 
-$$\mathcal{C}_{S}(k) = \frac{\sum_{t}|f'|}{|f|}, where \ f' \ \in f_k \leq f_t \ and \ f_t \leq f_k + \frac{k}{\mathcal{K}} $$
+$$\mathcal{C}_{S}(k) = \frac{\sum_t|f'|}{|f|}, where \ f' \ \in f_k \leq f_t \ and \ f_t \leq f_k + \frac{k}{\mathcal{K}} $$
 
 Comparing two traces can be done with any distance metric. Typically pcc is a good choice since it measures covariance.
 
