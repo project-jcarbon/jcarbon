@@ -72,7 +72,9 @@ public final class Powercap {
     }
     try {
       return (int)
-          Files.list(POWERCAP_ROOT).filter(p -> p.getFileName().startsWith("intel-rapl")).count();
+          Files.list(POWERCAP_ROOT)
+              .filter(p -> p.getFileName().toString().contains("intel-rapl"))
+              .count();
     } catch (Exception e) {
       logger.warning("couldn't check the socket count; powercap likely not available");
       return 0;
