@@ -46,13 +46,13 @@ $$A_{task} = J_{task} / J_{cpu} $$
 
 This process is a little tricky due to misalignment in the jiffies updating. Updating of jiffies is done on a specific interval (usually ten milliseconds), but this is done concurrently for each reported component. So while cpus `1` and `2`, and process `A`'s children tasks `B` and `C` may all update every ten milliseconds, when this occurs is likely different. As a result, we may end up with a situation where a task's (or multiple tasks') jiffies exceeds the executing cpu's jiffies. Thus, we need to carefully align and normalize the signals so we don't have more than 100% attributed to the process. Thus, the final attribution computation is:
 
-$$A_{task} = J_{task} / max(1, J_{cpu}, \sum_{task}{J_{task} ,\ where \ task.cpu=cpu}) $$
+$$A_{task} = J_{task} / max(1, J_{cpu}, \sum_{task}{J_{task} ,\ where \ cpu_{task} = cpu}) $$
 
 ### Energy Virtualization
 
 We can extend the `task activity` method described above by combining it with an `energy source`, such as `rapl` or `powercap`. We could reuse the simple computation above, however, there is a corner case. Power systems do not report by logical cpu, but instead by a physical device. In the case of `rapl`, this will be a cpu socket, which contains some number of executing dice. Thus, we must do another normalization and aggregate all tasks onto the single physical device. This mapping can be produce from the details of `/proc/cpuinfo` through the `processer` and `physical id` fields. :
 
-$$E_{task} = E_{socket} * A_{task} / max(1, \sum_{task}{A_{task} ,\ where \ task.cpu \in socket}) $$
+$$E_{task} = E_{socket} * A_{task} / max(1, \sum_{task}{A_{task} ,\ where \ cpu_{task} \in socket}) $$
 
 ### Calmness
 
