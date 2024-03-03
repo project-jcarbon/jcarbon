@@ -17,8 +17,14 @@ public final class DataOperations {
     return diffs;
   }
 
-  /** Applys a method between two {@link Lists} of {@link Intervals} along the time axis. */
+  /** Applys a method between two {@link Interval} {@link Lists} along the time axis. */
   public static <T extends Interval<?>, U extends Interval<?>, V> List<V> forwardAlign(
+      List<T> firstData, List<U> secondData, BiFunction<T, U, V> func) {
+    return forwardPartialAlign(firstData, secondData, func.andThen(Optional::of));
+  }
+
+  /** Attempts to apply a method between two {@link Interval} {@link Lists} along the time axis. */
+  public static <T extends Interval<?>, U extends Interval<?>, V> List<V> forwardPartialAlign(
       List<T> firstData, List<U> secondData, BiFunction<T, U, Optional<V>> func) {
     Iterator<T> firstIt = firstData.iterator();
     T first = firstIt.next();
