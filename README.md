@@ -60,12 +60,13 @@ Calmness is a comparative metric that describes similarity between the power sta
 
 To track power state, we can watch `cpufreq` as power state is typically correlated with executing frequency. We can then define a *spatial* and a *temporal* correspondence by anonymizing the cpus into frequency distributions. We choose [Freedman-Diaconis](https://en.wikipedia.org/wiki/Freedman%E2%80%93Diaconis_rule) to bucket data. The correspondence can be computed from the fraction of observation per bin.
 
-$$\mathcal{K} = 2 * \frac{IQR(f)}{\sqrt[3]{|cpu| * |time|}}$$
+$$ \mathcal{K} = 2 * \frac{IQR(f)}{\sqrt[3]{|cpu| * |time|}} $$
 
-$$f_{k} = \frac{k}{\mathcal{K}} * max(f) + (1 - \frac{k}{\mathcal{K}}) * min(f), where \ k \in {0..\mathcal{K}} $$
+$$ f_{k} = \frac{k}{\mathcal{K}} * max(f) + (1 - \frac{k}{\mathcal{K}}) * min(f), where \ k \in {0..\mathcal{K}} $$
 
-$$\mathcal{C}_{T}(t, k)$$
- <!-- = \frac{|f'|}{|f_t|}, where \ f' \ \in f_{k} \leq f_{t} \ and \ f_{t} \leq f_{k} + \frac{k}{\mathcal{K}} $$ -->
+$$ \mathcal{C}_{T}(t, k) = \frac{|f'|}{|f_t|} $$
+ 
+ <!-- , where \ f' \ \in f_{k} \leq f_{t} \ and \ f_{t} \leq f_{k} + \frac{k}{\mathcal{K}} $$ -->
 
 $$\mathcal{C}_{S}(k) = \frac{\sum_{t}|f'|}{|f|}, where \ f' \ \in f_{k} \leq f_{t} \ and \ f_{t} \leq f_{k} + \frac{k}{\mathcal{K}} $$
 
