@@ -30,17 +30,14 @@ public final class DataOperations {
     while (true) {
       // TODO: i am not sufficient convinced this works as intended. i'll do a pretty thorough
       // refactor to make sure the rules i developed for smargadine are implemented
-      // TODO: there needs to be a better way to check if intervals overlap.
-      if (TimeOperations.between(first.end(), second.start(), second.end())
-          == TimeOperations.Region.BEFORE) {
+      if (first.end().isBefore(second.start())) {
         if (!firstIt.hasNext()) {
           break;
         }
         first = firstIt.next();
         continue;
       }
-      if (TimeOperations.between(second.end(), first.start(), first.end())
-          == TimeOperations.Region.BEFORE) {
+      if (second.end().isBefore(first.start())) {
         if (!secondIt.hasNext()) {
           break;
         }
@@ -50,7 +47,7 @@ public final class DataOperations {
 
       func.apply(first, second).ifPresent(alignedData::add);
 
-      if (TimeOperations.lessThan(first.start(), second.start())) {
+      if (first.start().isBefore(second.start())) {
         if (!firstIt.hasNext()) {
           break;
         }
