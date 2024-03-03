@@ -64,7 +64,8 @@ $$ \mathcal{K} = 2 * \frac{IQR(f)}{\sqrt[3]{|cpu| * |time|}} $$
 
 $$ f_{k} = \frac{k}{\mathcal{K}} * max(f) + (1 - \frac{k}{\mathcal{K}}) * min(f), where \ k \in {0..\mathcal{K}} $$
 
-$$ \mathcal{C}_{T}(t, k) = \frac{|f'|}{|f_t|} , where \ f' \ \in f_{k} $$
+$$ \mathcal{C}_{T}(t, k) = \frac{|f'|}{|f_t|} , where \ f' \ \in $$
+<!-- f_{k} $$ -->
 <!-- < f_{t} $$ -->
 
 <!-- \ and \ f_{t} \leq f_{k} + \frac{k}{\mathcal{K}} $$ -->
