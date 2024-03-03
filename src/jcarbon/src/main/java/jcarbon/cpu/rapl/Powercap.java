@@ -2,21 +2,20 @@ package jcarbon.cpu.rapl;
 
 import static jcarbon.util.LoggerUtil.getLogger;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 /** Simple wrapper to read powercap's energy with pure Java. */
 // TODO: this doesn't appear to work on more modern implementations that are hierarchical
 public final class Powercap {
   private static final Logger logger = getLogger();
 
-  private static final String POWERCAP_PATH =
-      String.join("/", "/sys", "devices", "virtual", "powercap", "intel-rapl");
+  private static final Path POWERCAP_ROOT =
+      Paths.get("/sys", "devices", "virtual", "powercap", "intel-rapl");
 
   public static final int SOCKETS = getSocketCount();
 
@@ -67,9 +66,13 @@ public final class Powercap {
   }
 
   private static int getSocketCount() {
+    if (!Files.exists(POWERCAP_ROOT)) {
+      logger.warning("couldn't check the socket count; powercap likely not available");
+      return 0;
+    }
     try {
       return (int)
-          Stream.of(new File(POWERCAP_PATH).list()).filter(f -> f.contains("intel-rapl")).count();
+          Files.list(POWERCAP_ROOT).filter(p -> p.getFileName().startsWith("intel-rapl")).count();
     } catch (Exception e) {
       logger.warning("couldn't check the socket count; powercap likely not available");
       return 0;
@@ -81,10 +84,10 @@ public final class Powercap {
    * which contains the number of microjoules consumed by the package since boot as an integer.
    */
   private static double readPackage(int socket) {
-    String energyFile =
-        String.join("/", POWERCAP_PATH, String.format("intel-rapl:%d", socket), "energy_uj");
-    try (BufferedReader reader = new BufferedReader(new FileReader(energyFile))) {
-      return Double.parseDouble(reader.readLine()) / 1000000;
+    String socketPrefix = String.format("intel-rapl:%d", socket);
+    Path energyFile = Paths.get(POWERCAP_ROOT.toString(), socketPrefix, "energy_uj");
+    try {
+      return Double.parseDouble(Files.readString(energyFile)) / 1000000;
     } catch (Exception e) {
       return 0;
     }
@@ -97,11 +100,14 @@ public final class Powercap {
    */
   private static double readDram(int socket) {
     String socketPrefix = String.format("intel-rapl:%d", socket);
-    String energyFile =
-        String.join(
-            "/", POWERCAP_PATH, socketPrefix, String.format("%s:0", socketPrefix), "energy_uj");
-    try (BufferedReader reader = new BufferedReader(new FileReader(energyFile))) {
-      return Double.parseDouble(reader.readLine()) / 1000000;
+    Path energyFile =
+        Paths.get(
+            POWERCAP_ROOT.toString(),
+            socketPrefix,
+            String.format("%s:0", socketPrefix),
+            "energy_uj");
+    try {
+      return Double.parseDouble(Files.readString(energyFile)) / 1000000;
     } catch (Exception e) {
       return 0;
     }
