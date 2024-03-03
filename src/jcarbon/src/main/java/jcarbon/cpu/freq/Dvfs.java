@@ -73,12 +73,7 @@ public final class Dvfs {
     for (int cpu = 0; cpu < CPU_COUNT; cpu++) {
       String governor = getGovernor(cpu);
       int observedFrequency = getObservedFrequency(cpu);
-      if (governor == SCALABLE_GOVERNOR) {
-        readings[cpu] =
-            new CpuFrequency(cpu, governor, observedFrequency, getFrequency(cpu));
-      } else {
-        readings[cpu] = new CpuFrequency(cpu, governor, observedFrequency);
-      }
+      readings[cpu] = new CpuFrequency(cpu, governor, observedFrequency, getFrequency(cpu));
     }
     return new CpuFrequencySample(timestamp, readings);
   }

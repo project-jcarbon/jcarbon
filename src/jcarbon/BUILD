@@ -13,3 +13,9 @@ java_binary(
     main_class = "jcarbon.cpu.rapl.SmokeTest",
     runtime_deps = [":jcarbon"],
 )
+
+java_binary(
+    name = "dvfs_monitor",
+    main_class = "jcarbon.cpu.freq.DvfsMonitor",
+    runtime_deps = [":jcarbon"],
+)

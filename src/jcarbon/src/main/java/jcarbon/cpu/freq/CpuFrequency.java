@@ -8,13 +8,6 @@ public final class CpuFrequency {
   public final int frequency;
   public final int setFrequency;
 
-  CpuFrequency(int cpuId, String governor, int frequency) {
-    this.cpuId = cpuId;
-    this.governor = governor;
-    this.frequency = frequency;
-    this.setFrequency = -1;
-  }
-
   CpuFrequency(int cpuId, String governor, int frequency, int setFrequency) {
     this.cpuId = cpuId;
     this.governor = governor;
