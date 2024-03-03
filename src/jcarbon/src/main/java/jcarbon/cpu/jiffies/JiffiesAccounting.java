@@ -1,7 +1,7 @@
 package jcarbon.cpu.jiffies;
 
-import static jcarbon.data.DataOperations.forwardAlign;
 import static jcarbon.data.DataOperations.forwardApply;
+import static jcarbon.data.DataOperations.forwardPartialAlign;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,7 +17,7 @@ public final class JiffiesAccounting {
    */
   public static List<TaskActivityInterval> accountTaskActivity(
       List<ProcessSample> process, List<SystemSample> system) {
-    return forwardAlign(
+    return forwardPartialAlign(
         forwardApply(process, ProcessJiffiesInterval::between),
         forwardApply(system, SystemJiffiesInterval::between),
         JiffiesAccounting::accountInterval);

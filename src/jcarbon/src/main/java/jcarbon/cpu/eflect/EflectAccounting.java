@@ -1,7 +1,7 @@
 package jcarbon.cpu.eflect;
 
 import static jcarbon.cpu.jiffies.ProcStat.getCpuSocketMapping;
-import static jcarbon.data.DataOperations.forwardAlign;
+import static jcarbon.data.DataOperations.forwardPartialAlign;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -21,7 +21,7 @@ public final class EflectAccounting {
   /** Aligns activty and energy. */
   public static List<EnergyFootprint> accountTaskEnergy(
       List<TaskActivityInterval> tasks, List<RaplInterval> energy) {
-    return forwardAlign(tasks, energy, EflectAccounting::accountInterval);
+    return forwardPartialAlign(tasks, energy, EflectAccounting::accountInterval);
   }
 
   /**
