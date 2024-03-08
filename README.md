@@ -4,25 +4,24 @@
 
 ## Features
 
-`jCarbon` provides both physical and virtual signals. 
+`jCarbon` provides high-granularity data sampled at sub-second periods through a simple interface. The system can provide both physical (those that come directly from a system component) and virtual signals (which are computed from other signals).
 
 ### Physical Signals
- - `rapl energy`
- - `powercap energy`
- - `cpu jiffies`
- - `task jiffies`
- - `cpufreq`
+ - [`rapl energy`](https://www.intel.com/content/www/us/en/developer/articles/technical/software-security-guidance/advisory-guidance/running-average-power-limit-energy-reporting.html)
+ - [`powercap energy`](https://www.kernel.org/doc/html/next/power/powercap/powercap.html)
+ - [`cpu jiffies`](https://man7.org/linux/man-pages/man5/proc.5.html)
+ - [`task jiffies`](https://man7.org/linux/man-pages/man5/proc.5.html)
+ - [`cpufreq`](https://wiki.debian.org/CpuFrequencyScaling)
 
 ### Virtual Signals
  - `task activity`
  - `task energy`
- <!-- - `emissions` -->
  - `calmness`
+ <!-- - `emissions` -->
 
 ## Using `jCarbon`
 
 <!-- `jCarbon` can be used directly from its most recent release. You can directly use `jcarbon.JCarbon` for a complete out-of-the-box report:
-
 
 ```java
 JCarbon jcarbon = new JCarbon();
@@ -44,7 +43,9 @@ Since these values represent useful work, we can compute `task activity` equal t
 
 $$A_{task} = J_{task} / J_{cpu} $$
 
-This process is a little tricky due to misalignment in the jiffies updating. Updating of jiffies is done on a specific interval (usually ten milliseconds), but this is done concurrently for each reported component. So while cpus `1` and `2`, and process `A`'s children tasks `B` and `C` may all update every ten milliseconds, when this occurs is likely different. As a result, we may end up with a situation where a task's (or multiple tasks') jiffies exceeds the executing cpu's jiffies. Thus, we need to carefully align and normalize the signals so we don't have more than 100% attributed to the process. Thus, the final attribution computation is:
+This process is a little tricky due to misalignment in the jiffies updating. Updating of jiffies is done on a specific interval (usually ten milliseconds), but this is done concurrently for each reported component. So while cpus `1` and `2`, and our process's tasks `A` and `B` may all update every ten milliseconds, when this occurs is likely different. As a result, we may end up with a situation where a task's (or multiple tasks') jiffies exceeds the executing cpu's jiffies.
+
+We need to carefully align and normalize the signals so we don't have more than 100% attributed to the process. The final attribution computation is:
 
 $$A_{task} = J_{task} / max(1, J_{cpu}, \sum_{task}{J_{task} ,\ where \ cpu_{task} = cpu}) $$
 
@@ -56,7 +57,7 @@ $$E_{task} = E_{socket} * A_{task} / max(1, \sum_{task}{A_{task} ,\ where \ cpu_
 
 ### Calmness
 
-Calmness is a comparative metric that describes similarity between the power state of two logically identical runtime. While any runtime will be impacted by profiling, energy characterization is a little more sensitive since power state will vary during program execution. Therefore, it is critical to find an optimal spot to not disturb the runtime. In performance profiling, we typically focus exclusively on overhead or memory footprint to determine an optimal profiling state. This is not so with energy, which can have local variations during profiling.
+Calmness is a comparative metric that describes similarity between the power state of two logically identical runtime. Given a program, any amount of additional work, such as profiling, will impact the runtime. In performance profiling, we typically focus on overhead or memory footprints to determine an optimal profiling state. Unfortunately, energy characterization is a little more sensitive due to local variance. Therefore, it is critical to find an optimal spot to not disturb the runtime.
 
 To track power state, we can watch `cpufreq` as power state is typically correlated with executing frequency. We can then define a *spatial* and a *temporal* correspondence by anonymizing the cpus into frequency distributions. We choose [Freedman-Diaconis](https://en.wikipedia.org/wiki/Freedman%E2%80%93Diaconis_rule) to bucket data. The correspondence can be computed from the fraction of observation per bin.
 

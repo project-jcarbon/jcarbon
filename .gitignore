@@ -1,4 +1,6 @@
 # maven build targets
+src/benchmarks/target/
+src/jcarbon/target/
 src/jrapl/target/
 src/native/target/
 benchmarks/target/
@@ -10,3 +12,6 @@ benchmarks/target/
 
 # bazel build targets
 bazel-*
+
+# benchmark artifacts
+scratch

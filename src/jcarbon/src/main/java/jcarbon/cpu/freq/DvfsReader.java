@@ -6,13 +6,11 @@ import java.nio.file.Paths;
 import java.time.Instant;
 
 /**
- * A simple (unsafe) wrapper for direct dvfs access. Consult
+ * A simple (unsafe) wrapper for reading the dvfs system. Consult
  * https://www.kernel.org/doc/html/v4.14/admin-guide/pm/cpufreq.html for more details.
  */
 public final class DvfsReader {
   private static final Path CPUFREQ_ROOT = Paths.get("/sys", "devices", "system", "cpu");
-
-  // ,"cpu%d","cpufreq";
 
   private static final int CPU_COUNT = Runtime.getRuntime().availableProcessors();
 
