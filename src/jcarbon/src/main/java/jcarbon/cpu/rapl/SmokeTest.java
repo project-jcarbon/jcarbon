@@ -67,7 +67,7 @@ final class SmokeTest {
                 .mapToObj(
                     socket ->
                         String.format(
-                            " - socket: %d, package: %.3fJ, dram: %.3fJ, core: %.3fJ, gpu: %.3fJ",
+                            " - socket: %d, package: %.6fJ, dram: %.6fJ, core: %.6fJ, gpu: %.6fJ",
                             socket + 1,
                             interval.data()[socket].pkg,
                             interval.data()[socket].dram,
@@ -109,7 +109,7 @@ final class SmokeTest {
                 .mapToObj(
                     socket ->
                         String.format(
-                            " - socket: %d, package: %.3fJ, dram: %.3fJ",
+                            " - socket: %d, package: %.6fJ, dram: %.6fJ",
                             socket + 1, interval.data()[socket].pkg, interval.data()[socket].dram))
                 .collect(joining(System.lineSeparator()))));
     return true;
@@ -134,7 +134,8 @@ final class SmokeTest {
     exercise();
 
     return isSimilar(
-        Powercap.difference(powercap, Powercap.sample().get()), Rapl.difference(rapl, Rapl.sample().get()));
+        Powercap.difference(powercap, Powercap.sample().get()),
+        Rapl.difference(rapl, Rapl.sample().get()));
   }
 
   private static boolean isSimilar(RaplInterval powercap, RaplInterval rapl) {
@@ -161,7 +162,7 @@ final class SmokeTest {
                 .mapToObj(
                     socket ->
                         String.format(
-                            " - socket: %d, package difference: %.3fJ, dram difference: %.3fJ",
+                            " - socket: %d, package difference: %.6fJ, dram difference: %.6fJ",
                             socket + 1,
                             Math.abs(powercap.data()[socket].pkg - rapl.data()[socket].pkg),
                             Math.abs(powercap.data()[socket].dram - rapl.data()[socket].dram)))

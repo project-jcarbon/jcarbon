@@ -16,7 +16,13 @@ java_binary(
 )
 
 java_binary(
-    name = "dvfs_monitor",
-    main_class = "jcarbon.cpu.freq.DvfsMonitor",
+    name = "rapl_monitor",
+    main_class = "jcarbon.cpu.rapl.RaplMonitor",
+    runtime_deps = [":jcarbon"],
+)
+
+java_binary(
+    name = "cpufreq_monitor",
+    main_class = "jcarbon.cpu.freq.CpuFreqMonitor",
     runtime_deps = [":jcarbon"],
 )

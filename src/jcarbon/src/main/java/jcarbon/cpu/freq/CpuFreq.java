@@ -4,15 +4,15 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Instant;
+import java.util.Optional;
 
 /**
  * A simple (unsafe) wrapper for reading the dvfs system. Consult
  * https://www.kernel.org/doc/html/v4.14/admin-guide/pm/cpufreq.html for more details.
  */
-public final class DvfsReader {
-  private static final Path CPUFREQ_ROOT = Paths.get("/sys", "devices", "system", "cpu");
-
+public final class CpuFreq {
   private static final int CPU_COUNT = Runtime.getRuntime().availableProcessors();
+  private static final Path SYS_CPU = Paths.get("/sys", "devices", "system", "cpu");
 
   /** Returns the expected frequency in KHz of a cpu. */
   public static int getFrequency(int cpu) {
@@ -29,14 +29,14 @@ public final class DvfsReader {
     return readFromComponent(cpu, "scaling_governor");
   }
 
-  public static CpuFrequencySample sample() {
+  public static Optional<CpuFrequencySample> sample() {
     Instant timestamp = Instant.now();
     CpuFrequency[] readings = new CpuFrequency[CPU_COUNT];
     for (int cpu = 0; cpu < CPU_COUNT; cpu++) {
       readings[cpu] =
           new CpuFrequency(cpu, getGovernor(cpu), getObservedFrequency(cpu), getFrequency(cpu));
     }
-    return new CpuFrequencySample(timestamp, readings);
+    return Optional.of(new CpuFrequencySample(timestamp, readings));
   }
 
   private static int readCounter(int cpu, String component) {
@@ -49,7 +49,6 @@ public final class DvfsReader {
 
   private static synchronized String readFromComponent(int cpu, String component) {
     try {
-      System.out.println(getComponentPath(cpu, component));
       return Files.readString(getComponentPath(cpu, component));
     } catch (Exception e) {
       // e.printStackTrace();
@@ -58,8 +57,8 @@ public final class DvfsReader {
   }
 
   private static Path getComponentPath(int cpu, String component) {
-    return Paths.get(CPUFREQ_ROOT.toString(), String.format("cpu%d", cpu), "cpufreq", component);
+    return Paths.get(SYS_CPU.toString(), String.format("cpu%d", cpu), "cpufreq", component);
   }
 
-  private DvfsReader() {}
+  private CpuFreq() {}
 }

@@ -73,7 +73,7 @@ Comparing two traces can be done with any distance metric. Typically pcc is a go
 
 ## Building from source
 
-Building the core `jCarbon` artifact from source is done with either `bazel` or `maven`.  Although most of the components are implemented in pure Java, we still support a legacy artifact that enables low-level access to the `rapl` subsystem called [`jRAPL`](). While modern implementations typically prefer `powercap`, we think it is useful to keep direct access to `rapl` available when other solutions are not. However, `jRAPL` is implemented in C, so it requires the JNI to be used. Below are build steps to get `jRAPL` to work on your system if necessary. In most cases, we recommend relying on `powercap` instead.
+Building the core `jCarbon` artifact from source is done with either `bazel` or `maven`.  Although most of the components are implemented in pure Java, we still support a legacy artifact that enables low-level access to the `rapl` subsystem called [`jRAPL`](https://jrapl.github.io). While modern implementations typically prefer `powercap`, we think it is useful to keep direct access to `rapl` available when other solutions are not. However, `jRAPL` is implemented in C, so it requires the JNI to be used. Below are build steps to get `jRAPL` to work on your system if necessary. In most cases, we recommend relying on `powercap` instead.
 
 ### `jRAPL`
 
