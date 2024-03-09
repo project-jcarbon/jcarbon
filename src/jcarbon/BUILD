@@ -5,6 +5,7 @@ java_library(
         "src/main/java/jcarbon/cpu/**/*.java",
         "src/main/java/jcarbon/data/*.java",
         "src/main/java/jcarbon/util/*.java",
+        "src/main/java/jcarbon/*.java",
     ])
 )
 
