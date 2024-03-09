@@ -34,22 +34,20 @@ public final class JCarbon {
             return t;
           });
 
-  private final HashMap<String, SamplingFuture<?>> dataFutures = new HashMap<>();
   private final HashMap<Class<?>, List<? extends Interval<?>>> dataSignals = new HashMap<>();
 
   private boolean isRunning = false;
+  private SamplingFuture<ProcessSample> processFuture;
+  private SamplingFuture<SystemSample> systemFuture;
+  private SamplingFuture<RaplSample> raplFuture;
 
   /** Starts the sampling futures is we aren't already running. */
   public void start() {
     synchronized (this) {
       if (!isRunning) {
-        dataFutures.put(
-            "process_jiffies",
-            SamplingFuture.fixedPeriodMillis(ProcTask::sampleTasks, 10, executor));
-        dataFutures.put(
-            "cpu_jiffies", SamplingFuture.fixedPeriodMillis(ProcStat::sampleCpus, 10, executor));
-        dataFutures.put(
-            "powercap_energy", SamplingFuture.fixedPeriodMillis(Powercap::sample, 10, executor));
+        processFuture = SamplingFuture.fixedPeriodMillis(ProcTask::sampleTasks, 10, executor);
+        systemFuture = SamplingFuture.fixedPeriodMillis(ProcStat::sampleCpus, 10, executor);
+        raplFuture = SamplingFuture.fixedPeriodMillis(Powercap::sample, 10, executor);
         isRunning = true;
       }
     }
@@ -61,21 +59,16 @@ public final class JCarbon {
     synchronized (this) {
       if (isRunning) {
         isRunning = false;
+
         // physical signals
         dataSignals.put(
-            ProcessJiffies.class,
-            forwardApply(
-                (List<ProcessSample>) dataFutures.get("process_jiffies").get(),
-                ProcessJiffies::between));
+            ProcessJiffies.class, forwardApply(processFuture.get(), ProcessJiffies::between));
         dataSignals.put(
-            SystemJiffies.class,
-            forwardApply(
-                (List<SystemSample>) dataFutures.get("cpu_jiffies").get(),
-                SystemJiffies::between));
-        dataSignals.put(
-            RaplInterval.class,
-            forwardApply(
-                (List<RaplSample>) dataFutures.get("powercap_energy").get(), Powercap::difference));
+            SystemJiffies.class, forwardApply(systemFuture.get(), SystemJiffies::between));
+        dataSignals.put(RaplInterval.class, forwardApply(raplFuture.get(), Powercap::difference));
+        processFuture = null;
+        systemFuture = null;
+        raplFuture = null;
 
         // virtual signals
         dataSignals.put(
@@ -90,7 +83,6 @@ public final class JCarbon {
                 getSignal(ProcessActivity.class),
                 getSignal(RaplInterval.class),
                 EflectAccounting::accountInterval));
-        dataFutures.clear();
       }
     }
   }
