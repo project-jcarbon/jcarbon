@@ -10,12 +10,12 @@
  - [`rapl energy`](https://www.intel.com/content/www/us/en/developer/articles/technical/software-security-guidance/advisory-guidance/running-average-power-limit-energy-reporting.html)
  - [`powercap energy`](https://www.kernel.org/doc/html/next/power/powercap/powercap.html)
  - [`cpu jiffies`](https://man7.org/linux/man-pages/man5/proc.5.html)
- - [`task jiffies`](https://man7.org/linux/man-pages/man5/proc.5.html)
+ - [`process jiffies`](https://man7.org/linux/man-pages/man5/proc.5.html)
  - [`cpufreq`](https://wiki.debian.org/CpuFrequencyScaling)
 
 ### Virtual Signals
- - `task activity`
- - `task energy`
+ - `process activity`
+ - `process energy`
  - `calmness`
  <!-- - `emissions` -->
 
@@ -39,7 +39,7 @@ More information about the physical signals can be found in the linked documenta
 
 Unix-based operating systems report cpu cycle usage with a unit called *jiffies*. A jiffy refers to the time between clock ticks. The jiffies for each executing cpu can be found in `/proc/stat`, while those for a process and its children tasks can be found in `/proc/<process id>/task/<task id>/stat`. Please refer to https://man7.org/linux/man-pages/man5/proc.5.html for more information regarding the jiffies system.
 
-Since these values represent useful work, we can compute `task activity` equal to the ratio of the task's jiffies and the jiffies of the task's executing cpu.
+Since these values represent useful work, we can compute task activity equal to the ratio of the task's jiffies and the jiffies of the task's executing cpu.
 
 $$A_{task} = J_{task} / J_{cpu} $$
 
@@ -51,7 +51,7 @@ $$A_{task} = J_{task} / max(1, J_{cpu}, \sum_{task}{J_{task} ,\ where \ cpu_{tas
 
 ### Energy Virtualization
 
-We can extend the `task activity` method described above by combining it with an `energy source`, such as `rapl` or `powercap`. We could reuse the simple computation above, however, there is a corner case. Power systems do not report by logical cpu, but instead by a physical device. In the case of `rapl`, this will be a cpu socket, which contains some number of executing dice. Thus, we must do another normalization and aggregate all tasks onto the single physical device. This mapping can be produce from the details of `/proc/cpuinfo` through the `processer` and `physical id` fields. :
+We can extend the task activity method described above by combining it with an `energy source`, such as `rapl` or `powercap`. We could reuse the simple computation above, however, there is a corner case. Power systems do not report by logical cpu, but instead by a physical device. In the case of `rapl`, this will be a cpu socket, which contains some number of executing dice. Thus, we must do another normalization and aggregate all tasks onto the single physical device. This mapping can be produce from the details of `/proc/cpuinfo` through the `processer` and `physical id` fields. :
 
 $$E_{task} = E_{socket} * A_{task} / max(1, \sum_{task}{A_{task} ,\ where \ cpu_{task} \in socket}) $$
 
