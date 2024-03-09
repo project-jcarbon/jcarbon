@@ -4,7 +4,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.time.Instant;
-import java.util.Arrays;
 
 /**
  * Helper for reading system jiffies from /proc system. Refer to
@@ -13,9 +12,7 @@ import java.util.Arrays;
 public final class ProcStat {
   // system information
   private static final int CPU_COUNT = Runtime.getRuntime().availableProcessors();
-  private static final String CPU_INFO = "/proc/cpuinfo";
   private static final String SYSTEM_STAT_FILE = String.join(File.separator, "/proc", "stat");
-  private static final int[] CPU_TO_SOCKETS = createCpuSocketMapping();
 
   // indicies for cpu stat because there are so many
   private enum CpuIndex {
@@ -36,11 +33,6 @@ public final class ProcStat {
     private CpuIndex(int index) {
       this.index = index;
     }
-  }
-
-  /** Returns the physical socket for each executable cpu. */
-  public static int[] getCpuSocketMapping() {
-    return Arrays.copyOf(CPU_TO_SOCKETS, CPU_COUNT);
   }
 
   public static SystemSample sampleCpus() {
@@ -90,29 +82,6 @@ public final class ProcStat {
               Integer.parseInt(stat[CpuIndex.GUEST_NICE.index]));
     }
     return readings;
-  }
-
-  private static int[] createCpuSocketMapping() {
-    int[] mapping = new int[Runtime.getRuntime().availableProcessors()];
-    // TODO: using the traditional java method to support android
-    try {
-      BufferedReader reader = new BufferedReader(new FileReader(CPU_INFO));
-      int lastCpu = -1;
-      while (true) {
-        String line = reader.readLine();
-        if (line == null) {
-          break;
-        } else if (line.contains("processor")) {
-          lastCpu = Integer.parseInt(line.split(":")[1].trim());
-        } else if (line.contains("physical id")) {
-          mapping[lastCpu] = Integer.parseInt(line.split(":")[1].trim());
-        }
-      }
-      reader.close();
-    } catch (Exception e) {
-      System.out.println("unable to read cpuinfo");
-    }
-    return mapping;
   }
 
   private ProcStat() {}

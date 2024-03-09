@@ -2,43 +2,20 @@ package jcarbon.cpu.rapl;
 
 import static jcarbon.util.LoggerUtil.getLogger;
 
-import java.util.Optional;
-import java.util.function.BiFunction;
-import java.util.function.Supplier;
 import java.util.logging.Logger;
 
 /** Very simple energy monitor that reports energy consumption over 10 millisecond intervals. */
 final class RaplMonitor {
   private static final Logger logger = getLogger();
 
-  // TODO: this is cumbersome, should really have an `isAvailable` method somewhere
-  private static Supplier<Optional<RaplSample>> getEnergySource() {
-    if (Rapl.isAvailable()) {
-      return Rapl::sample;
-    } else if (Powercap.isAvailable()) {
-      return Powercap::sample;
-    }
-    throw new IllegalStateException("no energy source found!");
-  }
-
-  private static BiFunction<RaplSample, RaplSample, RaplInterval> getEnergyDiffer() {
-    if (Rapl.isAvailable()) {
-      return Rapl::difference;
-    } else if (Powercap.isAvailable()) {
-      return Powercap::difference;
-    }
-    throw new IllegalStateException("no energy source found!");
-  }
-
   public static void main(String[] args) throws Exception {
-    Supplier<Optional<RaplSample>> source = getEnergySource();
-    BiFunction<RaplSample, RaplSample, RaplInterval> differ = getEnergyDiffer();
+    RaplSource source = RaplSource.getRaplSource();
 
-    RaplSample last = source.get().get();
+    RaplSample last = source.sample().get();
     while (true) {
       Thread.sleep(10);
-      RaplSample current = source.get().get();
-      RaplInterval interval = differ.apply(last, current);
+      RaplSample current = source.sample().get();
+      RaplInterval interval = source.difference(last, current);
       logger.info(String.format("%s", interval));
       last = current;
     }

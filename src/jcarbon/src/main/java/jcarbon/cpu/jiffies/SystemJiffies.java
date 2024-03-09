@@ -7,8 +7,7 @@ import java.util.Arrays;
 import jcarbon.data.Interval;
 
 /** An {@link Interval} of cpu jiffies over a time range. */
-public final class SystemJiffies
-    implements Interval<CpuJiffies[]>, Comparable<SystemJiffies> {
+public final class SystemJiffies implements Interval<CpuJiffies[]>, Comparable<SystemJiffies> {
   public static SystemJiffies between(SystemSample first, SystemSample second) {
     if (first.compareTo(second) > -1) {
       throw new IllegalArgumentException(

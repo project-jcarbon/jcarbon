@@ -1,6 +1,6 @@
 package jcarbon.cpu.eflect;
 
-import static jcarbon.cpu.jiffies.ProcStat.getCpuSocketMapping;
+import static jcarbon.cpu.CpuInfo.getCpuSocketMapping;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -8,13 +8,12 @@ import java.util.ArrayList;
 import java.util.Optional;
 import jcarbon.cpu.jiffies.ProcessActivity;
 import jcarbon.cpu.jiffies.TaskActivity;
-import jcarbon.cpu.rapl.Powercap;
 import jcarbon.cpu.rapl.RaplInterval;
 import jcarbon.data.TimeOperations;
 
 /** Class to compute the energy consumption of tasks based on fractional consumption. */
 public final class EflectAccounting {
-  private static final int[] SOCKETS = getCpuSocketMapping();
+  private static final int[] SOCKETS_MAP = getCpuSocketMapping();
 
   /**
    * Computes the attributed energy of all tasks in the overlapping region of two intervals by using
@@ -34,10 +33,10 @@ public final class EflectAccounting {
             Duration.between(start, end), Duration.between(energy.start(), energy.end()));
 
     ArrayList<TaskEnergy> tasks = new ArrayList<>();
-    double[] totalActivity = new double[Powercap.SOCKETS];
+    double[] totalActivity = new double[energy.data().length];
     // Set this up for the conversation to sockets.
     for (TaskActivity activity : task.data()) {
-      totalActivity[SOCKETS[activity.cpu]] += activity.activity;
+      totalActivity[SOCKETS_MAP[activity.cpu]] += activity.activity;
     }
     for (TaskActivity activity : task.data()) {
       // Don't bother if there is no activity.
@@ -45,7 +44,7 @@ public final class EflectAccounting {
         continue;
       }
 
-      int socket = SOCKETS[activity.cpu];
+      int socket = SOCKETS_MAP[activity.cpu];
       // Don't bother if there is no energy.
       if (energy.data()[socket].total == 0) {
         continue;

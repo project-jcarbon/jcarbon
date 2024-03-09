@@ -21,9 +21,9 @@ import jcarbon.cpu.jiffies.ProcessJiffies;
 import jcarbon.cpu.jiffies.ProcessSample;
 import jcarbon.cpu.jiffies.SystemJiffies;
 import jcarbon.cpu.jiffies.SystemSample;
-import jcarbon.cpu.rapl.Powercap;
 import jcarbon.cpu.rapl.RaplInterval;
 import jcarbon.cpu.rapl.RaplSample;
+import jcarbon.cpu.rapl.RaplSource;
 import jcarbon.util.SamplingFuture;
 
 /** A class to collect and provide jcarbon signals. */
@@ -37,6 +37,7 @@ public final class JCarbon {
           });
 
   private final HashMap<Class<?>, List<?>> dataSignals = new HashMap<>();
+  private final RaplSource source = RaplSource.getRaplSource();
 
   private boolean isRunning = false;
   private SamplingFuture<ProcessSample> processFuture;
@@ -49,7 +50,7 @@ public final class JCarbon {
       if (!isRunning) {
         processFuture = SamplingFuture.fixedPeriodMillis(ProcTask::sampleTasks, 10, executor);
         systemFuture = SamplingFuture.fixedPeriodMillis(ProcStat::sampleCpus, 10, executor);
-        raplFuture = SamplingFuture.fixedPeriodMillis(Powercap::sample, 10, executor);
+        raplFuture = SamplingFuture.fixedPeriodMillis(source::sample, 10, executor);
         isRunning = true;
       }
     }
@@ -73,7 +74,7 @@ public final class JCarbon {
                 .map(Optional::get)
                 .collect(toList());
         if (!raplSamples.isEmpty()) {
-          dataSignals.put(RaplInterval.class, forwardApply(raplSamples, Powercap::difference));
+          dataSignals.put(RaplInterval.class, forwardApply(raplSamples, source::difference));
         }
         processFuture = null;
         systemFuture = null;
