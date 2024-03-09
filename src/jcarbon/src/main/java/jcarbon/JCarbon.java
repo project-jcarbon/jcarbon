@@ -85,14 +85,14 @@ public final class JCarbon {
             forwardPartialAlign(
                 getSignal(ProcessJiffies.class),
                 getSignal(SystemJiffies.class),
-                JiffiesAccounting::accountInterval));
+                JiffiesAccounting::computeTaskActivity));
         if (hasSignal(RaplInterval.class)) {
           dataSignals.put(
               ProcessEnergy.class,
               forwardPartialAlign(
                   getSignal(ProcessActivity.class),
                   getSignal(RaplInterval.class),
-                  EflectAccounting::accountInterval));
+                  EflectAccounting::computeTaskEnergy));
         }
       }
     }

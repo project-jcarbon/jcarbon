@@ -1,12 +1,10 @@
 package jcarbon.cpu.eflect;
 
 import static jcarbon.cpu.jiffies.ProcStat.getCpuSocketMapping;
-import static jcarbon.data.DataOperations.forwardPartialAlign;
 
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 import jcarbon.cpu.jiffies.ProcessActivity;
 import jcarbon.cpu.jiffies.TaskActivity;
@@ -18,17 +16,12 @@ import jcarbon.data.TimeOperations;
 public final class EflectAccounting {
   private static final int[] SOCKETS = getCpuSocketMapping();
 
-  /** Aligns activty and energy. */
-  public static List<ProcessEnergy> accountTaskEnergy(
-      List<ProcessActivity> tasks, List<RaplInterval> energy) {
-    return forwardPartialAlign(tasks, energy, EflectAccounting::accountInterval);
-  }
-
   /**
    * Computes the attributed energy of all tasks in the overlapping region of two intervals by using
    * the fractional activity per socket.
    */
-  public static Optional<ProcessEnergy> accountInterval(ProcessActivity task, RaplInterval energy) {
+  public static Optional<ProcessEnergy> computeTaskEnergy(
+      ProcessActivity task, RaplInterval energy) {
     if (energy.data().length == 0) {
       return Optional.empty();
     }

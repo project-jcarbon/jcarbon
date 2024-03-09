@@ -1,28 +1,11 @@
 package jcarbon.cpu.jiffies;
 
-import static jcarbon.data.DataOperations.forwardApply;
-import static jcarbon.data.DataOperations.forwardPartialAlign;
-
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 import jcarbon.data.TimeOperations;
 
 /** Class to compute the activity of tasks in a process using jiffies. */
 public final class JiffiesAccounting {
-  /**
-   * Aligns process and system samples by computing fractional activity. {@link Intervals} are first
-   * created using a forward difference, and then they are time-aligned to compute the fractional
-   * cpu utilization of each activity.
-   */
-  public static List<ProcessActivity> accountTaskActivity(
-      List<ProcessSample> process, List<SystemSample> system) {
-    return forwardPartialAlign(
-        forwardApply(process, ProcessJiffies::between),
-        forwardApply(system, SystemJiffies::between),
-        JiffiesAccounting::accountInterval);
-  }
-
   /**
    * Computes the activity of all tasks in the overlapping region of two intervals by using the
    * ratio between a task's jiffies and cpu jiffies of the task's executing cpu. This also safely
@@ -30,7 +13,7 @@ public final class JiffiesAccounting {
    * update timing.
    */
   // TODO: Need to find (or write) something that strictly mentions the timing issue
-  public static Optional<ProcessActivity> accountInterval(
+  public static Optional<ProcessActivity> computeTaskActivity(
       ProcessJiffies proc, SystemJiffies sys) {
     ArrayList<TaskActivity> tasks = new ArrayList<>();
     // Set this up to correct for kernel update.
