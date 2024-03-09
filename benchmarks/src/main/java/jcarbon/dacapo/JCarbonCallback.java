@@ -3,12 +3,12 @@ package jcarbon.dacapo;
 import java.util.HashMap;
 import java.util.List;
 import jcarbon.cpu.eflect.Eflect;
-import jcarbon.cpu.eflect.EnergyFootprint;
+import jcarbon.cpu.eflect.ProcessEnergy;
 import org.dacapo.harness.Callback;
 import org.dacapo.harness.CommandLineArgs;
 
 public class JCarbonCallback extends Callback {
-  private final HashMap<Integer, List<EnergyFootprint>> energy = new HashMap<>();
+  private final HashMap<Integer, List<ProcessEnergy>> energy = new HashMap<>();
   private final Eflect eflect = new Eflect();
 
   private int iteration = 0;
@@ -27,7 +27,7 @@ public class JCarbonCallback extends Callback {
   public void complete(String benchmark, boolean valid, boolean warmup) {
     super.complete(benchmark, valid, warmup);
 
-    List<EnergyFootprint> footprints = eflect.stop();
+    List<ProcessEnergy> footprints = eflect.stop();
     System.out.println(
         String.format(
             "Consumed %.6f joules",

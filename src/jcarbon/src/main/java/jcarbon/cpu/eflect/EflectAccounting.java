@@ -19,7 +19,7 @@ public final class EflectAccounting {
   private static final int[] SOCKETS = getCpuSocketMapping();
 
   /** Aligns activty and energy. */
-  public static List<EnergyFootprint> accountTaskEnergy(
+  public static List<ProcessEnergy> accountTaskEnergy(
       List<TaskActivityInterval> tasks, List<RaplInterval> energy) {
     return forwardPartialAlign(tasks, energy, EflectAccounting::accountInterval);
   }
@@ -28,7 +28,7 @@ public final class EflectAccounting {
    * Computes the attributed energy of all tasks in the overlapping region of two intervals by using
    * the fractional activity per socket.
    */
-  private static Optional<EnergyFootprint> accountInterval(
+  private static Optional<ProcessEnergy> accountInterval(
       TaskActivityInterval task, RaplInterval energy) {
     // Get the fraction of time the interval encompasses.
     Instant start = TimeOperations.max(task.start(), energy.start());
@@ -64,7 +64,7 @@ public final class EflectAccounting {
       tasks.add(new TaskEnergy(activity.taskId, activity.processId, activity.cpu, taskEnergy));
     }
     if (!tasks.isEmpty()) {
-      return Optional.of(new EnergyFootprint(start, end, tasks));
+      return Optional.of(new ProcessEnergy(start, end, tasks));
     } else {
       return Optional.empty();
     }

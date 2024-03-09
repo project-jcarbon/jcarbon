@@ -46,13 +46,13 @@ public final class Eflect {
 
   /** Stops the sampling futures and merges the data they collected. */
   // TODO: this can throw if any of the futures are empty. i don't know how to handle this yet
-  public List<EnergyFootprint> stop() {
+  public List<ProcessEnergy> stop() {
     synchronized (this) {
       if (isRunning) {
         isRunning = false;
         return accountTaskEnergy(
-            accountTaskActivity(taskFuture.get(), sysFuture.get()),
-            forwardApply(raplFuture.get(), Powercap::difference));
+        accountTaskActivity(taskFuture.get(), sysFuture.get()),
+        forwardApply(raplFuture.get(), Powercap::difference));
       } else {
         return List.of();
       }

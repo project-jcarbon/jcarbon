@@ -8,13 +8,12 @@ import java.util.List;
 import jcarbon.data.Interval;
 
 /** An {@link Interval} of task energy for a process over a time range. */
-public final class EnergyFootprint
-    implements Interval<List<TaskEnergy>>, Comparable<EnergyFootprint> {
+public final class ProcessEnergy implements Interval<List<TaskEnergy>>, Comparable<ProcessEnergy> {
   private final Instant start;
   private final Instant end;
   private final ArrayList<TaskEnergy> tasks = new ArrayList<>();
 
-  EnergyFootprint(Instant start, Instant end, Iterable<TaskEnergy> tasks) {
+  ProcessEnergy(Instant start, Instant end, Iterable<TaskEnergy> tasks) {
     this.start = start;
     this.end = end;
     tasks.forEach(this.tasks::add);
@@ -49,7 +48,7 @@ public final class EnergyFootprint
   }
 
   @Override
-  public int compareTo(EnergyFootprint other) {
+  public int compareTo(ProcessEnergy other) {
     int start = start().compareTo(other.start());
     if (start < 0) {
       return start;
