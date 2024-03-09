@@ -10,16 +10,16 @@ import java.util.Map;
 import jcarbon.data.Interval;
 
 /** An {@link Interval} of task jiffies for a process over a time range. */
-public final class ProcessJiffiesInterval
-    implements Interval<List<TaskJiffies>>, Comparable<ProcessJiffiesInterval> {
-  public static ProcessJiffiesInterval between(ProcessSample first, ProcessSample second) {
+public final class ProcessJiffies
+    implements Interval<List<TaskJiffies>>, Comparable<ProcessJiffies> {
+  public static ProcessJiffies between(ProcessSample first, ProcessSample second) {
     if (first.compareTo(second) > -1) {
       throw new IllegalArgumentException(
           String.format(
               "first sample is not before second sample (%s !< %s)",
               first.timestamp(), second.timestamp()));
     }
-    return new ProcessJiffiesInterval(
+    return new ProcessJiffies(
         first.timestamp(),
         second.timestamp(),
         first.processId(),
@@ -52,7 +52,7 @@ public final class ProcessJiffiesInterval
   private final long processId;
   private final ArrayList<TaskJiffies> readings = new ArrayList<>();
 
-  ProcessJiffiesInterval(
+  ProcessJiffies(
       Instant start, Instant end, long processId, Iterable<TaskJiffies> readings) {
     this.start = start;
     this.end = end;
@@ -93,7 +93,7 @@ public final class ProcessJiffiesInterval
   }
 
   @Override
-  public int compareTo(ProcessJiffiesInterval other) {
+  public int compareTo(ProcessJiffies other) {
     int start = start().compareTo(other.start());
     if (start < 0) {
       return start;

@@ -18,8 +18,8 @@ public final class JiffiesAccounting {
   public static List<ProcessActivity> accountTaskActivity(
       List<ProcessSample> process, List<SystemSample> system) {
     return forwardPartialAlign(
-        forwardApply(process, ProcessJiffiesInterval::between),
-        forwardApply(system, SystemJiffiesInterval::between),
+        forwardApply(process, ProcessJiffies::between),
+        forwardApply(system, SystemJiffies::between),
         JiffiesAccounting::accountInterval);
   }
 
@@ -30,8 +30,8 @@ public final class JiffiesAccounting {
    * update timing.
    */
   // TODO: Need to find (or write) something that strictly mentions the timing issue
-  private static Optional<ProcessActivity> accountInterval(
-      ProcessJiffiesInterval proc, SystemJiffiesInterval sys) {
+  public static Optional<ProcessActivity> accountInterval(
+      ProcessJiffies proc, SystemJiffies sys) {
     ArrayList<TaskActivity> tasks = new ArrayList<>();
     // Set this up to correct for kernel update.
     int[] totalJiffies = new int[sys.data().length];

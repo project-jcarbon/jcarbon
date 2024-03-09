@@ -7,16 +7,16 @@ import java.util.Arrays;
 import jcarbon.data.Interval;
 
 /** An {@link Interval} of cpu jiffies over a time range. */
-public final class SystemJiffiesInterval
-    implements Interval<CpuJiffies[]>, Comparable<SystemJiffiesInterval> {
-  public static SystemJiffiesInterval between(SystemSample first, SystemSample second) {
+public final class SystemJiffies
+    implements Interval<CpuJiffies[]>, Comparable<SystemJiffies> {
+  public static SystemJiffies between(SystemSample first, SystemSample second) {
     if (first.compareTo(second) > -1) {
       throw new IllegalArgumentException(
           String.format(
               "first sample is not before second sample (%s !< %s)",
               first.timestamp(), second.timestamp()));
     }
-    return new SystemJiffiesInterval(
+    return new SystemJiffies(
         first.timestamp(), second.timestamp(), difference(first.data(), second.data()));
   }
 
@@ -50,7 +50,7 @@ public final class SystemJiffiesInterval
   private final Instant end;
   private final CpuJiffies[] jiffies;
 
-  SystemJiffiesInterval(Instant start, Instant end, CpuJiffies[] jiffies) {
+  SystemJiffies(Instant start, Instant end, CpuJiffies[] jiffies) {
     this.start = start;
     this.end = end;
     this.jiffies = Arrays.copyOf(jiffies, jiffies.length);
@@ -84,7 +84,7 @@ public final class SystemJiffiesInterval
   }
 
   @Override
-  public int compareTo(SystemJiffiesInterval other) {
+  public int compareTo(SystemJiffies other) {
     int start = start().compareTo(other.start());
     if (start < 0) {
       return start;

@@ -1,25 +1,31 @@
 package jcarbon;
 
-import static jcarbon.cpu.eflect.EflectAccounting.accountTaskEnergy;
-import static jcarbon.cpu.jiffies.JiffiesAccounting.accountTaskActivity;
 import static jcarbon.data.DataOperations.forwardApply;
+import static jcarbon.data.DataOperations.forwardPartialAlign;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import jcarbon.cpu.eflect.EflectAccounting;
 import jcarbon.cpu.eflect.ProcessEnergy;
+import jcarbon.cpu.jiffies.JiffiesAccounting;
 import jcarbon.cpu.jiffies.ProcStat;
 import jcarbon.cpu.jiffies.ProcTask;
 import jcarbon.cpu.jiffies.ProcessActivity;
+import jcarbon.cpu.jiffies.ProcessJiffies;
 import jcarbon.cpu.jiffies.ProcessSample;
+import jcarbon.cpu.jiffies.SystemJiffies;
 import jcarbon.cpu.jiffies.SystemSample;
 import jcarbon.cpu.rapl.Powercap;
 import jcarbon.cpu.rapl.RaplInterval;
+import jcarbon.cpu.rapl.RaplSample;
+import jcarbon.data.Interval;
 import jcarbon.util.SamplingFuture;
 
-public class JCarbon {
+/** A class to collect and provide jcarbon signals. */
+public final class JCarbon {
   private final ScheduledExecutorService executor =
       Executors.newSingleThreadScheduledExecutor(
           r -> {
@@ -29,15 +35,9 @@ public class JCarbon {
           });
 
   private final HashMap<String, SamplingFuture<?>> dataFutures = new HashMap<>();
-  private final HashMap<Class<?>, List<?>> dataSignals = new HashMap<>();
+  private final HashMap<Class<?>, List<? extends Interval<?>>> dataSignals = new HashMap<>();
 
   private boolean isRunning = false;
-
-  //   private SamplingFuture<ProcessSample> taskFuture;
-  //   private SamplingFuture<SystemSample> sysFuture;
-  //   private SamplingFuture<RaplSample> raplFuture;
-
-  public JCarbon() {}
 
   /** Starts the sampling futures is we aren't already running. */
   public void start() {
@@ -50,9 +50,6 @@ public class JCarbon {
             "cpu_jiffies", SamplingFuture.fixedPeriodMillis(ProcStat::sampleCpus, 10, executor));
         dataFutures.put(
             "powercap_energy", SamplingFuture.fixedPeriodMillis(Powercap::sample, 10, executor));
-        // taskFuture = SamplingFuture.fixedPeriodMillis(ProcTask::sampleTasks, 10, executor);
-        // sysFuture = SamplingFuture.fixedPeriodMillis(ProcStat::sampleCpus, 10, executor);
-        // raplFuture = SamplingFuture.fixedPeriodMillis(Powercap::sample, 10, executor);
         isRunning = true;
       }
     }
@@ -64,19 +61,35 @@ public class JCarbon {
     synchronized (this) {
       if (isRunning) {
         isRunning = false;
+        // physical signals
+        dataSignals.put(
+            ProcessJiffies.class,
+            forwardApply(
+                (List<ProcessSample>) dataFutures.get("process_jiffies").get(),
+                ProcessJiffies::between));
+        dataSignals.put(
+            SystemJiffies.class,
+            forwardApply(
+                (List<SystemSample>) dataFutures.get("cpu_jiffies").get(),
+                SystemJiffies::between));
         dataSignals.put(
             RaplInterval.class,
-            forwardApply(dataFutures.get("powercap_energy").get(), Powercap::difference));
+            forwardApply(
+                (List<RaplSample>) dataFutures.get("powercap_energy").get(), Powercap::difference));
+
+        // virtual signals
         dataSignals.put(
             ProcessActivity.class,
-            accountTaskActivity(
-                (List<ProcessSample>) dataFutures.get("process_jiffies").get(),
-                (List<SystemSample>) dataFutures.get("cpu_jiffies").get()));
+            forwardPartialAlign(
+                getSignal(ProcessJiffies.class),
+                getSignal(SystemJiffies.class),
+                JiffiesAccounting::accountInterval));
         dataSignals.put(
             ProcessEnergy.class,
-            accountTaskEnergy(
-                (List<ProcessActivity>) dataSignals.get("process_activity"),
-                (List<RaplInterval>) dataSignals.get("powercap_energy")));
+            forwardPartialAlign(
+                getSignal(ProcessActivity.class),
+                getSignal(RaplInterval.class),
+                EflectAccounting::accountInterval));
         dataFutures.clear();
       }
     }

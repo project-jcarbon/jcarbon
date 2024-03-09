@@ -1,17 +1,18 @@
 package jcarbon.dacapo;
 
-import java.util.HashMap;
-import java.util.List;
-import jcarbon.cpu.eflect.Eflect;
+import java.time.Instant;
+import jcarbon.JCarbon;
 import jcarbon.cpu.eflect.ProcessEnergy;
+import jcarbon.cpu.jiffies.ProcessActivity;
 import org.dacapo.harness.Callback;
 import org.dacapo.harness.CommandLineArgs;
 
 public class JCarbonCallback extends Callback {
-  private final HashMap<Integer, List<ProcessEnergy>> energy = new HashMap<>();
-  private final Eflect eflect = new Eflect();
+  private static final int CPU_COUNT = Runtime.getRuntime().availableProcessors();
 
-  private int iteration = 0;
+  private final JCarbon jcarbon = new JCarbon();
+
+  private Instant start = Instant.EPOCH;
 
   public JCarbonCallback(CommandLineArgs args) {
     super(args);
@@ -19,24 +20,34 @@ public class JCarbonCallback extends Callback {
 
   @Override
   public void start(String benchmark) {
-    eflect.start();
+    start = Instant.now();
+    jcarbon.start();
     super.start(benchmark);
   }
 
   @Override
   public void complete(String benchmark, boolean valid, boolean warmup) {
     super.complete(benchmark, valid, warmup);
+    jcarbon.stop();
 
-    List<ProcessEnergy> footprints = eflect.stop();
+    System.out.println(
+        String.format(
+            "Consumed %.2f%% of cycles",
+            100
+                * jcarbon.getSignal(ProcessActivity.class).stream()
+                    .filter(activity -> start.isBefore(activity.start()))
+                    .mapToDouble(
+                        activity ->
+                            activity.data().stream().mapToDouble(a -> a.activity).sum() / CPU_COUNT)
+                    .average()
+                    .getAsDouble()));
     System.out.println(
         String.format(
             "Consumed %.6f joules",
-            footprints.stream()
+            jcarbon.getSignal(ProcessEnergy.class).stream()
+                .filter(nrg -> start.isBefore(nrg.start()))
                 .mapToDouble(nrg -> nrg.data().stream().mapToDouble(e -> e.energy).sum())
                 .sum()));
-    energy.put(iteration, footprints);
-
-    iteration++;
   }
 
   @Override

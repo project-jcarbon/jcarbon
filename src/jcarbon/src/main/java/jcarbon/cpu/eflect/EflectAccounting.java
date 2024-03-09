@@ -8,8 +8,8 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import jcarbon.cpu.jiffies.TaskActivity;
 import jcarbon.cpu.jiffies.ProcessActivity;
+import jcarbon.cpu.jiffies.TaskActivity;
 import jcarbon.cpu.rapl.Powercap;
 import jcarbon.cpu.rapl.RaplInterval;
 import jcarbon.data.TimeOperations;
@@ -28,8 +28,11 @@ public final class EflectAccounting {
    * Computes the attributed energy of all tasks in the overlapping region of two intervals by using
    * the fractional activity per socket.
    */
-  private static Optional<ProcessEnergy> accountInterval(
-      ProcessActivity task, RaplInterval energy) {
+  public static Optional<ProcessEnergy> accountInterval(ProcessActivity task, RaplInterval energy) {
+    if (energy.data().length == 0) {
+      return Optional.empty();
+    }
+
     // Get the fraction of time the interval encompasses.
     Instant start = TimeOperations.max(task.start(), energy.start());
     Instant end = TimeOperations.min(task.end(), energy.end());
