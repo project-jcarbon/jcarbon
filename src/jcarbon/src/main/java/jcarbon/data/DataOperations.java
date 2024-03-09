@@ -10,6 +10,9 @@ import java.util.function.BiFunction;
 public final class DataOperations {
   /** Applys a method between pairs of adjacent values in ascending order. */
   public static <T, U> List<U> forwardApply(List<T> data, BiFunction<T, T, U> func) {
+    if (data.size() < 2) {
+      return List.of();
+    }
     ArrayList<U> diffs = new ArrayList<>();
     for (int i = 0; i < data.size() - 1; i++) {
       diffs.add(func.apply(data.get(i), data.get(i + 1)));

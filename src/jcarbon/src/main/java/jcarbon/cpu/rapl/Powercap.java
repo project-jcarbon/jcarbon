@@ -6,6 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Instant;
+import java.util.Optional;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
 
@@ -25,9 +26,9 @@ public final class Powercap {
   }
 
   /** Returns an {@link RaplSample} populated by parsing the string returned by {@ readNative}. */
-  public static RaplSample sample() {
+  public static Optional<RaplSample> sample() {
     if (!isAvailable()) {
-      return new RaplSample(Instant.now(), new RaplReading[0]);
+      return Optional.empty();
     }
 
     Instant timestamp = Instant.now();
@@ -36,7 +37,7 @@ public final class Powercap {
       readings[socket] = new RaplReading(socket, readPackage(socket), readDram(socket), 0.0, 0.0);
     }
 
-    return new RaplSample(timestamp, readings);
+    return Optional.of(new RaplSample(timestamp, readings));
   }
 
   /** Computes the difference of two {@link RaplReadings}. */

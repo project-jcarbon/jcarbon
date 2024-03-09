@@ -2,6 +2,7 @@ package jcarbon.cpu.rapl;
 
 import static jcarbon.util.LoggerUtil.getLogger;
 
+import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
 import java.util.logging.Logger;
@@ -11,7 +12,7 @@ final class RaplMonitor {
   private static final Logger logger = getLogger();
 
   // TODO: this is cumbersome, should really have an `isAvailable` method somewhere
-  private static Supplier<RaplSample> getEnergySource() {
+  private static Supplier<Optional<RaplSample>> getEnergySource() {
     if (Rapl.isAvailable()) {
       return Rapl::sample;
     } else if (Powercap.isAvailable()) {
@@ -30,13 +31,13 @@ final class RaplMonitor {
   }
 
   public static void main(String[] args) throws Exception {
-    Supplier<RaplSample> source = getEnergySource();
+    Supplier<Optional<RaplSample>> source = getEnergySource();
     BiFunction<RaplSample, RaplSample, RaplInterval> differ = getEnergyDiffer();
 
-    RaplSample last = source.get();
+    RaplSample last = source.get().get();
     while (true) {
       Thread.sleep(10);
-      RaplSample current = source.get();
+      RaplSample current = source.get().get();
       RaplInterval interval = differ.apply(last, current);
       logger.info(String.format("%s", interval));
       last = current;

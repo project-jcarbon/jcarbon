@@ -41,11 +41,11 @@ final class SmokeTest {
       return false;
     }
 
-    RaplSample start = Rapl.sample();
+    RaplSample start = Rapl.sample().get();
 
     exercise();
 
-    RaplInterval interval = Rapl.difference(start, Rapl.sample());
+    RaplInterval interval = Rapl.difference(start, Rapl.sample().get());
 
     if (IntStream.range(0, MicroArchitecture.SOCKETS)
             .mapToDouble(socket -> interval.data()[socket].total)
@@ -84,11 +84,11 @@ final class SmokeTest {
       return false;
     }
 
-    RaplSample start = Powercap.sample();
+    RaplSample start = Powercap.sample().get();
 
     exercise();
 
-    RaplInterval interval = Powercap.difference(start, Powercap.sample());
+    RaplInterval interval = Powercap.difference(start, Powercap.sample().get());
 
     if (IntStream.range(0, MicroArchitecture.SOCKETS)
             .mapToDouble(socket -> interval.data()[socket].total)
@@ -128,13 +128,13 @@ final class SmokeTest {
       return false;
     }
 
-    RaplSample rapl = Rapl.sample();
-    RaplSample powercap = Powercap.sample();
+    RaplSample rapl = Rapl.sample().get();
+    RaplSample powercap = Powercap.sample().get();
 
     exercise();
 
     return isSimilar(
-        Powercap.difference(powercap, Powercap.sample()), Rapl.difference(rapl, Rapl.sample()));
+        Powercap.difference(powercap, Powercap.sample().get()), Rapl.difference(rapl, Rapl.sample().get()));
   }
 
   private static boolean isSimilar(RaplInterval powercap, RaplInterval rapl) {

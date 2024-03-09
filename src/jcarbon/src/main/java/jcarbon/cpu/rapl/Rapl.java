@@ -5,6 +5,7 @@ import static jcarbon.util.LoggerUtil.getLogger;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Optional;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
 
@@ -81,12 +82,12 @@ public final class Rapl {
   }
 
   /** Returns an {@link RaplSample} populated by parsing the string returned by {@ readNative}. */
-  public static RaplSample sample() {
+  public static Optional<RaplSample> sample() {
     if (COMPONENTS.isEmpty()) {
       logger.warning("no components founds; rapl likely not available");
-      return new RaplSample(Instant.now(), new RaplReading[0]);
+      return Optional.empty();
     }
-    return readingToSample(read());
+    return Optional.of(readingToSample(read()));
   }
 
   /** Computes the difference of two {@link RaplReadings}, applying the wraparound. */
