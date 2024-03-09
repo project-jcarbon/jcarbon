@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import jcarbon.cpu.jiffies.TaskActivity;
-import jcarbon.cpu.jiffies.TaskActivityInterval;
+import jcarbon.cpu.jiffies.ProcessActivity;
 import jcarbon.cpu.rapl.Powercap;
 import jcarbon.cpu.rapl.RaplInterval;
 import jcarbon.data.TimeOperations;
@@ -20,7 +20,7 @@ public final class EflectAccounting {
 
   /** Aligns activty and energy. */
   public static List<ProcessEnergy> accountTaskEnergy(
-      List<TaskActivityInterval> tasks, List<RaplInterval> energy) {
+      List<ProcessActivity> tasks, List<RaplInterval> energy) {
     return forwardPartialAlign(tasks, energy, EflectAccounting::accountInterval);
   }
 
@@ -29,7 +29,7 @@ public final class EflectAccounting {
    * the fractional activity per socket.
    */
   private static Optional<ProcessEnergy> accountInterval(
-      TaskActivityInterval task, RaplInterval energy) {
+      ProcessActivity task, RaplInterval energy) {
     // Get the fraction of time the interval encompasses.
     Instant start = TimeOperations.max(task.start(), energy.start());
     Instant end = TimeOperations.min(task.end(), energy.end());

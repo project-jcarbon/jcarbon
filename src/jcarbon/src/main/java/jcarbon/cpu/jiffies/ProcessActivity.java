@@ -8,13 +8,13 @@ import java.util.List;
 import jcarbon.data.Interval;
 
 /** An {@link Interval} of fractional task activity for a process over a time range. */
-public final class TaskActivityInterval
-    implements Interval<List<TaskActivity>>, Comparable<TaskActivityInterval> {
+public final class ProcessActivity
+    implements Interval<List<TaskActivity>>, Comparable<ProcessActivity> {
   private final Instant start;
   private final Instant end;
   private final ArrayList<TaskActivity> tasks = new ArrayList<>();
 
-  TaskActivityInterval(Instant start, Instant end, Iterable<TaskActivity> tasks) {
+  ProcessActivity(Instant start, Instant end, Iterable<TaskActivity> tasks) {
     this.start = start;
     this.end = end;
     tasks.forEach(this.tasks::add);
@@ -49,7 +49,7 @@ public final class TaskActivityInterval
   }
 
   @Override
-  public int compareTo(TaskActivityInterval other) {
+  public int compareTo(ProcessActivity other) {
     int start = start().compareTo(other.start());
     if (start < 0) {
       return start;

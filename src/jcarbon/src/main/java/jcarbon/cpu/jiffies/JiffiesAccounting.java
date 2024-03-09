@@ -15,7 +15,7 @@ public final class JiffiesAccounting {
    * created using a forward difference, and then they are time-aligned to compute the fractional
    * cpu utilization of each activity.
    */
-  public static List<TaskActivityInterval> accountTaskActivity(
+  public static List<ProcessActivity> accountTaskActivity(
       List<ProcessSample> process, List<SystemSample> system) {
     return forwardPartialAlign(
         forwardApply(process, ProcessJiffiesInterval::between),
@@ -30,7 +30,7 @@ public final class JiffiesAccounting {
    * update timing.
    */
   // TODO: Need to find (or write) something that strictly mentions the timing issue
-  private static Optional<TaskActivityInterval> accountInterval(
+  private static Optional<ProcessActivity> accountInterval(
       ProcessJiffiesInterval proc, SystemJiffiesInterval sys) {
     ArrayList<TaskActivity> tasks = new ArrayList<>();
     // Set this up to correct for kernel update.
@@ -52,7 +52,7 @@ public final class JiffiesAccounting {
     // Don't bother if there is no activity.
     if (!tasks.isEmpty()) {
       return Optional.of(
-          new TaskActivityInterval(
+          new ProcessActivity(
               TimeOperations.max(proc.start(), sys.start()),
               TimeOperations.min(proc.end(), sys.end()),
               tasks));
