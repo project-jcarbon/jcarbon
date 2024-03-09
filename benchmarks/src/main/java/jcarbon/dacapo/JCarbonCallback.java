@@ -35,7 +35,6 @@ public class JCarbonCallback extends Callback {
             "Consumed %.2f%% of cycles",
             100
                 * jcarbon.getSignal(ProcessActivity.class).stream()
-                    .filter(activity -> start.isBefore(activity.start()))
                     .mapToDouble(
                         activity ->
                             activity.data().stream().mapToDouble(a -> a.activity).sum() / CPU_COUNT)
@@ -45,7 +44,6 @@ public class JCarbonCallback extends Callback {
         String.format(
             "Consumed %.6f joules",
             jcarbon.getSignal(ProcessEnergy.class).stream()
-                .filter(nrg -> start.isBefore(nrg.start()))
                 .mapToDouble(nrg -> nrg.data().stream().mapToDouble(e -> e.energy).sum())
                 .sum()));
   }
