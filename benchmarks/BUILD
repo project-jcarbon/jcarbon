@@ -6,6 +6,17 @@ java_plugin(
 )
 
 java_binary(
+    name = "msr_update",
+    main_class = "jcarbon.benchmarks.cpu.rapl.MsrUpdateBenchmark",
+    srcs = glob(["src/main/java/jcarbon/benchmarks/cpu/rapl/*.java"]),
+    deps = [
+        "//src/jcarbon",
+        "@org_openjdk_jmh_jmh_core",
+    ],
+    plugins = [":collection_test_jmh_annotation_processor"],
+)
+
+java_binary(
     name = "dacapo",
     main_class = "Harness",
     srcs = glob(["src/main/java/jcarbon/dacapo/*.java"]),
@@ -21,12 +32,15 @@ java_binary(
 )
 
 java_binary(
-    name = "msr_update",
-    main_class = "jcarbon.benchmarks.cpu.rapl.MsrUpdateBenchmark",
-    srcs = glob(["src/main/java/jcarbon/benchmarks/cpu/rapl/*.java"]),
+    name = "renaissance",
+    main_class = "org.renaissance.core.Launcher",
+    srcs = glob(["src/main/java/jcarbon/renaissance/*.java"]),
     deps = [
         "//src/jcarbon",
-        "@org_openjdk_jmh_jmh_core",
+        "@renaissance//jar",
     ],
-    plugins = [":collection_test_jmh_annotation_processor"],
+    args = [
+        "--repetitions 20",
+        "--plugin !jcarbon.renaissance.JCarbonPlugin",
+    ]
 )

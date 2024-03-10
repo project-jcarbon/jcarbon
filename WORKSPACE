@@ -1,4 +1,4 @@
-load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive", "http_jar")
 
 http_archive(
     name = "dacapo",
@@ -29,4 +29,11 @@ maven_install(
       "org.openjdk.jmh:jmh-generator-annprocess:1.27"
     ],
     repositories = ["https://repo1.maven.org/maven2"],
+)
+
+http_jar(
+  name = "renaissance",
+  urls = [
+    "https://github.com/renaissance-benchmarks/renaissance/releases/download/v0.15.0/renaissance-gpl-0.15.0.jar"
+  ],
 )

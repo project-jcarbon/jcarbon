@@ -32,7 +32,7 @@ public final class JCarbon {
       Executors.newSingleThreadScheduledExecutor(
           r -> {
             Thread t = new Thread(r, "jcarbon-eflect");
-            t.setDaemon(false);
+            t.setDaemon(true);
             return t;
           });
 
