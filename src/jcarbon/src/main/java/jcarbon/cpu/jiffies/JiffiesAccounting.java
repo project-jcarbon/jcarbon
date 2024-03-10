@@ -15,6 +15,9 @@ public final class JiffiesAccounting {
   // TODO: Need to find (or write) something that strictly mentions the timing issue
   public static Optional<ProcessActivity> computeTaskActivity(
       ProcessJiffies proc, SystemJiffies sys) {
+    if (proc.start().isAfter(sys.end()) || sys.start().isAfter(proc.end())) {
+      return Optional.empty();
+    }
     ArrayList<TaskActivity> tasks = new ArrayList<>();
     // Set this up to correct for kernel update.
     int[] totalJiffies = new int[sys.data().length];

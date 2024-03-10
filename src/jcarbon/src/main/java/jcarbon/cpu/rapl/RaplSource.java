@@ -55,11 +55,15 @@ public final class RaplSource {
           int value = counter.getAndIncrement();
           RaplReading[] readings =
               IntStream.range(0, SOCKETS)
-                  .mapToObj(cpu -> RaplReading.forPackage(cpu, value))
+                  .mapToObj(cpu -> forPackage(cpu, value))
                   .toArray(RaplReading[]::new);
           return Optional.of(new RaplSample(Instant.now(), readings));
         },
         RaplSource::sampleDifference);
+  }
+
+  static RaplReading forPackage(int socket, double energy) {
+    return new RaplReading(socket, energy, 0, 0, 0);
   }
 
   private static RaplInterval sampleDifference(RaplSample first, RaplSample second) {

@@ -2,10 +2,6 @@ package jcarbon.cpu.rapl;
 
 /** A reading from a rapl energy system. */
 public final class RaplReading {
-  static RaplReading forPackage(int socket, double energy) {
-    return new RaplReading(socket, energy, 0, 0, 0);
-  }
-
   // TODO: immutable data structures are "safe" as public
   // energy domain
   public final int socket;
