@@ -34,8 +34,13 @@ final class NativeLibrary {
   /** Makes a safe attempt to load the library. */
   private static boolean loadLibrary() {
     if (new File("/dev/cpu/0/msr").exists()) {
-      System.loadLibrary("jrapl");
-      return true;
+      // TODO: need to lock this up if it fails the first time
+      try {
+        System.loadLibrary("jrapl");
+        return true;
+      } catch (UnsatisfiedLinkError e) {
+        return false;
+      }
     } else {
       return false;
     }
