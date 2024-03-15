@@ -38,7 +38,7 @@ final class NativeLibrary {
       try {
         System.loadLibrary("jrapl");
         return true;
-      } catch (Exception e) {
+      } catch (UnsatisfiedLinkError e) {
         return false;
       }
     } else {
