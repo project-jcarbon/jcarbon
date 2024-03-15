@@ -1,13 +1,10 @@
 package jcarbon.emissions;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.stream.Collectors; 
-import java.util.stream.Stream;
+import static java.util.stream.Collectors.joining;
 
+import java.time.Instant;
+import java.util.Arrays;
+import jcarbon.data.Interval;
 import jcarbon.cpu.rapl.RaplReading;
 import jcarbon.cpu.eflect.TaskEnergy;
 
