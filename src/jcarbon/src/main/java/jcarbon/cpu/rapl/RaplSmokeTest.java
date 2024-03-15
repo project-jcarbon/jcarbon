@@ -8,7 +8,7 @@ import java.util.logging.Logger;
 import java.util.stream.IntStream;
 
 /** A smoke test to check which components are available and if they are reporting similarly. */
-final class SmokeTest {
+final class RaplSmokeTest {
   private static final Logger logger = getLogger();
   private static final Duration ONE_SECOND = Duration.ofSeconds(1L);
 

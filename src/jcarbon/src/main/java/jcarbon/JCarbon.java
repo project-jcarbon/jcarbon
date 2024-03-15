@@ -99,10 +99,12 @@ public final class JCarbon {
     }
   }
 
+  /** Checks if there is a signal for the class. */
   public boolean hasSignal(Class<?> cls) {
     return dataSignals.keySet().stream().anyMatch(cls::equals);
   }
 
+  /** Shallow copy of the signal list. */
   public <T> List<T> getSignal(Class<T> cls) {
     if (hasSignal(cls)) {
       return new ArrayList<>((List<T>) dataSignals.get(cls));

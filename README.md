@@ -35,7 +35,7 @@ Under the hood, `JCarbon` will determine the correct signals and metadata to pro
 
 More information about the physical signals can be found in the linked documentation. Here, we give a short overview of the virtual signals.
 
-### Jiffies Attribution
+### `process activity`: Jiffies Attribution
 
 Unix-based operating systems report cpu cycle usage with a unit called *jiffies*. A jiffy refers to the time between clock ticks. The jiffies for each executing cpu can be found in `/proc/stat`, while those for a process and its children tasks can be found in `/proc/<process id>/task/<task id>/stat`. Please refer to https://man7.org/linux/man-pages/man5/proc.5.html for more information regarding the jiffies system.
 
@@ -49,7 +49,7 @@ We need to carefully align and normalize the signals so we don't have more than 
 
 $$A_{task} = J_{task} / max(1, J_{cpu}, \sum_{task}{J_{task} ,\ where \ cpu_{task} = cpu}) $$
 
-### Energy Virtualization
+### `task energy`: Energy Virtualization
 
 We can extend the task activity method described above by combining it with an `energy source`, such as `rapl` or `powercap`. We could reuse the simple computation above, however, there is a corner case. Power systems do not report by logical cpu, but instead by a physical device. In the case of `rapl`, this will be a cpu socket, which contains some number of executing dice. Thus, we must do another normalization and aggregate all tasks onto the single physical device. This mapping can be produce from the details of `/proc/cpuinfo` through the `processer` and `physical id` fields. :
 
@@ -79,12 +79,12 @@ Building the core `jCarbon` artifact from source is done with either `bazel` or 
 
 To use `jRAPL` you will need an Intel Linux system.
 
-`RAPL` is through [`msr`s](). You'll need to run `sudo modprobe msr` to enable the `msr`s.
+`RAPL` read through is through [`msr`s](). You'll need to run `sudo modprobe msr` to enable the `msr`s.
 
 You need a verion of `Java`, the `jni`, and `maven` or `bazel` to build and run the tool. You **might** be able to deal with all that using the following:
 
 ```bash
-sudo apt install openjdk-11-jdk bazel, maven, libjna-jni
+sudo apt install openjdk-11-jdk bazel maven libjna-jni
 ```
 
 You can confirm if `jRAPL` works on your system by running `bash smoke_test.sh`. This should output a short report detailing what `jRAPL` is able to find for your system. Example log:
@@ -111,6 +111,7 @@ A simple UML describing `jRAPL`'s layout is provided [here](https://github.com/a
 
 Here are the features we want to try re-integrate into this project:
  - Emissions reporting
+ - [Nvidia GPU signal](https://github.com/bytedeco/javacpp-presets/blob/master/cuda/src/gen/java/org/bytedeco/cuda/global/nvml.java#L4546)
  - DVFS Interactions ([pure Java implementation](https://github.com/atpoverload/thread-actuator/blob/clean-up/jdvfs/src/main/java/jdvfs/Dvfs.java))
  - Low-level energy sampling
  - Some form of release artifact
