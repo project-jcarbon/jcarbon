@@ -9,10 +9,10 @@ import jcarbon.cpu.rapl.RaplReading;
 import jcarbon.cpu.eflect.TaskEnergy;
 
 
-public final class EmissionsInterval {
+public final class EmissionsInterval implements Interval<Double> {
     private final Instant start;
     private final Instant end;
-    private static double emis_total;
+    private final double emis_total;
 
     public EmissionsInterval(Instant start, Instant end, double emis_total){
         this.start = start;
@@ -20,8 +20,19 @@ public final class EmissionsInterval {
         this.emis_total = emis_total;
     }
 
-    public static double getEmissions(){
-        return emis_total;
+    @Override
+    public Instant start() {
+      return start;
+    }
+  
+    @Override
+    public Instant end() {
+      return end;
+    }
+    
+    @Override
+    public Double data(){
+        return Double.valueOf(emis_total);
     }
 
     @Override

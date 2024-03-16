@@ -58,9 +58,10 @@ public class JCarbonCallback extends Callback {
         String.format(
           "Consumed %.6f emissions",
           jcarbon.getSignal(ProcessEnergy.class).stream()
-              .mapToDouble(nrg -> converter.convert(nrg).getEmissions())
+              .mapToDouble(nrg -> converter.convert(nrg).data())
               .sum()));
-  
+    
+
     
   }
 
