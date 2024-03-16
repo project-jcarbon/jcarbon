@@ -34,16 +34,18 @@ final class NativeLibrary {
   /** Makes a safe attempt to load the library. */
   private static boolean loadLibrary() {
     if (new File("/dev/cpu/0/msr").exists()) {
-      // TODO: need to lock this up if it fails the first time
+      try {
+        NativeUtils.loadLibraryFromJar("/native/libjrapl.so");
+        return true;
+      } catch (Exception e) {
+      }
       try {
         System.loadLibrary("jrapl");
         return true;
       } catch (UnsatisfiedLinkError e) {
-        return false;
       }
-    } else {
-      return false;
     }
+    return false;
   }
 
   /** Initializes a reference to the rapl registers. Must call before doing anything else. */
