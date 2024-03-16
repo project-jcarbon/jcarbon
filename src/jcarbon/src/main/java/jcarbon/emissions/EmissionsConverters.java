@@ -1,6 +1,8 @@
 
 package jcarbon.emissions;
 
+import java.io.IOException;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -11,31 +13,36 @@ import java.util.stream.Stream;
 
 import jcarbon.cpu.rapl.RaplReading;
 import jcarbon.cpu.rapl.RaplInterval;
-import jcarbon.cpu.eflect.EnergyFootprint;
+import jcarbon.cpu.eflect.TaskEnergy;
 
 import jcarbon.data.Interval;
 import jcarbon.emissions.EmissionsInterval;
+import jcarbon.emissions.EmissionsConverter;
 
 public final class EmissionsConverters {
-    private static final String DEFAULT_INTENSITY_FILE = "jRAPL/src/jcarbon/src/main/resources/emissions/custom_emissions.csv";
-    private final EnumMap<CarbonSource, Double> CARBON_INTENSITY_MAP = createMixMap();
+    ///private static final String DEFAULT_INTENSITY_FILE = "jRAPL/src/jcarbon/src/resources/emissions/WorldIntensity.csv";
+    private static final String DEFAULT_INTENSITY_FILE = "/home/vincent/jCarbon_eevee/jRAPL/src/jcarbon/src/resources/emissions/WorldIntensity.csv";
+    private static final Map<String, Double> CARBON_INTENSITY_MAP = getCarbonIntensity();
 
-    public static EmissionsConverters forLocale(String locale){
-        return EmissionsConverter(CARBON_INTENSITY_MAP.get(locale));
+    public static EmissionsConverter forLocale(String locale){
+        return new EmissionsConverter(CARBON_INTENSITY_MAP.get(locale));
     }
 
-    public static EnumMap<CarbonSource, Double> fromCSV(String filepath){
-        //parses the csv, maps into a EnumMap
-        return Files.readAllLines(Path.of(filepath))
+    public static Map<String, Double> getCarbonIntensity(){
+        //parses the csv, maps into a Map;
+        try{
+            return Files.readAllLines(Path.of(System.getProperty("jcarbon.mix.emissions", DEFAULT_INTENSITY_FILE)))
                     .stream()
                     .skip(1)
                     .collect(Collectors.toMap(s -> s.split(",")[0], s -> Double.parseDouble(s.split(",")[2])));
+        }
+        catch(IOException e){
+            e.printStackTrace();
+            return null;
+        }
+        
     }
 
-    public static EmissionsConverters createMixMap() {
-        //user can create a custom intensity map by not including a mix file
-        return fromCSV(System.getProperty("jcarbon.emissions.mix", DEFAULT_INTENSITY_FILE));
-    }
 
 }
 

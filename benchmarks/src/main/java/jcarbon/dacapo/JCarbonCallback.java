@@ -7,6 +7,12 @@ import jcarbon.cpu.jiffies.ProcessActivity;
 import org.dacapo.harness.Callback;
 import org.dacapo.harness.CommandLineArgs;
 
+import jcarbon.emissions.EmissionsConverter;
+import jcarbon.emissions.EmissionsConverters;
+import jcarbon.emissions.EmissionsInterval;
+
+import java.util.List;
+
 public class JCarbonCallback extends Callback {
   private static final int CPU_COUNT = Runtime.getRuntime().availableProcessors();
 
@@ -46,6 +52,16 @@ public class JCarbonCallback extends Callback {
             jcarbon.getSignal(ProcessEnergy.class).stream()
                 .mapToDouble(nrg -> nrg.data().stream().mapToDouble(e -> e.energy).sum())
                 .sum()));
+    
+    EmissionsConverter converter = EmissionsConverters.forLocale("USA");
+    System.out.println(
+        String.format(
+          "Consumed %.6f emissions",
+          jcarbon.getSignal(ProcessEnergy.class).stream()
+              .mapToDouble(nrg -> converter.convert(nrg).getEmissions())
+              .sum()));
+  
+    
   }
 
   @Override

@@ -12,26 +12,15 @@ import jcarbon.cpu.eflect.TaskEnergy;
 public final class EmissionsInterval {
     private final Instant start;
     private final Instant end;
+    private static double emis_total;
 
     public EmissionsInterval(Instant start, Instant end, double emis_total){
         this.start = start;
         this.end = end;
-
         this.emis_total = emis_total;
     }
 
-    @Override
-    public Instant start() {
-        return start;
-    }
-
-    @Override
-    public Instant end() {
-        return end;
-    }
-
-    @Override
-    public double getEmissions(){
+    public static double getEmissions(){
         return emis_total;
     }
 
@@ -44,6 +33,6 @@ public final class EmissionsInterval {
             start.getNano(),
             end.getEpochSecond(),
             end.getNano(),
-            EmissionsInterval.getEmissions());
+            emis_total);
     }
 }
