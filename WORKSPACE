@@ -37,3 +37,12 @@ http_jar(
     "https://github.com/renaissance-benchmarks/renaissance/releases/download/v0.15.0/renaissance-gpl-0.15.0.jar"
   ],
 )
+
+maven_install(
+    name = "org_bytedeco_javacpp_presets_cuda",
+    artifacts = [
+      "org.bytedeco.javacpp-presets:cuda:10.0-7.4-1.4.4",
+      "org.bytedeco.javacpp-presets:cuda-platform:10.0-7.4-1.4.4",
+    ],
+    repositories = ["https://repo1.maven.org/maven2"],
+)
