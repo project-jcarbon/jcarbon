@@ -6,11 +6,14 @@ import static jcarbon.data.DataOperations.forwardPartialAlign;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.logging.Logger;
 import jcarbon.cpu.eflect.EflectAccounting;
 import jcarbon.cpu.eflect.ProcessEnergy;
 import jcarbon.cpu.jiffies.JiffiesAccounting;
@@ -24,18 +27,20 @@ import jcarbon.cpu.jiffies.SystemSample;
 import jcarbon.cpu.rapl.RaplInterval;
 import jcarbon.cpu.rapl.RaplSample;
 import jcarbon.cpu.rapl.RaplSource;
+import jcarbon.util.LoggerUtil;
 import jcarbon.util.SamplingFuture;
 
 /** A class to collect and provide jcarbon signals. */
 public final class JCarbon {
+  private static final Logger logger = LoggerUtil.getLogger();
+
   private final ScheduledExecutorService executor =
       Executors.newSingleThreadScheduledExecutor(
           r -> {
-            Thread t = new Thread(r, "jcarbon-eflect");
+            Thread t = new Thread(r, "jcarbon-sampling-thread");
             t.setDaemon(true);
             return t;
           });
-
   private final HashMap<Class<?>, List<?>> dataSignals = new HashMap<>();
   private final RaplSource source = RaplSource.getRaplSource();
 
@@ -64,31 +69,29 @@ public final class JCarbon {
         isRunning = false;
 
         // physical signals
-        dataSignals.put(
-            ProcessJiffies.class, forwardApply(processFuture.get(), ProcessJiffies::between));
-        dataSignals.put(
-            SystemJiffies.class, forwardApply(systemFuture.get(), SystemJiffies::between));
+        addSignal(ProcessJiffies.class, forwardApply(processFuture.get(), ProcessJiffies::between));
+        addSignal(SystemJiffies.class, forwardApply(systemFuture.get(), SystemJiffies::between));
         List<RaplSample> raplSamples =
             raplFuture.get().stream()
                 .filter(Optional::isPresent)
                 .map(Optional::get)
                 .collect(toList());
-        if (!raplSamples.isEmpty()) {
-          dataSignals.put(RaplInterval.class, forwardApply(raplSamples, source::difference));
+        if (raplSamples.size() > 1) {
+          addSignal(RaplInterval.class, forwardApply(raplSamples, source::difference));
         }
         processFuture = null;
         systemFuture = null;
         raplFuture = null;
 
         // virtual signals
-        dataSignals.put(
+        addSignal(
             ProcessActivity.class,
             forwardPartialAlign(
                 getSignal(ProcessJiffies.class),
                 getSignal(SystemJiffies.class),
                 JiffiesAccounting::computeTaskActivity));
         if (hasSignal(RaplInterval.class)) {
-          dataSignals.put(
+          addSignal(
               ProcessEnergy.class,
               forwardPartialAlign(
                   getSignal(ProcessActivity.class),
@@ -112,10 +115,20 @@ public final class JCarbon {
     return List.of();
   }
 
+  /** Shallow copy of the signals added. */
+  public Set<Class<?>> getSignalTypes() {
+    return new HashSet<>(dataSignals.keySet());
+  }
+
   /** Deep copy of the storage. */
   public Map<Class<?>, List<?>> getSignals() {
     HashMap<Class<?>, List<?>> signalsCopy = new HashMap<>();
     dataSignals.forEach((k, v) -> signalsCopy.put(k, new ArrayList<>(v)));
     return signalsCopy;
+  }
+
+  private <T> void addSignal(Class<T> cls, List<T> data) {
+    dataSignals.put(cls, data);
+    logger.info(String.format("added signal for %s", cls.getSimpleName()));
   }
 }
