@@ -41,7 +41,7 @@ public final class EmissionsConverter {
         double joules = 0;
         RaplReading[] readings = interval.data();
         for(RaplReading e : readings){
-            joules = e.total;
+            joules += e.total;
         }
         return convertJoules(joules);
     }

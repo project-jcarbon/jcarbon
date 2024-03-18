@@ -3,21 +3,17 @@ package jcarbon.emissions;
 import static java.util.stream.Collectors.joining;
 
 import java.time.Instant;
-import java.util.Arrays;
 import jcarbon.data.Interval;
-import jcarbon.cpu.rapl.RaplReading;
-import jcarbon.cpu.eflect.TaskEnergy;
-
 
 public final class EmissionsInterval implements Interval<Double> {
     private final Instant start;
     private final Instant end;
-    private final double emis_total;
+    private final double emissions;
 
     public EmissionsInterval(Instant start, Instant end, double emis_total){
         this.start = start;
         this.end = end;
-        this.emis_total = emis_total;
+        this.emissions = emissions;
     }
 
     @Override
@@ -32,7 +28,7 @@ public final class EmissionsInterval implements Interval<Double> {
     
     @Override
     public Double data(){
-        return Double.valueOf(emis_total);
+        return Double.valueOf(emissions);
     }
 
     @Override
@@ -44,6 +40,6 @@ public final class EmissionsInterval implements Interval<Double> {
             start.getNano(),
             end.getEpochSecond(),
             end.getNano(),
-            emis_total);
+            emissions);
     }
 }
