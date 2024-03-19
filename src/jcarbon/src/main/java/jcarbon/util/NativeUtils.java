@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package jcarbon.cpu.rapl;
+package jcarbon.util;
 
 import java.io.*;
 import java.nio.file.FileSystemNotFoundException;
@@ -40,7 +40,7 @@ import java.nio.file.StandardCopyOption;
  * @see <a
  *     href="https://github.com/adamheinrich/native-utils">https://github.com/adamheinrich/native-utils</a>
  */
-final class NativeUtils {
+public final class NativeUtils {
 
   /**
    * The minimum length a prefix for a file has to have according to {@link
@@ -48,7 +48,7 @@ final class NativeUtils {
    */
   private static final int MIN_PREFIX_LENGTH = 3;
 
-  public static final String NATIVE_FOLDER_PATH_PREFIX = "nativeutils";
+  private static final String NATIVE_FOLDER_PATH_PREFIX = "nativeutils";
 
   /** Temporary directory which will contain the DLLs. */
   private static File temporaryDir;

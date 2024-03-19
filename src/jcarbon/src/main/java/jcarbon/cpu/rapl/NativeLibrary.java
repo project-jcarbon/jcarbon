@@ -1,6 +1,7 @@
 package jcarbon.cpu.rapl;
 
 import java.io.File;
+import jcarbon.util.NativeUtils;
 
 /**
  * Simple wrapper around the native backend management. You should never need to access this; the
