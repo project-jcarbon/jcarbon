@@ -5,12 +5,13 @@ import static java.util.stream.Collectors.joining;
 import java.time.Instant;
 import jcarbon.data.Interval;
 
+/** An {@link Interval} of emission consumption over a time range. */
 public final class EmissionsInterval implements Interval<Double> {
     private final Instant start;
     private final Instant end;
     private final double emissions;
 
-    public EmissionsInterval(Instant start, Instant end, double emis_total){
+    public EmissionsInterval(Instant start, Instant end, double emissions){
         this.start = start;
         this.end = end;
         this.emissions = emissions;

@@ -10,6 +10,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors; 
 import java.util.stream.Stream;
+import java.lang.Integer; 
 
 import jcarbon.cpu.rapl.RaplReading;
 import jcarbon.cpu.rapl.RaplInterval;
@@ -19,30 +20,42 @@ import jcarbon.data.Interval;
 import jcarbon.emissions.EmissionsInterval;
 import jcarbon.emissions.EmissionsConverter;
 
+/** A class that creates a carbon intensity map from locale. */
 public final class EmissionsConverters {
     ///private static final String DEFAULT_INTENSITY_FILE = "jRAPL/src/jcarbon/src/resources/emissions/WorldIntensity.csv";
-    private static final String DEFAULT_INTENSITY_FILE = "/home/vincent/jCarbon_eevee/jRAPL/src/jcarbon/src/resources/emissions/WorldIntensity.csv";
+    private static final String DEFAULT_INTENSITY_FILE = System.getProperty("user.dir") + "/jRAPL/src/jcarbon/src/resources/emissions/WorldIntensity.csv";
+    private static final double GLOBAL_INTENSITY = 475.0;
+
+    public static final EmissionsConverter GLOBAL_CONVERTER = new EmissionsConverter(GLOBAL_INTENSITY);
     private static final Map<String, Double> CARBON_INTENSITY_MAP = getCarbonIntensity();
 
     public static EmissionsConverter forLocale(String locale){
-        return new EmissionsConverter(CARBON_INTENSITY_MAP.get(locale));
+        if(CARBON_INTENSITY_MAP.containsKey(locale)){
+            return new EmissionsConverter(CARBON_INTENSITY_MAP.get(locale).doubleValue());
+        }
+        else{
+            return GLOBAL_CONVERTER;
+        }
+        
     }
 
-    public static Map<String, Double> getCarbonIntensity(){
+    private static Map<String, Double> getCarbonIntensity(){
         //parses the csv, maps into a Map;
-        try{
+        Path filepath = Path.of(System.getProperty("jcarbon.emissions.intensity", DEFAULT_INTENSITY_FILE));
+        if(!Files.exists(filepath)){
+            return Map.of();
+        }
+        try {
             return Files.readAllLines(Path.of(System.getProperty("jcarbon.mix.emissions", DEFAULT_INTENSITY_FILE)))
                     .stream()
                     .skip(1)
                     .collect(Collectors.toMap(s -> s.split(",")[0], s -> Double.parseDouble(s.split(",")[2])));
-        }
-        catch(IOException e){
+        } catch (IOException e) {
             e.printStackTrace();
             return null;
         }
         
     }
-
 
 }
 

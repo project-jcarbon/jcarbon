@@ -18,6 +18,7 @@ import jcarbon.cpu.eflect.TaskEnergy;
 import jcarbon.data.Interval;
 import jcarbon.emissions.EmissionsInterval;
 
+/** A class that converts an interval of joules to co2 emissions. */
 public final class EmissionsConverter {
     private static final double JOULE_TO_KWH = 2.77778e-7;
     public final double carbonIntensity;
@@ -37,7 +38,7 @@ public final class EmissionsConverter {
         return new EmissionsInterval(interval.start(), interval.end(), emissions);
     }
 
-    public double convertRaplInterval(RaplInterval interval){
+    private double convertRaplInterval(RaplInterval interval){
         double joules = 0;
         RaplReading[] readings = interval.data();
         for(RaplReading e : readings){
@@ -46,7 +47,7 @@ public final class EmissionsConverter {
         return convertJoules(joules);
     }
 
-    public double convertProcessEnergy(ProcessEnergy interval){
+    private double convertProcessEnergy(ProcessEnergy interval){
         double joules = 0;
         List<TaskEnergy> readings = interval.data();
         for(TaskEnergy e : readings){
@@ -55,7 +56,7 @@ public final class EmissionsConverter {
         return convertJoules(joules);
     }
 
-    public double convertJoules(double joules){
+    private double convertJoules(double joules){
         return carbonIntensity * joules * JOULE_TO_KWH;
     }
 
