@@ -21,17 +21,21 @@
 
 ## Using `jCarbon`
 
-<!-- `jCarbon` can be used directly from its most recent release. You can directly use `jcarbon.JCarbon` for a complete out-of-the-box report:
+<!-- `jCarbon` can be used directly from its most recent release. -->
+You can directly use `jcarbon.JCarbon` for access to many signals out of the box:
 
 ```java
 JCarbon jcarbon = new JCarbon();
 jcarbon.start();
 fib(42);
-List<Footprint> footprints = jcarbon.stop();
-footprints.forEach(System.out::println);
+jcarbon.stop();
+System.out.println(
+    String.format(
+        "Consumed %.6f joules",
+        jcarbon.getSignal(ProcessEnergy.class).stream()
+            .mapToDouble(proc -> proc.data().stream().mapToDouble(e -> e.energy).sum())
+            .sum()));
 ```
-
-Under the hood, `JCarbon` will determine the correct signals and metadata to produce an application-specific consumption report. -->
 
 More information about the physical signals can be found in the linked documentation. Here, we give a short overview of the virtual signals.
 
@@ -49,9 +53,9 @@ We need to carefully align and normalize the signals so we don't have more than 
 
 $$A_{task} = J_{task} / max(1, J_{cpu}, \sum_{task}{J_{task} ,\ where \ cpu_{task} = cpu}) $$
 
-### `task energy`: Energy Virtualization
+### `process energy`: Energy Virtualization
 
-We can extend the task activity method described above by combining it with an `energy source`, such as `rapl` or `powercap`. We could reuse the simple computation above, however, there is a corner case. Power systems do not report by logical cpu, but instead by a physical device. In the case of `rapl`, this will be a cpu socket, which contains some number of executing dice. Thus, we must do another normalization and aggregate all tasks onto the single physical device. This mapping can be produce from the details of `/proc/cpuinfo` through the `processer` and `physical id` fields. :
+We can extend the process activity method described above by combining it with an `energy source`, such as `rapl` or `powercap`. We could reuse the simple computation above, however, there is a corner case. Power systems do not report by logical cpu, but instead by a physical device. In the case of `rapl`, this will be a cpu socket, which contains some number of executing dice. Thus, we must do another normalization and aggregate all tasks onto the single physical device. This mapping can be produce from the details of `/proc/cpuinfo` through the `processer` and `physical id` fields. :
 
 $$E_{task} = E_{socket} * A_{task} / max(1, \sum_{task}{A_{task} ,\ where \ cpu_{task} \in socket}) $$
 
@@ -90,19 +94,22 @@ sudo apt install openjdk-11-jdk bazel maven libjna-jni
 You can confirm if `jRAPL` works on your system by running `bash smoke_test.sh`. This should output a short report detailing what `jRAPL` is able to find for your system. Example log:
 
 ```bash
-jrapl (2024-02-19 11:14:26 AM EST) [main]: warming up...
-jrapl (2024-02-19 11:14:34 AM EST) [main]: testing rapl...
-jrapl (2024-02-19 11:14:35 AM EST) [main]: rapl report
+jcarbon (2024-03-18 18:34:23 PM EDT) [main]: warming up...
+jcarbon (2024-03-18 18:34:30 PM EDT) [main]: testing rapl...
+jcarbon (2024-03-18 18:34:31 PM EDT) [main]: rapl report
  - microarchitecture: BROADWELL2
- - elapsed time: 1.000509s
- - socket: 1, package: 35.547J, dram: 1.389J, core: 0.000J, gpu: 0.000J
-jrapl (2024-02-19 11:14:37 AM EST) [main]: powercap report
- - elapsed time: 1.519122s
- - socket: 1, package: 36.170J, dram: 1.451J
-jrapl (2024-02-19 11:14:38 AM EST) [main]: equivalence report
- - elapsed time difference: 0.514607s
- - socket: 1, package difference: 0.000J, dram difference: 0.026J
-jrapl (2024-02-19 11:14:38 AM EST) [main]: all smoke tests passed!
+ - elapsed time: 1.000430s
+ - socket: 1, package: 32.429688J, dram: 2.742676J, core: 0.000000J, gpu: 0.000000J
+ - socket: 2, package: 29.896485J, dram: 1.250000J, core: 0.000000J, gpu: 0.000000J
+jcarbon (2024-03-18 18:34:33 PM EDT) [main]: powercap report
+ - elapsed time: 1.443513s
+ - socket: 1, package: 32.310403J, dram: 2.609461J
+ - socket: 2, package: 29.738266J, dram: 1.323297J
+jcarbon (2024-03-18 18:34:34 PM EDT) [main]: equivalence report
+ - elapsed time difference: 0.425827s
+ - socket: 1, package difference: 0.021444J, dram difference: 0.048101J
+ - socket: 2, package difference: 0.018143J, dram difference: 0.027690J
+jcarbon (2024-03-18 18:34:34 PM EDT) [main]: all smoke tests passed!
 ```
 
 A simple UML describing `jRAPL`'s layout is provided [here](https://github.com/atpoverload/jRAPL/blob/main/docs/uml/jrapl-uml.pdf).
