@@ -14,7 +14,7 @@ public final class EmissionsConverters {
   private static final Logger logger = getLogger();
   private static final String DEFAULT_INTENSITY_FILE =
       System.getProperty("user.dir")
-          + "/jRAPL/src/jcarbon/src/main/resources/emissions/WorldIntensity.csv";
+          + "/src/jcarbon/src/main/resources/emissions/WorldIntensity.csv";
   private static final double GLOBAL_INTENSITY = 475.0;
 
   public static final EmissionsConverter GLOBAL_CONVERTER =
