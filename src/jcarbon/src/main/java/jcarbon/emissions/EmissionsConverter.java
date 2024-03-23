@@ -21,7 +21,7 @@ import jcarbon.emissions.EmissionsInterval;
 /** A class that converts an interval of joules to co2 emissions. */
 public final class EmissionsConverter {
     private static final double JOULE_TO_KWH = 2.77778e-7;
-    public final double carbonIntensity;
+    private final double carbonIntensity;
 
     public EmissionsConverter(double carbonIntensity){
         this.carbonIntensity = carbonIntensity;

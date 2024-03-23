@@ -22,8 +22,7 @@ import jcarbon.emissions.EmissionsConverter;
 
 /** A class that creates a carbon intensity map from locale. */
 public final class EmissionsConverters {
-    ///private static final String DEFAULT_INTENSITY_FILE = "jRAPL/src/jcarbon/src/resources/emissions/WorldIntensity.csv";
-    private static final String DEFAULT_INTENSITY_FILE = System.getProperty("user.dir") + "/jRAPL/src/jcarbon/src/resources/emissions/WorldIntensity.csv";
+    private static final String DEFAULT_INTENSITY_FILE = System.getProperty("user.dir") + "/jRAPL/src/jcarbon/src/main/resources/emissions/WorldIntensity.csv";
     private static final double GLOBAL_INTENSITY = 475.0;
 
     public static final EmissionsConverter GLOBAL_CONVERTER = new EmissionsConverter(GLOBAL_INTENSITY);
@@ -46,13 +45,12 @@ public final class EmissionsConverters {
             return Map.of();
         }
         try {
-            return Files.readAllLines(Path.of(System.getProperty("jcarbon.mix.emissions", DEFAULT_INTENSITY_FILE)))
+            return Files.readAllLines(filepath)
                     .stream()
                     .skip(1)
                     .collect(Collectors.toMap(s -> s.split(",")[0], s -> Double.parseDouble(s.split(",")[2])));
         } catch (IOException e) {
-            e.printStackTrace();
-            return null;
+            throw new IllegalStateException(String.format("Unable to read %s", filepath), e);
         }
         
     }

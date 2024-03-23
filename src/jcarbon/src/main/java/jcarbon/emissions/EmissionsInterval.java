@@ -36,7 +36,7 @@ public final class EmissionsInterval implements Interval<Double> {
     public String toString() {
         // TODO: temporarily using json
         return String.format(
-            "{\"start\":{\"seconds\":%d,\"nanos\":%d},\"end\":{\"seconds\":%d,\"nanos\":%d},\"Total Emissions\":[%s]}",
+            "{\"start\":{\"seconds\":%d,\"nanos\":%d},\"end\":{\"seconds\":%d,\"nanos\":%d},\"emissions\":[%s]}",
             start.getEpochSecond(),
             start.getNano(),
             end.getEpochSecond(),
