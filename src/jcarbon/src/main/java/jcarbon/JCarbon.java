@@ -27,11 +27,12 @@ import jcarbon.cpu.jiffies.SystemSample;
 import jcarbon.cpu.rapl.RaplInterval;
 import jcarbon.cpu.rapl.RaplSample;
 import jcarbon.cpu.rapl.RaplSource;
-import jcarbon.util.LoggerUtil;
-import jcarbon.util.SamplingFuture;
 import jcarbon.emissions.EmissionsConverter;
 import jcarbon.emissions.EmissionsConverters;
 import jcarbon.emissions.EmissionsInterval;
+import jcarbon.util.LoggerUtil;
+import jcarbon.util.SamplingFuture;
+
 /** A class to collect and provide jcarbon signals. */
 public final class JCarbon {
   private static final Logger logger = LoggerUtil.getLogger();
@@ -86,7 +87,6 @@ public final class JCarbon {
         systemFuture = null;
         raplFuture = null;
 
-
         // virtual signals
         addSignal(
             ProcessActivity.class,
@@ -101,10 +101,11 @@ public final class JCarbon {
                   getSignal(ProcessActivity.class),
                   getSignal(RaplInterval.class),
                   EflectAccounting::computeTaskEnergy));
-          dataSignals.put(EmissionsInterval.class,
+          addSignal(
+              EmissionsInterval.class,
               getSignal(ProcessEnergy.class).stream()
-                                            .map(nrg -> converter.convert(nrg))
-                                            .collect(toList()));
+                  .map(nrg -> converter.convert(nrg))
+                  .collect(toList()));
         }
       }
     }

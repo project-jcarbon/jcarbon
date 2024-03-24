@@ -4,14 +4,9 @@ import java.time.Instant;
 import jcarbon.JCarbon;
 import jcarbon.cpu.eflect.ProcessEnergy;
 import jcarbon.cpu.jiffies.ProcessActivity;
+import jcarbon.emissions.EmissionsInterval;
 import org.dacapo.harness.Callback;
 import org.dacapo.harness.CommandLineArgs;
-
-import jcarbon.emissions.EmissionsConverter;
-import jcarbon.emissions.EmissionsConverters;
-import jcarbon.emissions.EmissionsInterval;
-
-import java.util.List;
 
 public class JCarbonCallback extends Callback {
   private static final int CPU_COUNT = Runtime.getRuntime().availableProcessors();
@@ -54,13 +49,10 @@ public class JCarbonCallback extends Callback {
                 .sum()));
     System.out.println(
         String.format(
-          "Consumed %.6f emissions",
-          jcarbon.getSignal(EmissionsInterval.class).stream()
-              .mapToDouble(nrg -> nrg.data())
-              .sum()));
-    
-
-    
+            "Consumed %.6f grams of CO2",
+            jcarbon.getSignal(EmissionsInterval.class).stream()
+                .mapToDouble(nrg -> nrg.data())
+                .sum()));
   }
 
   @Override
