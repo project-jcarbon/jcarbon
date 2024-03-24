@@ -13,8 +13,8 @@ java_library(
 )
 
 java_binary(
-    name = "smoke_test",
-    main_class = "jcarbon.cpu.rapl.SmokeTest",
+    name = "rapl_smoke_test",
+    main_class = "jcarbon.cpu.rapl.RaplSmokeTest",
     runtime_deps = [":jcarbon"],
 )
 
