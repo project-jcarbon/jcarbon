@@ -7,12 +7,15 @@ java_library(
         "src/main/java/jcarbon/util/*.java",
         "src/main/java/jcarbon/emissions/*.java",
         "src/main/java/jcarbon/*.java",
-    ])
+    ]),
+    resources = [
+        "//src/native:libjrapl.so",
+    ],
 )
 
 java_binary(
-    name = "smoke_test",
-    main_class = "jcarbon.cpu.rapl.SmokeTest",
+    name = "rapl_smoke_test",
+    main_class = "jcarbon.cpu.rapl.RaplSmokeTest",
     runtime_deps = [":jcarbon"],
 )
 
