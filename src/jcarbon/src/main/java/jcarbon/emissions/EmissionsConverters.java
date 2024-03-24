@@ -33,9 +33,9 @@ public final class EmissionsConverters {
     // parses the csv, maps into a Map;
     Path filepath =
         Path.of(System.getProperty("jcarbon.emissions.intensity", DEFAULT_INTENSITY_FILE));
-    logger.info(String.format("Retrieving carbon intensity from %s", filepath));
+    logger.info(String.format("retrieving carbon intensity from %s", filepath));
     if (!Files.exists(filepath)) {
-      logger.info(String.format("Locale carbon intensity file %s could not be found", filepath));
+      logger.info(String.format("locale carbon intensity file %s could not be found", filepath));
       return Map.of();
     }
     try {
