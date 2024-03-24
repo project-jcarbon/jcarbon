@@ -49,7 +49,7 @@ public class JCarbonCallback extends Callback {
                 .sum()));
     System.out.println(
         String.format(
-            "Consumed %.6f g of CO2",
+            "Consumed %.6f grams of CO2",
             jcarbon.getSignal(EmissionsInterval.class).stream()
                 .mapToDouble(nrg -> nrg.data())
                 .sum()));
