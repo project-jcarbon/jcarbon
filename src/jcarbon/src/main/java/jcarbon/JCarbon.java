@@ -46,7 +46,7 @@ public final class JCarbon {
           });
   private final HashMap<Class<?>, List<?>> dataSignals = new HashMap<>();
   private final RaplSource source = RaplSource.getRaplSource();
-  private final EmissionsConverter converter = EmissionsConverters.getDefault();
+  private final EmissionsConverter converter = EmissionsConverters.forDefaultLocale();
 
   private boolean isRunning = false;
   private SamplingFuture<ProcessSample> processFuture;
