@@ -34,7 +34,9 @@ public final class EmissionsConverters {
       return new EmissionsConverter(CARBON_INTENSITY_MAP.get(locale).doubleValue());
     } else {
       logger.info(
-          String.format("no carbon intensity found for locale %s. using global converter", locale));
+          String.format(
+              "no carbon intensity found for locale %s. using global intensity (%.2f gCO2/kWh)",
+              locale, GLOBAL_INTENSITY));
       return GLOBAL_CONVERTER;
     }
   }
