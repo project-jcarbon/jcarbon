@@ -39,7 +39,7 @@ public final class EmissionsConverters {
     }
   }
 
-  public static EmissionsConverter getDefault() {
+  public static EmissionsConverter forDefaultLocale() {
     return forLocale(DEFAULT_LOCALE);
   }
 
