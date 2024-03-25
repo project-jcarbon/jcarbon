@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.logging.Logger;
 import jcarbon.util.NativeUtils;
@@ -18,8 +17,9 @@ public final class EmissionsConverters {
   private static final Logger logger = getLogger();
   private static final String DEFAULT_INTENSITY_FILE = "/emissions/WorldIntensity.csv";
   private static final double GLOBAL_INTENSITY = 475.0;
+  // TODO: find a way to GPS look up locale?
   private static final String DEFAULT_LOCALE =
-      System.getProperty("jcarbon.emissions.locale", Locale.getDefault().getISO3Country());
+      System.getProperty("jcarbon.emissions.locale", "USA");
   private static final Map<String, Double> CARBON_INTENSITY_MAP = getCarbonIntensity();
 
   public static final EmissionsConverter GLOBAL_CONVERTER =
