@@ -16,17 +16,23 @@ java_binary(
     plugins = [":collection_test_jmh_annotation_processor"],
 )
 
+java_library(
+    name = "benchmarks",
+    srcs = ["src/main/java/jcarbon/benchmarks/BenchmarkUtil.java"],
+    deps = ["//src/jcarbon"],
+)
+
 java_binary(
     name = "dacapo",
     main_class = "Harness",
-    srcs = glob(["src/main/java/jcarbon/dacapo/*.java"]),
+    srcs = ["src/main/java/jcarbon/benchmarks/JCarbonCallback.java"],
     deps = [
+        ":benchmarks",
         "//src/jcarbon",
         "@dacapo",
     ],
     args = [
-        "--iterations 20",
-        "--callback jcarbon.dacapo.JCarbonCallback",
+        "--callback jcarbon.benchmarks.JCarbonCallback",
         "--no-validation",
     ]
 )
@@ -34,13 +40,13 @@ java_binary(
 java_binary(
     name = "renaissance",
     main_class = "org.renaissance.core.Launcher",
-    srcs = glob(["src/main/java/jcarbon/renaissance/*.java"]),
+    srcs = ["src/main/java/jcarbon/benchmarks/JCarbonPlugin.java"],
     deps = [
+        ":benchmarks",
         "//src/jcarbon",
         "@renaissance//jar",
     ],
     args = [
-        "--repetitions 20",
-        "--plugin !jcarbon.renaissance.JCarbonPlugin",
+        "--plugin !jcarbon.benchmarks.JCarbonPlugin",
     ]
 )

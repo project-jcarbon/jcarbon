@@ -28,11 +28,11 @@ You can directly use `jcarbon.JCarbon` for access to many signals out of the box
 JCarbon jcarbon = new JCarbon();
 jcarbon.start();
 fib(42);
-jcarbon.stop();
+JCarbonReport report = jcarbon.stop();
 System.out.println(
     String.format(
         "Consumed %.6f joules",
-        jcarbon.getSignal(ProcessEnergy.class).stream()
+        report.getSignal(ProcessEnergy.class).stream()
             .mapToDouble(proc -> proc.data().stream().mapToDouble(e -> e.energy).sum())
             .sum()));
 ```
