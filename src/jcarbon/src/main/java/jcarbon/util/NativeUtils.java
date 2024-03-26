@@ -29,6 +29,7 @@ import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.ProviderNotFoundException;
 import java.nio.file.StandardCopyOption;
+import java.util.List;
 
 /**
  * A simple library class which helps with loading dynamic libraries stored in the JAR archive.
@@ -57,6 +58,37 @@ public final class NativeUtils {
   private NativeUtils() {}
 
   /**
+   * Loads file from current JAR archive
+   *
+   * <p>The file from JAR is copied into system temporary directory and then loaded. The temporary
+   * file is deleted after exiting. Method uses String as filename because the pathname is
+   * "abstract", not system-dependent.
+   *
+   * @param path The path of file inside JAR as absolute path (beginning with '/'), e.g.
+   *     /package/File.ext
+   * @throws IOException If temporary file creation or read/write operation fails
+   * @throws IllegalArgumentException If source file (param path) does not exist
+   * @throws IllegalArgumentException If the path is not absolute or if the filename is shorter than
+   *     three characters (restriction of {@link File#createTempFile(java.lang.String,
+   *     java.lang.String)}).
+   * @throws FileNotFoundException If the file could not be found inside the JAR.
+   */
+  public static List<String> readFileContentsFromJar(String path) throws IOException {
+    File temp = createTempFile(path);
+    try {
+      return Files.readAllLines(temp.toPath());
+    } finally {
+      if (isPosixCompliant()) {
+        // Assume POSIX compliant file system, can be deleted after loading
+        temp.delete();
+      } else {
+        // Assume non-POSIX, and don't delete until last file descriptor closed
+        temp.deleteOnExit();
+      }
+    }
+  }
+
+  /**
    * Loads library from current JAR archive
    *
    * <p>The file from JAR is copied into system temporary directory and then loaded. The temporary
@@ -73,7 +105,29 @@ public final class NativeUtils {
    * @throws FileNotFoundException If the file could not be found inside the JAR.
    */
   public static void loadLibraryFromJar(String path) throws IOException {
+    File temp = createTempFile(path);
+    try {
+      System.load(temp.getAbsolutePath());
+    } finally {
+      if (isPosixCompliant()) {
+        // Assume POSIX compliant file system, can be deleted after loading
+        temp.delete();
+      } else {
+        // Assume non-POSIX, and don't delete until last file descriptor closed
+        temp.deleteOnExit();
+      }
+    }
+  }
 
+  private static boolean isPosixCompliant() {
+    try {
+      return FileSystems.getDefault().supportedFileAttributeViews().contains("posix");
+    } catch (FileSystemNotFoundException | ProviderNotFoundException | SecurityException e) {
+      return false;
+    }
+  }
+
+  private static File createTempFile(String path) throws IOException {
     if (null == path || !path.startsWith("/")) {
       throw new IllegalArgumentException("The path has to be absolute (start with '/').");
     }
@@ -105,25 +159,7 @@ public final class NativeUtils {
       throw new FileNotFoundException("File " + path + " was not found inside JAR.");
     }
 
-    try {
-      System.load(temp.getAbsolutePath());
-    } finally {
-      if (isPosixCompliant()) {
-        // Assume POSIX compliant file system, can be deleted after loading
-        temp.delete();
-      } else {
-        // Assume non-POSIX, and don't delete until last file descriptor closed
-        temp.deleteOnExit();
-      }
-    }
-  }
-
-  private static boolean isPosixCompliant() {
-    try {
-      return FileSystems.getDefault().supportedFileAttributeViews().contains("posix");
-    } catch (FileSystemNotFoundException | ProviderNotFoundException | SecurityException e) {
-      return false;
-    }
+    return temp;
   }
 
   private static File createTempDirectory(String prefix) throws IOException {
