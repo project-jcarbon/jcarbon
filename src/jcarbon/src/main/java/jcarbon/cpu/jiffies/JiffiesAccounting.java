@@ -41,6 +41,7 @@ public final class JiffiesAccounting {
           new ProcessActivity(
               TimeOperations.max(proc.start(), sys.start()),
               TimeOperations.min(proc.end(), sys.end()),
+              proc.processId(),
               tasks));
     } else {
       return Optional.empty();

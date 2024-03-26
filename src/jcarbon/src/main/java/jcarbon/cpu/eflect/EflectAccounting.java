@@ -59,7 +59,7 @@ public final class EflectAccounting {
       tasks.add(new TaskEnergy(activity.taskId, activity.processId, activity.cpu, taskEnergy));
     }
     if (!tasks.isEmpty()) {
-      return Optional.of(new ProcessEnergy(start, end, tasks));
+      return Optional.of(new ProcessEnergy(start, end, task.processId(), tasks));
     } else {
       return Optional.empty();
     }
