@@ -11,11 +11,13 @@ import jcarbon.data.Interval;
 public final class ProcessEnergy implements Interval<List<TaskEnergy>>, Comparable<ProcessEnergy> {
   private final Instant start;
   private final Instant end;
+  private final long processId;
   private final ArrayList<TaskEnergy> tasks = new ArrayList<>();
 
-  ProcessEnergy(Instant start, Instant end, Iterable<TaskEnergy> tasks) {
+  ProcessEnergy(Instant start, Instant end, long processId, Iterable<TaskEnergy> tasks) {
     this.start = start;
     this.end = end;
+    this.processId = processId;
     tasks.forEach(this.tasks::add);
   }
 
@@ -29,6 +31,10 @@ public final class ProcessEnergy implements Interval<List<TaskEnergy>>, Comparab
     return end;
   }
 
+  public long processId() {
+    return processId;
+  }
+
   @Override
   public List<TaskEnergy> data() {
     return new ArrayList<>(tasks);
@@ -39,11 +45,12 @@ public final class ProcessEnergy implements Interval<List<TaskEnergy>>, Comparab
     // TODO: temporarily using json
     return String.format(
         "{\"start\":{\"seconds\":%d,\"nanos\":%d},\"end\":"
-            + "{\"seconds\":%d,\"nanos\":%d},\"data\":[%s]}",
+            + "{\"seconds\":%d,\"nanos\":%d},\"process_id\":%d,\"data\":[%s]}",
         start.getEpochSecond(),
         start.getNano(),
         end.getEpochSecond(),
         end.getNano(),
+        processId,
         tasks.stream().map(TaskEnergy::toString).collect(joining(",")));
   }
 

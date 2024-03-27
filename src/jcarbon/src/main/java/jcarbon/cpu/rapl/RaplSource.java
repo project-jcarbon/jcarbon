@@ -21,10 +21,13 @@ public final class RaplSource {
 
   /** Grab the first available energy source. Priority is rapl > powercap > fake */
   public static RaplSource getRaplSource() {
-    if (Rapl.isAvailable()) {
-      return RAPL;
-    } else if (Powercap.isAvailable()) {
+    logger.info("checking for a rapl source");
+    if (Powercap.isAvailable()) {
+      logger.info("found powercap!");
       return POWERCAP;
+    } else if (Rapl.isAvailable()) {
+      logger.info("found direct rapl access!");
+      return RAPL;
     }
     logger.info("no energy source found! resorting to an empty fake");
     return FAKE;

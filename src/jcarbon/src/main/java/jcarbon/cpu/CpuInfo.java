@@ -1,11 +1,17 @@
 package jcarbon.cpu;
 
+import static jcarbon.util.LoggerUtil.getLogger;
+
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.util.Arrays;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
+/** A class that exposes information from /proc/cpuinfo. */
 public final class CpuInfo {
+  private static final Logger logger = getLogger();
   private static final int CPU_COUNT = Runtime.getRuntime().availableProcessors();
   private static final String CPU_INFO = "/proc/cpuinfo";
   private static final int[] CPU_TO_SOCKETS = createCpuSocketMapping();
@@ -18,6 +24,7 @@ public final class CpuInfo {
   }
 
   private static int[] createCpuSocketMapping() {
+    // Implicitly maps everything to a single socket.
     int[] mapping = new int[Runtime.getRuntime().availableProcessors()];
     // TODO: using the traditional java method to support android
     try {
@@ -34,8 +41,9 @@ public final class CpuInfo {
         }
       }
       reader.close();
+      logger.info("loaded mapping of cpus to sockets");
     } catch (Exception e) {
-      System.out.println("unable to read cpuinfo");
+      logger.log(Level.INFO, "unable to read cpuinfo", e);
     }
     return mapping;
   }
