@@ -7,7 +7,7 @@ import org.dacapo.harness.Callback;
 import org.dacapo.harness.CommandLineArgs;
 
 public class JCarbonCallback extends Callback {
-  private final JCarbon jcarbon = new JCarbon();
+  private final JCarbon jcarbon = JCarbonBenchmarkUtil.createJCarbon();
   private final ArrayList<JCarbonReport> reports = new ArrayList<>();
 
   public JCarbonCallback(CommandLineArgs args) {
@@ -24,13 +24,14 @@ public class JCarbonCallback extends Callback {
   public void complete(String benchmark, boolean valid, boolean warmup) {
     super.complete(benchmark, valid, warmup);
     jcarbon.stop().ifPresent(reports::add);
+    JCarbonBenchmarkUtil.summary(reports.get(reports.size() - 1));
   }
 
   @Override
   public boolean runAgain() {
     // if we have run every iteration, dump the data and terminate
     if (!super.runAgain()) {
-      BenchmarkUtil.dump(reports);
+      JCarbonBenchmarkUtil.dump(reports);
       return false;
     } else {
       return true;

@@ -18,7 +18,7 @@ java_binary(
 
 java_library(
     name = "benchmarks",
-    srcs = ["src/main/java/jcarbon/benchmarks/BenchmarkUtil.java"],
+    srcs = ["src/main/java/jcarbon/benchmarks/JCarbonBenchmarkUtil.java"],
     deps = ["//src/jcarbon"],
 )
 

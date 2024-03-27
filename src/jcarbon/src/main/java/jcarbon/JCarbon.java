@@ -41,19 +41,26 @@ public final class JCarbon {
           });
   private final RaplSource source = RaplSource.getRaplSource();
   private final EmissionsConverter converter = EmissionsConverters.forLocale("USA");
+  private final int periodMillis;
 
   private boolean isRunning = false;
   private SamplingFuture<ProcessSample> processFuture;
   private SamplingFuture<SystemSample> systemFuture;
   private SamplingFuture<Optional<RaplSample>> raplFuture;
 
+  public JCarbon(int periodMillis) {
+    this.periodMillis = periodMillis;
+  }
+
   /** Starts the sampling futures is we aren't already running. */
   public void start() {
     synchronized (this) {
       if (!isRunning) {
-        processFuture = SamplingFuture.fixedPeriodMillis(ProcTask::sampleTasks, 10, executor);
-        systemFuture = SamplingFuture.fixedPeriodMillis(ProcStat::sampleCpus, 10, executor);
-        raplFuture = SamplingFuture.fixedPeriodMillis(source::sample, 10, executor);
+        processFuture =
+            SamplingFuture.fixedPeriodMillis(ProcTask::sampleTasks, periodMillis, executor);
+        systemFuture =
+            SamplingFuture.fixedPeriodMillis(ProcStat::sampleCpus, periodMillis, executor);
+        raplFuture = SamplingFuture.fixedPeriodMillis(source::sample, periodMillis, executor);
         isRunning = true;
       }
     }

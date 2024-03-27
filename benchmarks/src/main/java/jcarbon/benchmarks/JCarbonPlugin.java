@@ -9,7 +9,7 @@ public final class JCarbonPlugin
     implements Plugin.BeforeBenchmarkTearDownListener,
         Plugin.AfterOperationSetUpListener,
         Plugin.BeforeOperationTearDownListener {
-  private final JCarbon jcarbon = new JCarbon();
+  private final JCarbon jcarbon = JCarbonBenchmarkUtil.createJCarbon();
   private final ArrayList<JCarbonReport> reports = new ArrayList<>();
 
   @Override
@@ -20,11 +20,12 @@ public final class JCarbonPlugin
   @Override
   public void beforeOperationTearDown(String benchmark, int opIndex, long durationNanos) {
     jcarbon.stop().ifPresent(reports::add);
+    JCarbonBenchmarkUtil.summary(reports.get(reports.size() - 1));
   }
 
   @Override
   public void beforeBenchmarkTearDown(String benchmark) {
-    BenchmarkUtil.dump(reports);
+    JCarbonBenchmarkUtil.dump(reports);
     reports.clear();
   }
 }
