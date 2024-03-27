@@ -12,11 +12,13 @@ public final class ProcessActivity
     implements Interval<List<TaskActivity>>, Comparable<ProcessActivity> {
   private final Instant start;
   private final Instant end;
+  private final long processId;
   private final ArrayList<TaskActivity> tasks = new ArrayList<>();
 
-  ProcessActivity(Instant start, Instant end, Iterable<TaskActivity> tasks) {
+  ProcessActivity(Instant start, Instant end, long processId, Iterable<TaskActivity> tasks) {
     this.start = start;
     this.end = end;
+    this.processId = processId;
     tasks.forEach(this.tasks::add);
   }
 
@@ -30,6 +32,10 @@ public final class ProcessActivity
     return end;
   }
 
+  public long processId() {
+    return processId;
+  }
+
   @Override
   public List<TaskActivity> data() {
     return new ArrayList<>(tasks);
@@ -40,11 +46,12 @@ public final class ProcessActivity
     // TODO: temporarily using json
     return String.format(
         "{\"start\":{\"seconds\":%d,\"nanos\":%d},\"end\":"
-            + "{\"seconds\":%d,\"nanos\":%d},\"data\":[%s]}",
+            + "{\"seconds\":%d,\"nanos\":%d},\"process_id\":%d,\"data\":[%s]}",
         start.getEpochSecond(),
         start.getNano(),
         end.getEpochSecond(),
         end.getNano(),
+        processId,
         tasks.stream().map(TaskActivity::toString).collect(joining(",")));
   }
 

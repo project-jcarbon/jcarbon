@@ -31,7 +31,7 @@ public final class CpuFrequencySample
   public String toString() {
     // TODO: temporarily using json
     return String.format(
-        "{\"timestamp\":{\"seconds\":%d,\"nanos\":%d},\"frequencies\":[%s]}",
+        "{\"timestamp\":{\"seconds\":%d,\"nanos\":%d},\"data\":[%s]}",
         timestamp.getEpochSecond(),
         timestamp.getNano(),
         Arrays.stream(frequencies).map(CpuFrequency::toString).collect(joining(",")));

@@ -4,13 +4,8 @@ import static java.util.stream.Collectors.toList;
 import static jcarbon.data.DataOperations.forwardApply;
 import static jcarbon.data.DataOperations.forwardPartialAlign;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.logging.Logger;
@@ -44,100 +39,87 @@ public final class JCarbon {
             t.setDaemon(true);
             return t;
           });
-  private final HashMap<Class<?>, List<?>> dataSignals = new HashMap<>();
   private final RaplSource source = RaplSource.getRaplSource();
   private final EmissionsConverter converter = EmissionsConverters.forDefaultLocale();
+  private final int periodMillis;
 
   private boolean isRunning = false;
   private SamplingFuture<ProcessSample> processFuture;
   private SamplingFuture<SystemSample> systemFuture;
   private SamplingFuture<Optional<RaplSample>> raplFuture;
 
+  public JCarbon(int periodMillis) {
+    this.periodMillis = periodMillis;
+  }
+
   /** Starts the sampling futures is we aren't already running. */
   public void start() {
     synchronized (this) {
       if (!isRunning) {
-        processFuture = SamplingFuture.fixedPeriodMillis(ProcTask::sampleTasks, 10, executor);
-        systemFuture = SamplingFuture.fixedPeriodMillis(ProcStat::sampleCpus, 10, executor);
-        raplFuture = SamplingFuture.fixedPeriodMillis(source::sample, 10, executor);
+        processFuture =
+            SamplingFuture.fixedPeriodMillis(ProcTask::sampleTasks, periodMillis, executor);
+        systemFuture =
+            SamplingFuture.fixedPeriodMillis(ProcStat::sampleCpus, periodMillis, executor);
+        raplFuture = SamplingFuture.fixedPeriodMillis(source::sample, periodMillis, executor);
         isRunning = true;
       }
     }
   }
 
-  /** Stops the sampling futures and merges the data they collected. */
+  /**
+   * Stops the sampling futures and merges the data they collected into a {@link JCarbonReport}.
+   * Returns an empty {@link Optional} if jcarbon wasn't running.
+   */
   // TODO: this can throw if any of the futures are empty. i don't know how to handle this yet
-  public void stop() {
+  public Optional<JCarbonReport> stop() {
     synchronized (this) {
       if (isRunning) {
         isRunning = false;
 
+        JCarbonReport report = new JCarbonReport();
+
         // physical signals
-        addSignal(ProcessJiffies.class, forwardApply(processFuture.get(), ProcessJiffies::between));
-        addSignal(SystemJiffies.class, forwardApply(systemFuture.get(), SystemJiffies::between));
+        report.addSignal(
+            ProcessJiffies.class, forwardApply(processFuture.get(), ProcessJiffies::between));
+        report.addSignal(
+            SystemJiffies.class, forwardApply(systemFuture.get(), SystemJiffies::between));
         List<RaplSample> raplSamples =
             raplFuture.get().stream()
                 .filter(Optional::isPresent)
                 .map(Optional::get)
                 .collect(toList());
         if (raplSamples.size() > 1) {
-          addSignal(RaplInterval.class, forwardApply(raplSamples, source::difference));
+          report.addSignal(RaplInterval.class, forwardApply(raplSamples, source::difference));
+        } else {
+          logger.info("no samples found for rapl");
         }
         processFuture = null;
         systemFuture = null;
         raplFuture = null;
 
         // virtual signals
-        addSignal(
+        report.addSignal(
             ProcessActivity.class,
             forwardPartialAlign(
-                getSignal(ProcessJiffies.class),
-                getSignal(SystemJiffies.class),
+                report.getSignal(ProcessJiffies.class),
+                report.getSignal(SystemJiffies.class),
                 JiffiesAccounting::computeTaskActivity));
-        if (hasSignal(RaplInterval.class)) {
-          addSignal(
+        if (report.hasSignal(RaplInterval.class)) {
+          report.addSignal(
               ProcessEnergy.class,
               forwardPartialAlign(
-                  getSignal(ProcessActivity.class),
-                  getSignal(RaplInterval.class),
+                  report.getSignal(ProcessActivity.class),
+                  report.getSignal(RaplInterval.class),
                   EflectAccounting::computeTaskEnergy));
-          addSignal(
+          report.addSignal(
               EmissionsInterval.class,
-              getSignal(ProcessEnergy.class).stream()
+              report.getSignal(ProcessEnergy.class).stream()
                   .map(nrg -> converter.convert(nrg))
                   .collect(toList()));
         }
+        return Optional.of(report);
       }
     }
-  }
-
-  /** Checks if there is a signal for the class. */
-  public boolean hasSignal(Class<?> cls) {
-    return dataSignals.keySet().stream().anyMatch(cls::equals);
-  }
-
-  /** Shallow copy of the signal list. */
-  public <T> List<T> getSignal(Class<T> cls) {
-    if (hasSignal(cls)) {
-      return new ArrayList<>((List<T>) dataSignals.get(cls));
-    }
-    return List.of();
-  }
-
-  /** Shallow copy of the signals added. */
-  public Set<Class<?>> getSignalTypes() {
-    return new HashSet<>(dataSignals.keySet());
-  }
-
-  /** Deep copy of the storage. */
-  public Map<Class<?>, List<?>> getSignals() {
-    HashMap<Class<?>, List<?>> signalsCopy = new HashMap<>();
-    dataSignals.forEach((k, v) -> signalsCopy.put(k, new ArrayList<>(v)));
-    return signalsCopy;
-  }
-
-  private <T> void addSignal(Class<T> cls, List<T> data) {
-    dataSignals.put(cls, data);
-    logger.info(String.format("added signal for %s", cls.getSimpleName()));
+    return Optional.empty();
   }
 }
