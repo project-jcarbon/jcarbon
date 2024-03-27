@@ -1,3 +1,7 @@
+# c/java build targets
+*.o
+*.class
+
 # maven build targets
 src/benchmarks/target/
 src/jcarbon/target/

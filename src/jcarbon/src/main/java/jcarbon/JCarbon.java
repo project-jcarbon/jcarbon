@@ -40,7 +40,7 @@ public final class JCarbon {
             return t;
           });
   private final RaplSource source = RaplSource.getRaplSource();
-  private final EmissionsConverter converter = EmissionsConverters.forLocale("USA");
+  private final EmissionsConverter converter = EmissionsConverters.forDefaultLocale();
   private final int periodMillis;
 
   private boolean isRunning = false;
