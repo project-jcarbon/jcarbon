@@ -24,7 +24,7 @@ final class JCarbonBenchmarkUtil {
   private static final String OUTPUT_PATH = System.getProperty("jcarbon.benchmarks.output", "/tmp");
 
   static JCarbon createJCarbon() {
-    String period = System.getProperty("jcarbon.benchmarks.period");
+    String period = System.getProperty("jcarbon.benchmarks.period", "10");
     int periodMillis = 10;
     try {
       periodMillis = Integer.parseInt(period);
