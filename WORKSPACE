@@ -39,10 +39,37 @@ http_jar(
 )
 
 maven_install(
+    name = "org_bytedeco_cuda",
+    artifacts = ["org.bytedeco:cuda:12.3-8.9-1.5.10"],
+    repositories = ["https://repo1.maven.org/maven2"],
+)
+
+maven_install(
+    name = "org_bytedeco_javacpp",
+    artifacts = ["org.bytedeco:javacpp:1.5.10"],
+    repositories = ["https://repo1.maven.org/maven2"],
+)
+
+maven_install(
+    name = "org_bytedeco_javacpp_platform",
+    artifacts = ["org.bytedeco:javacpp-platform:1.5.10"],
+    repositories = ["https://repo1.maven.org/maven2"],
+)
+
+maven_install(
+    name = "org_bytedeco_cuda_platform",
+    artifacts = ["org.bytedeco:cuda-platform:12.3-8.9-1.5.10"],
+    repositories = ["https://repo1.maven.org/maven2"],
+)
+
+maven_install(
     name = "org_bytedeco_javacpp_presets_cuda",
-    artifacts = [
-      "org.bytedeco.javacpp-presets:cuda:10.0-7.4-1.4.4",
-      "org.bytedeco.javacpp-presets:cuda-platform:10.0-7.4-1.4.4",
-    ],
+    artifacts = ["org.bytedeco.javacpp-presets:cuda:10.0-7.4-1.4.4"],
+    repositories = ["https://repo1.maven.org/maven2"],
+)
+
+maven_install(
+    name = "org_bytedeco_javacpp_presets_cuda_platform",
+    artifacts = ["org.bytedeco.javacpp-presets:cuda-platform:10.0-7.4-1.4.4"],
     repositories = ["https://repo1.maven.org/maven2"],
 )

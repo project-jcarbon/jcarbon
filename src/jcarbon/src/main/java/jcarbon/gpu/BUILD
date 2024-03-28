@@ -4,7 +4,12 @@ java_library(
     srcs = glob(["*.java"]),
     deps = [
         "//src/jcarbon",
+        "@org_bytedeco_cuda",
+        "@org_bytedeco_javacpp",
+        "@org_bytedeco_javacpp_platform",
+        "@org_bytedeco_cuda_platform",
         "@org_bytedeco_javacpp_presets_cuda",
+        "@org_bytedeco_javacpp_presets_cuda_platform",
     ],
 )
 
@@ -14,6 +19,11 @@ java_binary(
     runtime_deps = [
         ":gpu",
         "//src/jcarbon",
+        "@org_bytedeco_cuda",
+        "@org_bytedeco_javacpp",
+        "@org_bytedeco_javacpp_platform",
+        "@org_bytedeco_cuda_platform",
         "@org_bytedeco_javacpp_presets_cuda",
+        "@org_bytedeco_javacpp_presets_cuda_platform",
     ],
 )
