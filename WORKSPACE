@@ -1,5 +1,6 @@
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive", "http_jar")
 
+# benchmark dependencies
 http_archive(
     name = "dacapo",
     urls = ["https://clerk-deps.s3.amazonaws.com/dacapo.zip"],
@@ -38,6 +39,7 @@ http_jar(
   ],
 )
 
+# nvml dependencies
 maven_install(
     name = "org_bytedeco_cuda",
     artifacts = ["org.bytedeco:cuda:12.3-8.9-1.5.10"],
