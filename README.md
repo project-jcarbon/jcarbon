@@ -75,6 +75,25 @@ $$ \mathcal{C}_{S}(k) = \frac{\sum_t|f'|}{|f|}, where \ f' \ \in f_k \leq f_t \ 
 
 Comparing two traces can be done with any distance metric. Typically pcc is a good choice since it measures covariance.
 
+### Handling Signals Offline
+
+Reports can be written to disk as a `json`. The report has a simple nested record structure:
+
+```json
+{
+    "SignalClass": [
+        {
+            "start": 1,
+            "end": 2,
+            "data": [
+                {"id": 0, "value": 2.73},
+                {"id": 1, "value": 3.14},
+            ],
+        }
+    ]
+}
+```
+
 ## Building from source
 
 Building the core `jCarbon` artifact from source is done with either `bazel` or `maven`.  Although most of the components are implemented in pure Java, we still support a legacy artifact that enables low-level access to the `rapl` subsystem called [`jRAPL`](https://jrapl.github.io). While modern implementations typically prefer `powercap`, we think it is useful to keep direct access to `rapl` available when other solutions are not. However, `jRAPL` is implemented in C, so it requires the JNI to be used. Below are build steps to get `jRAPL` to work on your system if necessary. In most cases, we recommend relying on `powercap` instead.
