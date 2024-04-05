@@ -14,6 +14,7 @@ java_binary(
     ],
     deps = [
         "//src/jcarbon/src/main/java/jcarbon/cpu/rapl",
+        "//src/jcarbon/src/main/java/jcarbon/data",
         "@org_openjdk_jmh_jmh_core",
     ],
     plugins = [":collection_test_jmh_annotation_processor"],
