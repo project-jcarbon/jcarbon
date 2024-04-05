@@ -1,7 +1,18 @@
 package jcarbon.benchmarks.cpu.rapl;
 
+import static java.util.stream.Collectors.toList;
+import static jcarbon.data.DataOperations.forwardApply;
+
+import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import jcarbon.benchmarks.data.Uncertainty;
+import jcarbon.benchmarks.data.UncertaintyPropagation;
 import jcarbon.cpu.rapl.Rapl;
+import jcarbon.cpu.rapl.RaplInterval;
+import jcarbon.cpu.rapl.RaplSample;
 import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.RunnerException;
@@ -10,11 +21,52 @@ import org.openjdk.jmh.runner.options.OptionsBuilder;
 
 /** A benchmark to test how frequently the rapl msr is updated. */
 public class MsrUpdateBenchmark {
-  static final ArrayList<double[]> samples = new ArrayList<>();
+  private static final int WARMUP_ITERATIONS = 20;
+  private static final int MEASUREMENT_ITERATIONS = 50;
+
+  @State(Scope.Benchmark)
+  public static class State_ {
+    private final ArrayList<RaplSample> samples = new ArrayList<>(65536);
+    private final Map<String, ArrayList<Uncertainty>> values =
+        Map.of(
+            "energy", new ArrayList<>(),
+            "time", new ArrayList<>());
+
+    @TearDown(Level.Iteration)
+    public void computeValues() {
+      List<RaplInterval> intervals =
+          forwardApply(samples, Rapl::difference).stream()
+              .filter(
+                  interval -> Arrays.stream(interval.data()).mapToDouble(r -> r.total).sum() > 0)
+              .collect(toList());
+      samples.clear();
+
+      Uncertainty energy =
+          UncertaintyPropagation.average(
+              intervals.stream()
+                  .mapToDouble(i -> Arrays.stream(i.data()).mapToDouble(e -> e.total).sum())
+                  .toArray());
+      Uncertainty time =
+          UncertaintyPropagation.average(
+              forwardApply(intervals, (i1, i2) -> Duration.between(i1.end(), i2.start())).stream()
+                  .mapToLong(d -> d.toMillis())
+                  .toArray());
+      System.out.println(String.format("energy update: %s, update time: %s", energy, time));
+      values.get("energy").add(energy);
+      values.get("time").add(time);
+    }
+
+    @TearDown(Level.Trial)
+    public void tearDown() {
+      Uncertainty energy = UncertaintyPropagation.average(values.get("energy"));
+      Uncertainty time = UncertaintyPropagation.average(values.get("time"));
+      System.out.println(String.format("energy update: %s, update time: %s", energy, time));
+    }
+  }
 
   @Benchmark
-  public void sample() {
-    samples.add(Rapl.read());
+  public void sample(State_ state) {
+    state.samples.add(Rapl.sample().get());
   }
 
   public static void main(String[] args) throws RunnerException {
@@ -22,10 +74,9 @@ public class MsrUpdateBenchmark {
         new OptionsBuilder()
             .include(MsrUpdateBenchmark.class.getSimpleName())
             .forks(1)
-            .warmupIterations(5)
-            .measurementIterations(25)
+            .warmupIterations(WARMUP_ITERATIONS)
+            .measurementIterations(MEASUREMENT_ITERATIONS)
             .mode(Mode.Throughput)
-            .addProfiler(MsrUpdateProfiler.class)
             .build();
 
     new Runner(opt).run();

@@ -8,11 +8,9 @@ java_plugin(
 java_binary(
     name = "msr_update",
     main_class = "jcarbon.benchmarks.cpu.rapl.MsrUpdateBenchmark",
-    srcs = [
-        "MsrUpdateBenchmark.java",
-        "MsrUpdateProfiler.java",
-    ],
+    srcs = ["MsrUpdateBenchmark.java"],
     deps = [
+        "//benchmarks/src/main/java/jcarbon/benchmarks/data",
         "//src/jcarbon/src/main/java/jcarbon/cpu/rapl",
         "//src/jcarbon/src/main/java/jcarbon/data",
         "@org_openjdk_jmh_jmh_core",
@@ -23,11 +21,9 @@ java_binary(
 java_binary(
     name = "powercap_update",
     main_class = "jcarbon.benchmarks.cpu.rapl.PowercapUpdateBenchmark",
-    srcs = [
-        "PowercapUpdateBenchmark.java",
-        "PowercapUpdateProfiler.java",
-    ],
+    srcs = ["PowercapUpdateBenchmark.java"],
     deps = [
+        "//benchmarks/src/main/java/jcarbon/benchmarks/data",
         "//src/jcarbon/src/main/java/jcarbon/cpu/rapl",
         "//src/jcarbon/src/main/java/jcarbon/data",
         "@org_openjdk_jmh_jmh_core",
