@@ -19,3 +19,18 @@ java_binary(
     ],
     plugins = [":collection_test_jmh_annotation_processor"],
 )
+
+java_binary(
+    name = "powercap_update",
+    main_class = "jcarbon.benchmarks.cpu.rapl.PowercapUpdateBenchmark",
+    srcs = [
+        "PowercapUpdateBenchmark.java",
+        "PowercapUpdateProfiler.java",
+    ],
+    deps = [
+        "//src/jcarbon/src/main/java/jcarbon/cpu/rapl",
+        "//src/jcarbon/src/main/java/jcarbon/data",
+        "@org_openjdk_jmh_jmh_core",
+    ],
+    plugins = [":collection_test_jmh_annotation_processor"],
+)
