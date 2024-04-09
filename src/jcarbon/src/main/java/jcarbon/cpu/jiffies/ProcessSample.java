@@ -5,17 +5,19 @@ import static java.util.stream.Collectors.joining;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import jcarbon.cpu.ProcessComponent;
+import jcarbon.data.Component;
 import jcarbon.data.Sample;
 
 /** A {@link Sample} of task jiffies for a process since task birth. */
 public final class ProcessSample implements Sample<List<TaskJiffies>>, Comparable<ProcessSample> {
   private final Instant timestamp;
-  private final long processId;
+  private final ProcessComponent component;
   private final ArrayList<TaskJiffies> jiffies = new ArrayList<>();
 
   ProcessSample(Instant timestamp, long processId, Iterable<TaskJiffies> jiffies) {
     this.timestamp = timestamp;
-    this.processId = processId;
+    this.component = new ProcessComponent(processId);
     jiffies.forEach(this.jiffies::add);
   }
 
@@ -24,8 +26,13 @@ public final class ProcessSample implements Sample<List<TaskJiffies>>, Comparabl
     return timestamp;
   }
 
+  @Override
+  public Component component() {
+    return component;
+  }
+
   public long processId() {
-    return processId;
+    return component.processId;
   }
 
   @Override
@@ -40,7 +47,7 @@ public final class ProcessSample implements Sample<List<TaskJiffies>>, Comparabl
         "{\"timestamp\":{\"seconds\":%d,\"nanos\":%d},\"process_id\":%d,\"data\":[%s]}",
         timestamp.getEpochSecond(),
         timestamp.getNano(),
-        processId,
+        component.processId,
         jiffies.stream().map(TaskJiffies::toString).collect(joining(",")));
   }
 

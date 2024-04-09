@@ -3,7 +3,7 @@ package jcarbon.emissions;
 import java.util.List;
 import jcarbon.cpu.eflect.ProcessEnergy;
 import jcarbon.cpu.eflect.TaskEnergy;
-import jcarbon.cpu.rapl.RaplInterval;
+import jcarbon.cpu.rapl.RaplEnergy;
 import jcarbon.cpu.rapl.RaplReading;
 import jcarbon.data.Interval;
 
@@ -19,15 +19,15 @@ public final class EmissionsConverter {
 
   public <T extends Interval<?>> EmissionsInterval convert(T interval) {
     double emissions = 0;
-    if (interval instanceof RaplInterval) {
-      emissions = convertRaplInterval((RaplInterval) interval);
+    if (interval instanceof RaplEnergy) {
+      emissions = convertRaplEnergy((RaplEnergy) interval);
     } else if (interval instanceof ProcessEnergy) {
       emissions = convertProcessEnergy((ProcessEnergy) interval);
     }
-    return new EmissionsInterval(interval.start(), interval.end(), emissions);
+    return new EmissionsInterval(interval.start(), interval.end(), interval.component(), emissions);
   }
 
-  private double convertRaplInterval(RaplInterval interval) {
+  private double convertRaplEnergy(RaplEnergy interval) {
     double joules = 0;
     RaplReading[] readings = interval.data();
     for (RaplReading e : readings) {

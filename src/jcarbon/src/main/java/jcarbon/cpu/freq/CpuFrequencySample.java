@@ -4,6 +4,8 @@ import static java.util.stream.Collectors.joining;
 
 import java.time.Instant;
 import java.util.Arrays;
+import jcarbon.cpu.CpuComponent;
+import jcarbon.data.Component;
 import jcarbon.data.Sample;
 
 /** A sample from the cpufreq system that represents the current frequencies ordered by cpu id. */
@@ -20,6 +22,11 @@ public final class CpuFrequencySample
   @Override
   public Instant timestamp() {
     return timestamp;
+  }
+
+  @Override
+  public Component component() {
+    return CpuComponent.INSTANCE;
   }
 
   @Override

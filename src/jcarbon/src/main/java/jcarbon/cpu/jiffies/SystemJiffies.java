@@ -4,6 +4,8 @@ import static java.util.stream.Collectors.joining;
 
 import java.time.Instant;
 import java.util.Arrays;
+import jcarbon.cpu.CpuComponent;
+import jcarbon.data.Component;
 import jcarbon.data.Interval;
 
 /** An {@link Interval} of cpu jiffies over a time range. */
@@ -63,6 +65,11 @@ public final class SystemJiffies implements Interval<CpuJiffies[]>, Comparable<S
   @Override
   public Instant end() {
     return end;
+  }
+
+  @Override
+  public Component component() {
+    return CpuComponent.INSTANCE;
   }
 
   @Override

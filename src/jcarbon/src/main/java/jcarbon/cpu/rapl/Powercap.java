@@ -51,14 +51,14 @@ public final class Powercap {
   }
 
   /** Computes the difference of two {@link RaplReadings}, applying the wraparound. */
-  public static RaplInterval difference(RaplSample first, RaplSample second) {
+  public static RaplEnergy difference(RaplSample first, RaplSample second) {
     if (first.compareTo(second) > -1) {
       throw new IllegalArgumentException(
           String.format(
               "first sample is not before second sample (%s !< %s)",
               first.timestamp(), second.timestamp()));
     }
-    return new RaplInterval(
+    return new RaplEnergy(
         first.timestamp(),
         second.timestamp(),
         IntStream.range(0, SOCKETS)

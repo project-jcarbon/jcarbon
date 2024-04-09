@@ -1,17 +1,6 @@
-java_library(
+alias(
     name = "jcarbon",
-    visibility = ["//visibility:public"],
-    srcs = glob([
-        "src/main/java/jcarbon/cpu/**/*.java",
-        "src/main/java/jcarbon/data/*.java",
-        "src/main/java/jcarbon/util/*.java",
-        "src/main/java/jcarbon/emissions/*.java",
-        "src/main/java/jcarbon/*.java",
-    ]),
-    resources = [
-        ":emissions_data",
-        "//src/native:libjrapl.so",
-    ],
+    actual = "//src/jcarbon/src/main/java/jcarbon",
 )
 
 java_binary(
@@ -32,7 +21,7 @@ java_binary(
     runtime_deps = [":jcarbon"],
 )
 
-filegroup(
+alias(
     name = "emissions_data",
-    srcs = ["src/main/resources/emissions/WorldIntensity.csv"],
+    actual = "//src/main/resources/emissions/WorldIntensity.csv",
 )

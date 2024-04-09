@@ -4,6 +4,8 @@ import static java.util.stream.Collectors.joining;
 
 import java.time.Instant;
 import java.util.Arrays;
+import jcarbon.cpu.CpuComponent;
+import jcarbon.data.Component;
 import jcarbon.data.Sample;
 
 /** A {@link Sample} of rapl energy consumption since boot. */
@@ -19,6 +21,11 @@ public final class RaplSample implements Sample<RaplReading[]>, Comparable<RaplS
   @Override
   public Instant timestamp() {
     return timestamp;
+  }
+
+  @Override
+  public Component component() {
+    return CpuComponent.INSTANCE;
   }
 
   @Override
