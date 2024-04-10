@@ -4,6 +4,7 @@ java_library(
     srcs = glob(["*.java"]),
     deps = [
         "//src/jcarbon/src/main/java/jcarbon",
+        "//src/jcarbon/src/main/java/jcarbon/cpu",
         "//src/jcarbon/src/main/java/jcarbon/data",
         "@maven//:org_json_json",
     ],

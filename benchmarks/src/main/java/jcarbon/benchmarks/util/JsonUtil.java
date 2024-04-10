@@ -78,4 +78,6 @@ public final class JsonUtil {
       return new JSONArray(data);
     }
   }
+
+  private JsonUtil() {}
 }
