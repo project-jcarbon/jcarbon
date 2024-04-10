@@ -7,6 +7,7 @@ java_library(
     name = "benchmarks",
     srcs = glob(["*.java"], exclude = BENCHMARK_SRCS),
     deps = [
+        "//benchmarks/src/main/java/jcarbon/benchmarks/util",
         "//src/jcarbon/src/main/java/jcarbon",
         "//src/jcarbon/src/main/java/jcarbon/cpu/eflect",
         "//src/jcarbon/src/main/java/jcarbon/emissions",

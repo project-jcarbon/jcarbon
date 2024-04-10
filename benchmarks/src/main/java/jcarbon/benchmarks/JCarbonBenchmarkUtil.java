@@ -1,11 +1,12 @@
 package jcarbon.benchmarks;
 
-import java.nio.file.Files;
+import static java.nio.file.Files.newBufferedWriter;
+
+import java.io.PrintWriter;
 import java.nio.file.Path;
 import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.logging.ConsoleHandler;
@@ -16,6 +17,7 @@ import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 import jcarbon.JCarbon;
 import jcarbon.JCarbonReport;
+import jcarbon.benchmarks.util.JsonUtil;
 import jcarbon.cpu.eflect.ProcessEnergy;
 import jcarbon.emissions.EmissionsInterval;
 
@@ -73,42 +75,11 @@ final class JCarbonBenchmarkUtil {
   static void dump(List<JCarbonReport> reports) {
     Path outputPath = outputPath();
     logger.info(String.format("writing reports to %s", outputPath));
-    // TODO: ugly json encoding
-    ArrayList<String> records = new ArrayList<>();
-    records.add("[");
-    reports.forEach(r -> records.addAll(JCarbonBenchmarkUtil.toJson(r)));
-    records.remove(records.size() - 1);
-    records.add("]");
-
-    try {
-      Files.write(outputPath, records);
+    try (PrintWriter writer = new PrintWriter(newBufferedWriter(outputPath)); ) {
+      writer.println(JsonUtil.toJsonReports(reports));
     } catch (Exception e) {
-      logger.log(Level.INFO, String.format("unable to write reports to %s", OUTPUT_PATH), e);
+      e.printStackTrace();
     }
-  }
-
-  private static List<String> toJson(JCarbonReport report) {
-    ArrayList<String> records = new ArrayList<>();
-    records.add("{");
-    report
-        .getSignals()
-        .forEach(
-            (signal, data) -> {
-              records.add(String.format("\"%s\":[", signal.getSimpleName()));
-              data.stream()
-                  .forEach(
-                      o -> {
-                        records.add(o.toString());
-                        records.add(",");
-                      });
-              records.remove(records.size() - 1);
-              records.add("]");
-              records.add(",");
-            });
-    records.remove(records.size() - 1);
-    records.add("}");
-    records.add(",");
-    return records;
   }
 
   private static final SimpleDateFormat dateFormatter =
