@@ -11,6 +11,6 @@ public class ProcessComponent implements Component {
 
   @Override
   public String toString() {
-    return String.format("{\"process\": %d}", processId);
+    return String.format("process-%d", processId);
   }
 }
