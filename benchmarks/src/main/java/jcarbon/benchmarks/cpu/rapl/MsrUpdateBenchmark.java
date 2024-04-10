@@ -11,7 +11,7 @@ import java.util.Map;
 import jcarbon.benchmarks.data.Uncertainty;
 import jcarbon.benchmarks.data.UncertaintyPropagation;
 import jcarbon.cpu.rapl.Rapl;
-import jcarbon.cpu.rapl.RaplInterval;
+import jcarbon.cpu.rapl.RaplEnergy;
 import jcarbon.cpu.rapl.RaplSample;
 import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.runner.Runner;
@@ -34,7 +34,7 @@ public class MsrUpdateBenchmark {
 
     @TearDown(Level.Iteration)
     public void computeValues() {
-      List<RaplInterval> intervals =
+      List<RaplEnergy> intervals =
           forwardApply(samples, Rapl::difference).stream()
               .filter(
                   interval -> Arrays.stream(interval.data()).mapToDouble(r -> r.total).sum() > 0)
@@ -42,25 +42,31 @@ public class MsrUpdateBenchmark {
       samples.clear();
 
       Uncertainty energy =
-          UncertaintyPropagation.average(
+          Uncertainty.ofDoubles(
               intervals.stream()
                   .mapToDouble(i -> Arrays.stream(i.data()).mapToDouble(e -> e.total).sum())
                   .toArray());
       Uncertainty time =
-          UncertaintyPropagation.average(
+          Uncertainty.ofLongs(
               forwardApply(intervals, (i1, i2) -> Duration.between(i1.end(), i2.start())).stream()
                   .mapToLong(d -> d.toMillis())
                   .toArray());
-      System.out.println(String.format("energy update: %s, update time: %s", energy, time));
+      // System.out.println(String.format("energy update: %s, update time: %s", energy, time));
       values.get("energy").add(energy);
       values.get("time").add(time);
     }
 
     @TearDown(Level.Trial)
     public void tearDown() {
-      Uncertainty energy = UncertaintyPropagation.average(values.get("energy"));
-      Uncertainty time = UncertaintyPropagation.average(values.get("time"));
+      Uncertainty energy =
+          UncertaintyPropagation.average(
+              values.get("energy").stream().skip(WARMUP_ITERATIONS).collect(toList()));
+      Uncertainty time =
+          UncertaintyPropagation.average(
+              values.get("time").stream().skip(WARMUP_ITERATIONS).collect(toList()));
       System.out.println(String.format("energy update: %s, update time: %s", energy, time));
+      values.get("energy").clear();
+      values.get("time").clear();
     }
   }
 
