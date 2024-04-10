@@ -37,3 +37,13 @@ http_jar(
     "https://github.com/renaissance-benchmarks/renaissance/releases/download/v0.15.0/renaissance-gpl-0.15.0.jar"
   ],
 )
+
+maven_install(
+    artifacts = [
+      "org.json:json:20231013",
+    ],
+    generate_compat_repositories = True,
+    repositories = [
+        "https://repo.maven.apache.org/maven2/",
+    ],
+)
