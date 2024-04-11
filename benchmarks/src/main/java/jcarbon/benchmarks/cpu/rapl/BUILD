@@ -24,7 +24,6 @@ java_binary(
     srcs = ["PowercapUpdateBenchmark.java"],
     deps = [
         "//benchmarks/src/main/java/jcarbon/benchmarks/data",
-        "//benchmarks/src/main/java/jcarbon/benchmarks/util",
         "//src/jcarbon/src/main/java/jcarbon/cpu/rapl",
         "//src/jcarbon/src/main/java/jcarbon/data",
         "@org_openjdk_jmh_jmh_core",

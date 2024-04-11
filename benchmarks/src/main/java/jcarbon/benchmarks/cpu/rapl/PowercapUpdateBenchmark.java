@@ -4,6 +4,7 @@ import static java.util.stream.Collectors.toList;
 import static jcarbon.data.DataOperations.forwardApply;
 
 import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -26,6 +27,9 @@ public class PowercapUpdateBenchmark {
 
   @State(Scope.Benchmark)
   public static class State_ {
+    @Param({"0", "1", "2", "3", "4", "8", "16"})
+    public int sleepTimeMs;
+
     private final ArrayList<RaplSample> samples = new ArrayList<>(65536);
     private final Map<String, ArrayList<Uncertainty>> values =
         Map.of(
@@ -71,8 +75,15 @@ public class PowercapUpdateBenchmark {
   }
 
   @Benchmark
-  public void sample(State_ state) {
+  public void sample(State_ state) throws Exception {
+    Instant start = null;
+    if (state.sleepTimeMs > 0) {
+      start = Instant.now();
+    }
     state.samples.add(Powercap.sample().get());
+    if (state.sleepTimeMs > 0 && start != null) {
+      Thread.sleep(Duration.between(start, start.plusNanos(1000 * state.sleepTimeMs)).toMillis());
+    }
   }
 
   public static void main(String[] args) throws RunnerException {
