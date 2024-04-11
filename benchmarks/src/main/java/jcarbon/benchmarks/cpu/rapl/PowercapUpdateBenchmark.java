@@ -82,7 +82,7 @@ public class PowercapUpdateBenchmark {
     }
     state.samples.add(Powercap.sample().get());
     if (state.sleepTimeMs > 0 && start != null) {
-      Thread.sleep(Duration.between(start, start.plusNanos(1000 * state.sleepTimeMs)).toMillis());
+      Thread.sleep(Duration.between(start, start.plusMillis(state.sleepTimeMs)).toMillis());
     }
   }
 
