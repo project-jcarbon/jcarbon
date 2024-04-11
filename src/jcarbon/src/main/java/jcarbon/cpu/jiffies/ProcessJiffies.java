@@ -7,6 +7,8 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import jcarbon.cpu.ProcessComponent;
+import jcarbon.data.Component;
 import jcarbon.data.Interval;
 
 /** An {@link Interval} of task jiffies for a process over a time range. */
@@ -49,14 +51,13 @@ public final class ProcessJiffies
 
   private final Instant start;
   private final Instant end;
-  private final long processId;
+  private final ProcessComponent component;
   private final ArrayList<TaskJiffies> readings = new ArrayList<>();
 
-  ProcessJiffies(
-      Instant start, Instant end, long processId, Iterable<TaskJiffies> readings) {
+  ProcessJiffies(Instant start, Instant end, long processId, Iterable<TaskJiffies> readings) {
     this.start = start;
     this.end = end;
-    this.processId = processId;
+    this.component = new ProcessComponent(processId);
     readings.forEach(this.readings::add);
   }
 
@@ -70,8 +71,13 @@ public final class ProcessJiffies
     return end;
   }
 
+  @Override
+  public Component component() {
+    return component;
+  }
+
   public long processId() {
-    return processId;
+    return component.processId;
   }
 
   @Override
@@ -88,7 +94,7 @@ public final class ProcessJiffies
         start.getNano(),
         end.getEpochSecond(),
         end.getNano(),
-        processId,
+        component.processId,
         readings.stream().map(TaskJiffies::toString).collect(joining(",")));
   }
 

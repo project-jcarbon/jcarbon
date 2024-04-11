@@ -4,15 +4,17 @@ import static java.util.stream.Collectors.joining;
 
 import java.time.Instant;
 import java.util.Arrays;
+import jcarbon.cpu.CpuComponent;
+import jcarbon.data.Component;
 import jcarbon.data.Interval;
 
 /** An {@link Interval} of rapl energy consumption over a time range. */
-public final class RaplInterval implements Interval<RaplReading[]>, Comparable<RaplInterval> {
+public final class RaplEnergy implements Interval<RaplReading[]>, Comparable<RaplEnergy> {
   private final Instant start;
   private final Instant end;
   private final RaplReading[] readings;
 
-  RaplInterval(Instant start, Instant end, RaplReading[] readings) {
+  RaplEnergy(Instant start, Instant end, RaplReading[] readings) {
     this.start = start;
     this.end = end;
     this.readings = Arrays.copyOf(readings, readings.length);
@@ -26,6 +28,11 @@ public final class RaplInterval implements Interval<RaplReading[]>, Comparable<R
   @Override
   public Instant end() {
     return end;
+  }
+
+  @Override
+  public Component component() {
+    return CpuComponent.INSTANCE;
   }
 
   @Override
@@ -46,7 +53,7 @@ public final class RaplInterval implements Interval<RaplReading[]>, Comparable<R
   }
 
   @Override
-  public int compareTo(RaplInterval other) {
+  public int compareTo(RaplEnergy other) {
     int start = start().compareTo(other.start());
     if (start < 0) {
       return start;

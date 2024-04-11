@@ -45,7 +45,7 @@ final class RaplSmokeTest {
 
     exercise();
 
-    RaplInterval interval = Rapl.difference(start, Rapl.sample().get());
+    RaplEnergy interval = Rapl.difference(start, Rapl.sample().get());
 
     if (IntStream.range(0, MicroArchitecture.SOCKETS)
             .mapToDouble(socket -> interval.data()[socket].total)
@@ -88,7 +88,7 @@ final class RaplSmokeTest {
 
     exercise();
 
-    RaplInterval interval = Powercap.difference(start, Powercap.sample().get());
+    RaplEnergy interval = Powercap.difference(start, Powercap.sample().get());
 
     if (IntStream.range(0, MicroArchitecture.SOCKETS)
             .mapToDouble(socket -> interval.data()[socket].total)
@@ -138,7 +138,7 @@ final class RaplSmokeTest {
         Rapl.difference(rapl, Rapl.sample().get()));
   }
 
-  private static boolean isSimilar(RaplInterval powercap, RaplInterval rapl) {
+  private static boolean isSimilar(RaplEnergy powercap, RaplEnergy rapl) {
     if (!validateTimestamps(powercap, rapl)) {
       return false;
     }
@@ -173,7 +173,7 @@ final class RaplSmokeTest {
   // TODO: Since Java's time precision is only guaranteed up to milliseconds
   // (https://shorturl.at/cjuL8), there is some potential for mismatch between the microsecond unix
   // time reported by Rapl and the native Java Instant time.
-  private static boolean validateTimestamps(RaplInterval powercap, RaplInterval rapl) {
+  private static boolean validateTimestamps(RaplEnergy powercap, RaplEnergy rapl) {
     boolean passed = true;
     if (Duration.between(rapl.start(), powercap.start()).compareTo(ONE_SECOND) > 0) {
       logger.info(
@@ -193,7 +193,7 @@ final class RaplSmokeTest {
     return passed;
   }
 
-  private static boolean validateComponents(RaplInterval powercap, RaplInterval rapl) {
+  private static boolean validateComponents(RaplEnergy powercap, RaplEnergy rapl) {
     if (powercap.data().length != rapl.data().length) {
       logger.info(
           String.format(

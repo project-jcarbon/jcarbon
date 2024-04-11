@@ -19,7 +19,7 @@ import jcarbon.cpu.jiffies.ProcessJiffies;
 import jcarbon.cpu.jiffies.ProcessSample;
 import jcarbon.cpu.jiffies.SystemJiffies;
 import jcarbon.cpu.jiffies.SystemSample;
-import jcarbon.cpu.rapl.RaplInterval;
+import jcarbon.cpu.rapl.RaplEnergy;
 import jcarbon.cpu.rapl.RaplSample;
 import jcarbon.cpu.rapl.RaplSource;
 import jcarbon.emissions.EmissionsConverter;
@@ -89,7 +89,7 @@ public final class JCarbon {
                 .map(Optional::get)
                 .collect(toList());
         if (raplSamples.size() > 1) {
-          report.addSignal(RaplInterval.class, forwardApply(raplSamples, source::difference));
+          report.addSignal(RaplEnergy.class, forwardApply(raplSamples, source::difference));
         } else {
           logger.info("no samples found for rapl");
         }
@@ -104,12 +104,12 @@ public final class JCarbon {
                 report.getSignal(ProcessJiffies.class),
                 report.getSignal(SystemJiffies.class),
                 JiffiesAccounting::computeTaskActivity));
-        if (report.hasSignal(RaplInterval.class)) {
+        if (report.hasSignal(RaplEnergy.class)) {
           report.addSignal(
               ProcessEnergy.class,
               forwardPartialAlign(
                   report.getSignal(ProcessActivity.class),
-                  report.getSignal(RaplInterval.class),
+                  report.getSignal(RaplEnergy.class),
                   EflectAccounting::computeTaskEnergy));
           report.addSignal(
               EmissionsInterval.class,

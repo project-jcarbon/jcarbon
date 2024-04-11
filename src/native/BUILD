@@ -32,7 +32,10 @@ cc_library(
 
 cc_binary(
     name = "libjrapl.so",
-    visibility = ["//src/jcarbon:__pkg__"],
+    visibility = [
+      "//src/jcarbon:__pkg__",
+      "//src/jcarbon/src/main/java/jcarbon/cpu/rapl:__pkg__",
+    ],
     linkshared = True,
     data = glob(["*.h"]),
     deps = [":jrapl-lib"],

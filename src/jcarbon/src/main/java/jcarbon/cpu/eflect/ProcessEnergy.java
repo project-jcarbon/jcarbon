@@ -5,19 +5,21 @@ import static java.util.stream.Collectors.joining;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import jcarbon.cpu.ProcessComponent;
+import jcarbon.data.Component;
 import jcarbon.data.Interval;
 
 /** An {@link Interval} of task energy for a process over a time range. */
 public final class ProcessEnergy implements Interval<List<TaskEnergy>>, Comparable<ProcessEnergy> {
   private final Instant start;
   private final Instant end;
-  private final long processId;
+  private final ProcessComponent component;
   private final ArrayList<TaskEnergy> tasks = new ArrayList<>();
 
   ProcessEnergy(Instant start, Instant end, long processId, Iterable<TaskEnergy> tasks) {
     this.start = start;
     this.end = end;
-    this.processId = processId;
+    this.component = new ProcessComponent(processId);
     tasks.forEach(this.tasks::add);
   }
 
@@ -31,8 +33,13 @@ public final class ProcessEnergy implements Interval<List<TaskEnergy>>, Comparab
     return end;
   }
 
+  @Override
+  public Component component() {
+    return component;
+  }
+
   public long processId() {
-    return processId;
+    return component.processId;
   }
 
   @Override
@@ -50,7 +57,7 @@ public final class ProcessEnergy implements Interval<List<TaskEnergy>>, Comparab
         start.getNano(),
         end.getEpochSecond(),
         end.getNano(),
-        processId,
+        component.processId,
         tasks.stream().map(TaskEnergy::toString).collect(joining(",")));
   }
 

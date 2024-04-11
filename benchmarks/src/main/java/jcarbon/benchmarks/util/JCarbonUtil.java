@@ -1,56 +1,51 @@
-package jcarbon.benchmarks;
+package jcarbon.benchmarks.util;
 
 import static java.nio.file.Files.newBufferedWriter;
+import static jcarbon.benchmarks.util.LoggerUtil.getLogger;
 
 import java.io.PrintWriter;
 import java.nio.file.Path;
-import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Date;
 import java.util.List;
-import java.util.logging.ConsoleHandler;
-import java.util.logging.Formatter;
-import java.util.logging.Handler;
 import java.util.logging.Level;
-import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 import jcarbon.JCarbon;
 import jcarbon.JCarbonReport;
-import jcarbon.benchmarks.util.JsonUtil;
 import jcarbon.cpu.eflect.ProcessEnergy;
 import jcarbon.emissions.EmissionsInterval;
 
-final class JCarbonBenchmarkUtil {
-  private static final Logger logger = getLogger();
+public final class JCarbonUtil {
+  private static final int DEFAULT_PERIOD_MS = 10;
   private static final String OUTPUT_PATH = System.getProperty("jcarbon.benchmarks.output", "/tmp");
+  private static final Logger logger = getLogger();
 
-  static JCarbon createJCarbon() {
+  public static JCarbon createJCarbon() {
     String period = System.getProperty("jcarbon.benchmarks.period", "10");
-    int periodMillis = 10;
+    int periodMillis = DEFAULT_PERIOD_MS;
     try {
       periodMillis = Integer.parseInt(period);
-      if (periodMillis < 0) {
-        logger.info(String.format("rejecting negative period (%d) for new JCarbon", periodMillis));
-        periodMillis = 10;
-      }
     } catch (Exception e) {
       logger.log(
-          Level.INFO, String.format("ignoring bad period value (%s) for new JCarbon", period), e);
-      periodMillis = 10;
+          Level.INFO, String.format("ignoring bad period (%s) for new JCarbon", period), e);
+      return new JCarbon(DEFAULT_PERIOD_MS);
+    }
+    if (periodMillis < 0) {
+      logger.info(String.format("rejecting negative period (%d) for new JCarbon", periodMillis));
+      return new JCarbon(DEFAULT_PERIOD_MS);
     }
     logger.info(String.format("creating JCarbon with period of %d milliseconds", periodMillis));
     return new JCarbon(periodMillis);
   }
 
-  static Path outputPath() {
+  public static Path outputPath() {
     return Path.of(
         OUTPUT_PATH,
         String.format(
             "jcarbon-%d-%d.json", ProcessHandle.current().pid(), System.currentTimeMillis()));
   }
 
-  static void summary(JCarbonReport report) {
+  public static void summary(JCarbonReport report) {
     List<ProcessEnergy> processEnergy = report.getSignal(ProcessEnergy.class);
     double energy =
         processEnergy.stream()
@@ -72,7 +67,7 @@ final class JCarbonBenchmarkUtil {
                 .sum()));
   }
 
-  static void dump(List<JCarbonReport> reports) {
+  public static void dump(List<JCarbonReport> reports) {
     Path outputPath = outputPath();
     logger.info(String.format("writing reports to %s", outputPath));
     try (PrintWriter writer = new PrintWriter(newBufferedWriter(outputPath)); ) {
@@ -80,41 +75,5 @@ final class JCarbonBenchmarkUtil {
     } catch (Exception e) {
       e.printStackTrace();
     }
-  }
-
-  private static final SimpleDateFormat dateFormatter =
-      new SimpleDateFormat("yyyy-MM-dd HH:mm:ss a z");
-
-  private static String makePrefix(Date date) {
-    return String.join(
-        " ",
-        "jcarbon-benchmarks",
-        "(" + dateFormatter.format(date) + ")",
-        "[" + Thread.currentThread().getName() + "]:");
-  }
-
-  private static Logger getLogger() {
-    ConsoleHandler handler = new ConsoleHandler();
-    handler.setFormatter(
-        new Formatter() {
-          @Override
-          public String format(LogRecord record) {
-            return String.join(
-                " ",
-                makePrefix(new Date(record.getMillis())),
-                record.getMessage(),
-                System.lineSeparator());
-          }
-        });
-
-    Logger logger = Logger.getLogger("jcarbon-benchmarks");
-    logger.setUseParentHandlers(false);
-
-    for (Handler hdlr : logger.getHandlers()) {
-      logger.removeHandler(hdlr);
-    }
-    logger.addHandler(handler);
-
-    return logger;
   }
 }

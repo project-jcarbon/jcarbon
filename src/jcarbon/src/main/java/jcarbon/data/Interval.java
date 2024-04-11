@@ -10,6 +10,9 @@ public interface Interval<T> {
   /** End of the interval. */
   Instant end();
 
+  /** The executing component. */
+  Component component();
+
   /** What is in the interval. */
   T data();
 }

@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Map;
 import jcarbon.benchmarks.data.Uncertainty;
 import jcarbon.benchmarks.data.UncertaintyPropagation;
-import jcarbon.cpu.rapl.Rapl;
+import jcarbon.cpu.rapl.Powercap;
 import jcarbon.cpu.rapl.RaplEnergy;
 import jcarbon.cpu.rapl.RaplSample;
 import org.openjdk.jmh.annotations.*;
@@ -21,7 +21,7 @@ import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 
 /** A benchmark to test how frequently the rapl msr is updated. */
-public class MsrUpdateBenchmark {
+public class PowercapUpdateBenchmark {
   private static final int WARMUP_ITERATIONS = 20;
   private static final int MEASUREMENT_ITERATIONS = 50;
 
@@ -39,7 +39,7 @@ public class MsrUpdateBenchmark {
     @TearDown(Level.Iteration)
     public void computeValues() {
       List<RaplEnergy> intervals =
-          forwardApply(samples, Rapl::difference).stream()
+          forwardApply(samples, Powercap::difference).stream()
               .filter(
                   interval -> Arrays.stream(interval.data()).mapToDouble(r -> r.total).sum() > 0)
               .collect(toList());
@@ -80,7 +80,7 @@ public class MsrUpdateBenchmark {
     if (state.sleepTimeMs > 0) {
       start = Instant.now();
     }
-    state.samples.add(Rapl.sample().get());
+    state.samples.add(Powercap.sample().get());
     if (state.sleepTimeMs > 0 && start != null) {
       Thread.sleep(Duration.between(start, start.plusNanos(1000 * state.sleepTimeMs)).toMillis());
     }
@@ -89,7 +89,7 @@ public class MsrUpdateBenchmark {
   public static void main(String[] args) throws RunnerException {
     Options opt =
         new OptionsBuilder()
-            .include(MsrUpdateBenchmark.class.getSimpleName())
+            .include(PowercapUpdateBenchmark.class.getSimpleName())
             .forks(1)
             .warmupIterations(WARMUP_ITERATIONS)
             .measurementIterations(MEASUREMENT_ITERATIONS)

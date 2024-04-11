@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.Optional;
 import jcarbon.cpu.jiffies.ProcessActivity;
 import jcarbon.cpu.jiffies.TaskActivity;
-import jcarbon.cpu.rapl.RaplInterval;
+import jcarbon.cpu.rapl.RaplEnergy;
 import jcarbon.data.TimeOperations;
 
 /** Class to compute the energy consumption of tasks based on fractional consumption. */
@@ -20,7 +20,7 @@ public final class EflectAccounting {
    * the fractional activity per socket.
    */
   public static Optional<ProcessEnergy> computeTaskEnergy(
-      ProcessActivity task, RaplInterval energy) {
+      ProcessActivity task, RaplEnergy energy) {
     if (energy.data().length == 0) {
       return Optional.empty();
     }

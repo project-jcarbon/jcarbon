@@ -15,7 +15,7 @@ final class RaplMonitor {
     while (true) {
       Thread.sleep(10);
       RaplSample current = source.sample().get();
-      RaplInterval interval = source.difference(last, current);
+      RaplEnergy interval = source.difference(last, current);
       logger.info(String.format("%s", interval));
       last = current;
     }
