@@ -99,14 +99,14 @@ Reports can be written to disk as a `json`. The report has a simple nested recor
 `jcarbon` can also be run as a server to do out-of-process monitoring. In one terminal, you should run:
 
 ```bash
-bazel build --javacopt="-XepDisableAllChecks" service/src/main/java/jcarbon/server_deploy.jar
-java -jar bazel-bin/service/src/main/java/jcarbon/server_deploy.jar
+bazel build --javacopt="-XepDisableAllChecks" service/src/main/java/jcarbon/server:server_deploy.jar
+sudo java -jar bazel-bin/service/src/main/java/jcarbon/server/server_deploy.jar
 ```
 
 Then in another terminal you can run python client code to talk with the server. First, install the python client:
 
 ```bash
-pip install service/src/main/python grpcio tensorflow
+pip install service/src/main/python grpcio tensorflow tensorflow-estimator pandas
 ```
 
 Then you can add it to code (see `tf1_jcarbon_test.py`).
