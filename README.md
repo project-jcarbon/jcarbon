@@ -99,7 +99,7 @@ Reports can be written to disk as a `json`. The report has a simple nested recor
 `jcarbon` can also be run as a server to do out-of-process monitoring. In one terminal, you should run:
 
 ```bash
-bazel build service/src/main/java/jcarbon/server_deploy.jar
+bazel build --javacopt="-XepDisableAllChecks" service/src/main/java/jcarbon/server_deploy.jar
 java -jar bazel-bin/service/src/main/java/jcarbon/server_deploy.jar
 ```
 
