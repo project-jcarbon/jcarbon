@@ -1,5 +1,6 @@
 alias(
     name = "jcarbon",
+    visibility = ["//visibility:public"],
     actual = "//src/jcarbon/src/main/java/jcarbon",
 )
 

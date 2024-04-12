@@ -6,6 +6,7 @@ import static jcarbon.data.DataOperations.forwardPartialAlign;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.OptionalLong;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.logging.Logger;
@@ -42,6 +43,7 @@ public final class JCarbon {
   private final RaplSource source = RaplSource.getRaplSource();
   private final EmissionsConverter converter = EmissionsConverters.forDefaultLocale();
   private final int periodMillis;
+  private final OptionalLong processId;
 
   private boolean isRunning = false;
   private SamplingFuture<ProcessSample> processFuture;
@@ -50,14 +52,30 @@ public final class JCarbon {
 
   public JCarbon(int periodMillis) {
     this.periodMillis = periodMillis;
+    this.processId = OptionalLong.empty();
+  }
+
+  public JCarbon(int periodMillis, long processId) {
+    this.periodMillis = periodMillis;
+    this.processId = OptionalLong.of(processId);
   }
 
   /** Starts the sampling futures is we aren't already running. */
   public void start() {
     synchronized (this) {
       if (!isRunning) {
-        processFuture =
-            SamplingFuture.fixedPeriodMillis(ProcTask::sampleTasks, periodMillis, executor);
+        logger.info(
+            String.format(
+                "starting jcarbon for %d at %d ms",
+                processId.orElseGet(() -> ProcessHandle.current().pid()), periodMillis));
+        if (processId.isEmpty()) {
+          processFuture =
+              SamplingFuture.fixedPeriodMillis(ProcTask::sampleTasks, periodMillis, executor);
+        } else {
+          processFuture =
+              SamplingFuture.fixedPeriodMillis(
+                  () -> ProcTask.sampleTasksFor(processId.getAsLong()), periodMillis, executor);
+        }
         systemFuture =
             SamplingFuture.fixedPeriodMillis(ProcStat::sampleCpus, periodMillis, executor);
         raplFuture = SamplingFuture.fixedPeriodMillis(source::sample, periodMillis, executor);
@@ -74,6 +92,7 @@ public final class JCarbon {
   public Optional<JCarbonReport> stop() {
     synchronized (this) {
       if (isRunning) {
+        logger.info("stopping jcarbon");
         isRunning = false;
 
         JCarbonReport report = new JCarbonReport();
