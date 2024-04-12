@@ -1,0 +1,34 @@
+syntax = "proto3";
+
+package jcarbon.service;
+
+option java_multiple_files = true;
+option java_package = "jcarbon.service";
+
+service JCarbonService {
+  rpc Start (StartRequest) returns (StartResponse) {}
+
+  rpc Stop (StopRequest) returns (StopResponse) {}
+
+  rpc Dump (DumpRequest) returns (DumpResponse) {}
+}
+
+message StartRequest {
+  optional uint64 process_id = 1;
+  optional uint32 period_millis = 2;
+}
+
+message StartResponse {}
+
+message StopRequest {
+  optional uint64 process_id = 1;
+}
+
+message StopResponse {}
+
+message DumpRequest {
+  optional uint64 process_id = 1;
+  optional string output_path = 2;
+}
+
+message DumpResponse {}
