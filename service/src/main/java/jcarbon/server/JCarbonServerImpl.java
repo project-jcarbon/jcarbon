@@ -24,7 +24,7 @@ final class JCarbonServerImpl extends JCarbonServiceGrpc.JCarbonServiceImplBase 
   @Override
   public void start(StartRequest request, StreamObserver<StartResponse> resultObserver) {
     long processId = request.getProcessId();
-    if (jcarbons.containsKey(processId)) {
+    if (!jcarbons.containsKey(processId)) {
       logger.info(String.format("creating jcarbon for %d", processId));
       JCarbon jcarbon = new JCarbon(request.getPeriodMillis(), processId);
       jcarbon.start();
@@ -44,6 +44,7 @@ final class JCarbonServerImpl extends JCarbonServiceGrpc.JCarbonServiceImplBase 
     if (jcarbons.containsKey(processId)) {
       logger.info(String.format("stopping jcarbon for %d", processId));
       JCarbon jcarbon = jcarbons.get(Long.valueOf(processId));
+      jcarbons.remove(Long.valueOf(processId));
       JCarbonReport report = jcarbon.stop().get();
       // TODO: need to be able to combine/delete reports
       logger.info(String.format("storing jcarbon report for %d", processId));

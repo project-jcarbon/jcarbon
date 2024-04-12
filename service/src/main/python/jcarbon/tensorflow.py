@@ -20,12 +20,12 @@ class JCarbonHook(SessionRunHook):
 
     def after_run(self, run_context, run_values):
         self.client.stop(self.pid)
-
-    def end(self, session):
-        self.client.stop(self.pid)
         self.client.dump(self.pid, os.path.join(
             self.output_dir, f'jcarbon-{self.pid}-{self.i}.json'))
         self.i += 1
+    
+    def end(self, session):
+        self.client.stop(self.pid)
 
 
 class JCarbonCallback(Callback):

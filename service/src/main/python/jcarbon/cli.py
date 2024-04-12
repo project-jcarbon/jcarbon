@@ -47,8 +47,8 @@ def main():
     elif args.command in ['smoke_test', 'test', 'smoke-test', 'smoketest']:
         client.start(args.pid)
         sleep(1)
-        client.stop()
-        print(client.dump())
+        client.stop(args.pid)
+        print(client.dump(args.pid))
 
 
 if __name__ == '__main__':
