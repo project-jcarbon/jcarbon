@@ -1,10 +1,31 @@
-# jCarbon
+# jcarbon
 
-`jCarbon` is a Java library that provides an application-level view of Intel-Linux system consumption. The view is user-actionable, granting `system awareness` to applications.
+`jcarbon` is a Java library that provides an application-level view of Intel-Linux system consumption. The view is user-actionable, granting `system awareness` to applications.
 
 ## Features
 
-`jCarbon` provides high-granularity data sampled at sub-second periods through a simple interface. The system can provide both physical (those that come directly from a system component) and virtual signals (which are computed from other signals).
+`jcarbon` provides high-granularity data sampled at sub-second periods through a simple interface. `jcarbon` provides a collection of physical signals (that come directly from a system component) and virtual signals (which are computed from other signals). Signals are 
+
+## Using `jcarbon`
+
+<!-- `jcarbon` can be used directly from its most recent release. -->
+You can directly use `jcarbon.JCarbon` for access to many signals out of the box:
+
+```java
+JCarbon jcarbon = new JCarbon();
+jcarbon.start();
+fib(42);
+JCarbonReport report = jcarbon.stop();
+List<ProcessEnergy> energy = report.getSignal(ProcessEnergy.class);
+System.out.println(
+    String.format(
+        "Consumed %.6f joules",
+        energy.stream()
+            .mapToDouble(proc -> proc.data().stream().mapToDouble(e -> e.energy).sum())
+            .sum()));
+```
+
+More information about the physical signals can be found in the linked documentation. Here, we give a short overview of the virtual signals.
 
 ### Physical Signals
  - [`rapl energy`](https://www.intel.com/content/www/us/en/developer/articles/technical/software-security-guidance/advisory-guidance/running-average-power-limit-energy-reporting.html)
@@ -18,26 +39,6 @@
  - `process energy`
  - `calmness`
  <!-- - `emissions` -->
-
-## Using `jCarbon`
-
-<!-- `jCarbon` can be used directly from its most recent release. -->
-You can directly use `jcarbon.JCarbon` for access to many signals out of the box:
-
-```java
-JCarbon jcarbon = new JCarbon();
-jcarbon.start();
-fib(42);
-JCarbonReport report = jcarbon.stop();
-System.out.println(
-    String.format(
-        "Consumed %.6f joules",
-        report.getSignal(ProcessEnergy.class).stream()
-            .mapToDouble(proc -> proc.data().stream().mapToDouble(e -> e.energy).sum())
-            .sum()));
-```
-
-More information about the physical signals can be found in the linked documentation. Here, we give a short overview of the virtual signals.
 
 ### `process activity`: Jiffies Attribution
 
@@ -75,7 +76,11 @@ $$ \mathcal{C}_{S}(k) = \frac{\sum_t|f'|}{|f|}, where \ f' \ \in f_k \leq f_t \ 
 
 Comparing two traces can be done with any distance metric. Typically pcc is a good choice since it measures covariance.
 
-### Handling Signals Offline
+<!-- ### Emissions
+
+Emissions is a major global concern, especially as computing systems continue to scale exponentially. As such, `jcarbon` takes emissions as primary concern by leveraging the highly granular energy data into components, such as the system or processes. Emissions are computed by using an `EmissionsConverter`, which takes another signal and transforms it into its emissions equivalent. -->
+
+## Handling Signals Offline
 
 Reports can be written to disk as a `json`. The report has a simple nested record structure:
 
@@ -136,7 +141,6 @@ A simple UML describing `jRAPL`'s layout is provided [here](https://github.com/a
 # Migration/Feature Updates
 
 Here are the features we want to try re-integrate into this project:
- - Emissions reporting
  - [Nvidia GPU signal](https://github.com/bytedeco/javacpp-presets/blob/master/cuda/src/gen/java/org/bytedeco/cuda/global/nvml.java#L4546)
  - DVFS Interactions ([pure Java implementation](https://github.com/atpoverload/thread-actuator/blob/clean-up/jdvfs/src/main/java/jdvfs/Dvfs.java))
  - Low-level energy sampling
