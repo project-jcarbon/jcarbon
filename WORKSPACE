@@ -41,7 +41,7 @@ http_jar(
 
 JCARBON_ARTIFACTS = [
     "org.json:json:20231013",
-    # "commons-cli:commons-cli:1.6.0",
+    "commons-cli:commons-cli:1.7.0",
 ]
 
 http_archive(
