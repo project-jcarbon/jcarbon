@@ -1,4 +1,6 @@
 """ a client that can talk to an jcarbon server. """
+import json
+
 from argparse import ArgumentParser
 from os import getpid
 from time import sleep
@@ -11,7 +13,8 @@ def parse_args():
     parser = ArgumentParser()
     parser.add_argument(
         dest='command',
-        choices=['start', 'stop', 'read'],
+        choices=['start', 'stop', 'read', 'smoke_test',
+                 'test', 'smoke-test', 'smoketest'],
         help='request to make',
     )
     parser.add_argument(
@@ -28,6 +31,13 @@ def parse_args():
         default='localhost:8980',
         help='address of the smaragdine server',
     )
+    parser.add_argument(
+        '--output_path',
+        dest='output_path',
+        type=str,
+        default='/tmp',
+        help='location to write the report',
+    )
     return parser.parse_args()
 
 
@@ -41,14 +51,18 @@ def main():
                 'invalid pid to monitor ({})'.format(args.pid))
         client.start(args.pid)
     elif args.command == 'stop':
-        client.stop()
+        client.stop(args.pid)
     elif args.command == 'read':
-        print(client.dump())
+        client.dump(args.pid, args.output_path)
     elif args.command in ['smoke_test', 'test', 'smoke-test', 'smoketest']:
         client.start(args.pid)
         sleep(1)
         client.stop(args.pid)
-        print(client.dump(args.pid))
+        file_path = '/tmp/jcarbon-smoke_test-{args.pid}.json'
+        client.dump(args.pid, '/tmp/jcarbon-smoke_test-{args.pid}.json')
+        with open(file_path) as f:
+            report = json.loads(f)
+        print(report)
 
 
 if __name__ == '__main__':
