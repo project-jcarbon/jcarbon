@@ -11,6 +11,8 @@ service JCarbonService {
   rpc Stop (StopRequest) returns (StopResponse) {}
 
   rpc Dump (DumpRequest) returns (DumpResponse) {}
+
+  rpc Read (ReadRequest) returns (stream ReadResponse) {}
 }
 
 message StartRequest {
@@ -26,9 +28,40 @@ message StopRequest {
 
 message StopResponse {}
 
+message ReadRequest {
+  optional uint64 process_id = 1;
+  repeated string signals = 2;
+}
+
 message DumpRequest {
   optional uint64 process_id = 1;
   optional string output_path = 2;
 }
 
 message DumpResponse {}
+
+message ReadResponse {
+  repeated JCarbonSignal signals;
+}
+
+message JCarbonSignal {
+  optional Timestamp start = 1;
+  optional Timestamp end = 2;
+  optional Component component = 3;
+  optional double value = 4;
+
+  message Timestamp {
+    optional uint64 secs = 1;
+    optional uint64 nanos = 2;
+  }
+
+  message Component {
+    optional string name = 1;
+    repeated MetaData metadata = 2;
+
+    message MetaData {
+      optional string name = 1;
+      optional string value = 2;
+    }
+  }
+}

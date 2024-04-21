@@ -23,12 +23,12 @@ final class JCarbonServerImpl extends JCarbonServiceGrpc.JCarbonServiceImplBase 
 
   @Override
   public void start(StartRequest request, StreamObserver<StartResponse> resultObserver) {
-    long processId = request.getProcessId();
+    Long processId = Long.valueOf(request.getProcessId());
     if (!jcarbons.containsKey(processId)) {
       logger.info(String.format("creating jcarbon for %d", processId));
       JCarbon jcarbon = new JCarbon(request.getPeriodMillis(), processId);
       jcarbon.start();
-      jcarbons.put(Long.valueOf(processId), jcarbon);
+      jcarbons.put(processId, jcarbon);
     } else {
       logger.info(
           String.format(
@@ -40,15 +40,15 @@ final class JCarbonServerImpl extends JCarbonServiceGrpc.JCarbonServiceImplBase 
 
   @Override
   public void stop(StopRequest request, StreamObserver<StopResponse> resultObserver) {
-    long processId = request.getProcessId();
+    Long processId = Long.valueOf(request.getProcessId());
     if (jcarbons.containsKey(processId)) {
       logger.info(String.format("stopping jcarbon for %d", processId));
-      JCarbon jcarbon = jcarbons.get(Long.valueOf(processId));
-      jcarbons.remove(Long.valueOf(processId));
+      JCarbon jcarbon = jcarbons.get(processId);
+      jcarbons.remove(processId);
       JCarbonReport report = jcarbon.stop().get();
       // TODO: need to be able to combine/delete reports
       logger.info(String.format("storing jcarbon report for %d", processId));
-      data.put(Long.valueOf(processId), report);
+      data.put(processId, report);
     } else {
       logger.info(
           String.format(
@@ -60,11 +60,11 @@ final class JCarbonServerImpl extends JCarbonServiceGrpc.JCarbonServiceImplBase 
 
   @Override
   public void dump(DumpRequest request, StreamObserver<DumpResponse> resultObserver) {
-    long processId = request.getProcessId();
+    Long processId = Long.valueOf(request.getProcessId());
     if (data.containsKey(processId)) {
       String outputPath = request.getOutputPath();
       logger.info(String.format("dumping jcarbon report for %d at %s", processId, outputPath));
-      JsonUtil.dump(outputPath, data.get(Long.valueOf(processId)));
+      JsonUtil.dump(outputPath, data.get(processId));
     } else {
       logger.info(
           String.format(
@@ -72,5 +72,40 @@ final class JCarbonServerImpl extends JCarbonServiceGrpc.JCarbonServiceImplBase 
     }
     resultObserver.onNext(DumpResponse.getDefaultInstance());
     resultObserver.onCompleted();
+  }
+
+  @Override
+  public void read(ReadRequest request, StreamObserver<ReadResponse> resultObserver) {
+    Long processId = Long.valueOf(request.getProcessId());
+    Class<?> cls = Class.forName(request.getSignal());
+    if (cls.equals(null)) {
+      logger.info(
+          String.format(
+              "ignoring request to read jcarbon report for %d since no signal class could be"
+                  + " found for '%s'",
+              processId, request.getSignal()));
+      resultObserver.onNext(DumpResponse.getDefaultInstance());
+      resultObserver.onCompleted();
+    } else if (data.containsKey(processId)) {
+      JCarbonReport report = data.get(processId);
+      if (report.hasSignal(request.getSignal())) {
+        logger.info(String.format("reading jcarbon report for %d at %s", processId, outputPath));
+        List<?> report.getSignal(cls);
+        JCarbonSignal signal = JCarbonSignal.newBuilder().
+      } else {
+        logger.info(
+            String.format(
+                "ignoring request to read jcarbon report for %d since it does not have a %s signal",
+                processId, cls));
+        resultObserver.onNext(DumpResponse.getDefaultInstance());
+        resultObserver.onCompleted();
+      }
+    } else {
+      logger.info(
+          String.format(
+              "ignoring request to read jcarbon report for %d since it does not exist", processId));
+      resultObserver.onNext(DumpResponse.getDefaultInstance());
+      resultObserver.onCompleted();
+    }
   }
 }
