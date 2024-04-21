@@ -4,7 +4,7 @@ import pandas as pd
 import tensorflow as tf
 import tensorflow.compat.v1 as tf1
 
-from jcarbon.tensorflow.session_hook import JCarbonHook
+from jcarbon.tensorflow.hook import JCarbonHook
 
 if __name__ == '__main__':
     x_train = pd.read_csv(
