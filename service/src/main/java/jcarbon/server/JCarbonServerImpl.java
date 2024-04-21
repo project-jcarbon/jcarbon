@@ -76,6 +76,7 @@ final class JCarbonServerImpl extends JCarbonServiceGrpc.JCarbonServiceImplBase 
     resultObserver.onCompleted();
   }
 
+  // TODO: DO NOT USE THIS METHOD!!!! IT IS NOT FULLY IMPLEMENTED!
   @Override
   public void read(ReadRequest request, StreamObserver<ReadResponse> resultObserver) {
     Long processId = Long.valueOf(request.getProcessId());
