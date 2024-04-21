@@ -10,6 +10,8 @@ import jcarbon.JCarbonReport;
 import jcarbon.service.DumpRequest;
 import jcarbon.service.DumpResponse;
 import jcarbon.service.JCarbonServiceGrpc;
+import jcarbon.service.ReadRequest;
+import jcarbon.service.ReadResponse;
 import jcarbon.service.StartRequest;
 import jcarbon.service.StartResponse;
 import jcarbon.service.StopRequest;
@@ -77,35 +79,52 @@ final class JCarbonServerImpl extends JCarbonServiceGrpc.JCarbonServiceImplBase 
   @Override
   public void read(ReadRequest request, StreamObserver<ReadResponse> resultObserver) {
     Long processId = Long.valueOf(request.getProcessId());
-    Class<?> cls = Class.forName(request.getSignal());
-    if (cls.equals(null)) {
-      logger.info(
-          String.format(
-              "ignoring request to read jcarbon report for %d since no signal class could be"
-                  + " found for '%s'",
-              processId, request.getSignal()));
-      resultObserver.onNext(DumpResponse.getDefaultInstance());
-      resultObserver.onCompleted();
-    } else if (data.containsKey(processId)) {
-      JCarbonReport report = data.get(processId);
-      if (report.hasSignal(request.getSignal())) {
-        logger.info(String.format("reading jcarbon report for %d at %s", processId, outputPath));
-        List<?> report.getSignal(cls);
-        JCarbonSignal signal = JCarbonSignal.newBuilder().
-      } else {
+    for (String s : request.getSignalsList()) {
+      try {
+        Class<?> signal = Class.forName(s);
+        if (signal.equals(null)) {
+          logger.info(
+              String.format(
+                  "ignoring request to read jcarbon report for %d since no signal class could be"
+                      + " found for '%s'",
+                  processId, signal));
+          resultObserver.onNext(ReadResponse.getDefaultInstance());
+          resultObserver.onCompleted();
+        } else if (data.containsKey(processId)) {
+          JCarbonReport report = data.get(processId);
+          if (report.hasSignal(signal)) {
+            logger.info(
+                String.format("reading signal %s from jcarbon report for %d", signal, processId));
+            // List<?> reports = report.getSignal(signal);
+            // JCarbonSignal signal = JCarbonSignal.newBuilder().
+            resultObserver.onNext(ReadResponse.getDefaultInstance());
+            resultObserver.onCompleted();
+          } else {
+            logger.info(
+                String.format(
+                    "ignoring request to read jcarbon report for %d since it does not have a %s"
+                        + " signal",
+                    processId, signal));
+            resultObserver.onNext(ReadResponse.getDefaultInstance());
+            resultObserver.onCompleted();
+          }
+        } else {
+          logger.info(
+              String.format(
+                  "ignoring request to read jcarbon report for %d since it does not exist",
+                  processId));
+          resultObserver.onNext(ReadResponse.getDefaultInstance());
+          resultObserver.onCompleted();
+        }
+      } catch (ClassNotFoundException e) {
         logger.info(
             String.format(
-                "ignoring request to read jcarbon report for %d since it does not have a %s signal",
-                processId, cls));
-        resultObserver.onNext(DumpResponse.getDefaultInstance());
+                "ignoring request to read jcarbon report for %d since no signal class could be"
+                    + " found for '%s'",
+                processId, s));
+        resultObserver.onNext(ReadResponse.getDefaultInstance());
         resultObserver.onCompleted();
       }
-    } else {
-      logger.info(
-          String.format(
-              "ignoring request to read jcarbon report for %d since it does not exist", processId));
-      resultObserver.onNext(DumpResponse.getDefaultInstance());
-      resultObserver.onCompleted();
     }
   }
 }
