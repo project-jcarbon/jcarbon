@@ -106,7 +106,7 @@ sudo java -jar bazel-bin/service/src/main/java/jcarbon/server/server_deploy.jar
 Then in another terminal you can run python client code to talk with the server. First, install the python client:
 
 ```bash
-pip install service/src/main/python grpcio tensorflow tensorflow-estimator pandas
+pip install service/src/main/python grpcio tensorflow==2.15.0 tensorflow-estimator==2.15.0 pandas
 ```
 
 Then you can add it to code (see `tf1_jcarbon_test.py`).
