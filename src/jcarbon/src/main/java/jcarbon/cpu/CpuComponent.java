@@ -18,6 +18,20 @@ public final class CpuComponent implements Component {
     return component;
   }
 
+  @Override
+  public boolean equals(Object o) {
+    if (o instanceof CpuComponent) {
+      CpuComponent other = (CpuComponent) o;
+      return this.cpu == other.cpu;
+    }
+    return false;
+  }
+
+  @Override
+  public int hashCode() {
+    return Integer.hashCode(cpu);
+  }
+
   public SocketComponent asSocket() {
     return new SocketComponent(CPU_TO_SOCKETS[this.cpu]);
   }

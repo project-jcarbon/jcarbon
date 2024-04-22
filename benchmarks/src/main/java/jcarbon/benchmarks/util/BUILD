@@ -5,6 +5,7 @@ java_library(
     deps = [
         "//src/jcarbon/src/main/java/jcarbon",
         "//src/jcarbon/src/main/java/jcarbon/cpu",
+        "//src/jcarbon/src/main/java/jcarbon/cpu/eflect",
         "//src/jcarbon/src/main/java/jcarbon/data",
         "//src/jcarbon/src/main/java/jcarbon/emissions",
         "@maven//:org_json_json",

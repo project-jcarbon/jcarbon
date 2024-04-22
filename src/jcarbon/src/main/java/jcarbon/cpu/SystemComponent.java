@@ -15,4 +15,18 @@ public class SystemComponent implements Component {
   public String toString() {
     return osName;
   }
+
+  @Override
+  public boolean equals(Object o) {
+    if (o instanceof SystemComponent) {
+      SystemComponent other = (SystemComponent) o;
+      return this.osName == other.osName;
+    }
+    return false;
+  }
+
+  @Override
+  public int hashCode() {
+    return osName.hashCode();
+  }
 }

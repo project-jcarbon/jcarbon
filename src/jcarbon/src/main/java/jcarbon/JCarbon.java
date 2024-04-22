@@ -66,7 +66,7 @@ public final class JCarbon {
       if (!isRunning) {
         logger.info(
             String.format(
-                "starting jcarbon for %d at %d ms",
+                "starting jcarbon for process %d at %d ms",
                 processId.orElseGet(() -> ProcessHandle.current().pid()), periodMillis));
         if (processId.isEmpty()) {
           processFuture =

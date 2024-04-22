@@ -15,4 +15,18 @@ public final class SocketComponent implements Component {
   public String toString() {
     return component;
   }
+
+  @Override
+  public boolean equals(Object o) {
+    if (o instanceof SocketComponent) {
+      SocketComponent other = (SocketComponent) o;
+      return this.socket == other.socket;
+    }
+    return false;
+  }
+
+  @Override
+  public int hashCode() {
+    return Long.hashCode(socket);
+  }
 }

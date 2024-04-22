@@ -1,6 +1,7 @@
 package jcarbon.benchmarks.util;
 
 import static java.nio.file.Files.newBufferedWriter;
+import static java.util.stream.Collectors.groupingBy;
 import static jcarbon.benchmarks.util.LoggerUtil.getLogger;
 
 import java.io.PrintWriter;
@@ -13,7 +14,8 @@ import java.util.logging.Logger;
 import jcarbon.JCarbon;
 import jcarbon.JCarbonReport;
 import jcarbon.cpu.eflect.ProcessEnergy;
-import jcarbon.emissions.EmissionsInterval;
+import jcarbon.emissions.Emission;
+import jcarbon.emissions.Emissions;
 
 public final class JCarbonUtil {
   private static final int DEFAULT_PERIOD_MS = 10;
@@ -26,8 +28,7 @@ public final class JCarbonUtil {
     try {
       periodMillis = Integer.parseInt(period);
     } catch (Exception e) {
-      logger.log(
-          Level.INFO, String.format("ignoring bad period (%s) for new JCarbon", period), e);
+      logger.log(Level.INFO, String.format("ignoring bad period (%s) for new JCarbon", period), e);
       return new JCarbon(DEFAULT_PERIOD_MS);
     }
     if (periodMillis < 0) {
@@ -62,9 +63,19 @@ public final class JCarbonUtil {
     logger.info(
         String.format(
             " - %.4f grams of CO2",
-            report.getSignal(EmissionsInterval.class).stream()
-                .mapToDouble(EmissionsInterval::data)
+            report.getSignal(Emissions.class).stream()
+                .mapToDouble(
+                    emissions -> emissions.data().stream().mapToDouble(e -> e.carbon).sum())
                 .sum()));
+    report.getSignal(Emissions.class).stream()
+        .flatMap(emissions -> emissions.data().stream())
+        .collect(groupingBy(emission -> emission.component()))
+        .forEach(
+            (component, emissions) ->
+                logger.info(
+                    String.format(
+                        " - %s consumed %.4f grams of CO2",
+                        component, emissions.stream().mapToDouble(Emission::value).sum())));
   }
 
   public static void dump(List<JCarbonReport> reports) {
