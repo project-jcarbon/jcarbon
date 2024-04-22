@@ -23,9 +23,9 @@ import jcarbon.cpu.jiffies.SystemSample;
 import jcarbon.cpu.rapl.RaplEnergy;
 import jcarbon.cpu.rapl.RaplSample;
 import jcarbon.cpu.rapl.RaplSource;
+import jcarbon.emissions.Emissions;
 import jcarbon.emissions.EmissionsConverter;
-import jcarbon.emissions.EmissionsConverters;
-import jcarbon.emissions.EmissionsInterval;
+import jcarbon.emissions.LocaleEmissionsConverters;
 import jcarbon.util.LoggerUtil;
 import jcarbon.util.SamplingFuture;
 
@@ -41,7 +41,7 @@ public final class JCarbon {
             return t;
           });
   private final RaplSource source = RaplSource.getRaplSource();
-  private final EmissionsConverter converter = EmissionsConverters.forDefaultLocale();
+  private final EmissionsConverter converter = LocaleEmissionsConverters.forDefaultLocale();
   private final int periodMillis;
   private final OptionalLong processId;
 
@@ -131,7 +131,7 @@ public final class JCarbon {
                   report.getSignal(RaplEnergy.class),
                   EflectAccounting::computeTaskEnergy));
           report.addSignal(
-              EmissionsInterval.class,
+              Emissions.class,
               report.getSignal(ProcessEnergy.class).stream()
                   .map(nrg -> converter.convert(nrg))
                   .collect(toList()));

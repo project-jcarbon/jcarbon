@@ -1,21 +1,23 @@
 package jcarbon.emissions;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import jcarbon.data.Component;
 import jcarbon.data.Interval;
 
-/** An {@link Interval} of emission consumption over a time range. */
-public final class EmissionsInterval implements Interval<Double> {
+/** An {@link Interval} of emissions over a time range. */
+public final class Emissions implements Interval<List<Emission>> {
   private final Instant start;
   private final Instant end;
   private final Component component;
-  private final double emissions;
+  private final ArrayList<Emission> emissions = new ArrayList<>();
 
-  public EmissionsInterval(Instant start, Instant end, Component component, double emissions) {
+  public Emissions(Instant start, Instant end, Component component, Iterable<Emission> emissions) {
     this.start = start;
     this.end = end;
     this.component = component;
-    this.emissions = emissions;
+    emissions.forEach(this.emissions::add);
   }
 
   @Override
@@ -34,8 +36,8 @@ public final class EmissionsInterval implements Interval<Double> {
   }
 
   @Override
-  public Double data() {
-    return Double.valueOf(emissions);
+  public List<Emission> data() {
+    return new ArrayList<>(emissions);
   }
 
   @Override
