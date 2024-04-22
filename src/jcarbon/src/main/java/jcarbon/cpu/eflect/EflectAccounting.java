@@ -20,14 +20,14 @@ public final class EflectAccounting {
    * the fractional activity per socket.
    */
   public static Optional<ProcessEnergy> computeTaskEnergy(
-      ProcessActivity task, RaplEnergy energy) {
+      ProcessActivity process, RaplEnergy energy) {
     if (energy.data().length == 0) {
       return Optional.empty();
     }
 
     // Get the fraction of time the interval encompasses.
-    Instant start = TimeOperations.max(task.start(), energy.start());
-    Instant end = TimeOperations.min(task.end(), energy.end());
+    Instant start = TimeOperations.max(process.start(), energy.start());
+    Instant end = TimeOperations.min(process.end(), energy.end());
     double intervalFraction =
         TimeOperations.divide(
             Duration.between(start, end), Duration.between(energy.start(), energy.end()));
@@ -35,31 +35,31 @@ public final class EflectAccounting {
     ArrayList<TaskEnergy> tasks = new ArrayList<>();
     double[] totalActivity = new double[energy.data().length];
     // Set this up for the conversation to sockets.
-    for (TaskActivity activity : task.data()) {
-      totalActivity[SOCKETS_MAP[activity.cpu]] += activity.activity;
+    for (TaskActivity activity : process.data()) {
+      totalActivity[SOCKETS_MAP[activity.component.cpu]] += activity.activity;
     }
-    for (TaskActivity activity : task.data()) {
+    for (TaskActivity activity : process.data()) {
       // Don't bother if there is no activity.
       if (activity.activity == 0) {
         continue;
       }
 
-      int socket = SOCKETS_MAP[activity.cpu];
+      int socket = SOCKETS_MAP[activity.component.cpu];
       // Don't bother if there is no energy.
-      if (energy.data()[socket].total == 0) {
+      if (energy.data()[socket].energy == 0) {
         continue;
       }
 
       // Attribute a fraction of the total energy to the task based on its activity on the socket.
       double taskEnergy =
-          energy.data()[socket].total
+          energy.data()[socket].energy
               * intervalFraction
               * activity.activity
               / totalActivity[socket];
-      tasks.add(new TaskEnergy(activity.taskId, activity.processId, activity.cpu, taskEnergy));
+      tasks.add(new TaskEnergy(activity.component, taskEnergy));
     }
     if (!tasks.isEmpty()) {
-      return Optional.of(new ProcessEnergy(start, end, task.processId(), tasks));
+      return Optional.of(new ProcessEnergy(start, end, process.component, tasks));
     } else {
       return Optional.empty();
     }

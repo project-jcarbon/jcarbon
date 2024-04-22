@@ -92,13 +92,14 @@ public final class Rapl {
 
   /** Computes the difference of two {@link RaplReadings}, applying the wraparound. */
   public static RaplReading difference(RaplReading first, RaplReading second) {
-    if (first.socket != second.socket) {
+    if (first.component.socket != second.component.socket) {
       throw new IllegalArgumentException(
           String.format(
-              "readings are not from the same domain (%d != %d)", first.socket, second.socket));
+              "readings are not from the same domain (%d != %d)",
+              first.component.socket, second.component.socket));
     }
     return new RaplReading(
-        first.socket,
+        first.component,
         diffWithWraparound(first.pkg, second.pkg),
         diffWithDramWraparound(first.dram, second.dram),
         diffWithWraparound(first.core, second.core),

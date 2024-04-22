@@ -12,15 +12,17 @@ import jcarbon.data.Interval;
 /** An {@link Interval} of fractional task activity for a process over a time range. */
 public final class ProcessActivity
     implements Interval<List<TaskActivity>>, Comparable<ProcessActivity> {
+  public final ProcessComponent component;
+
   private final Instant start;
   private final Instant end;
-  private final ProcessComponent component;
   private final ArrayList<TaskActivity> tasks = new ArrayList<>();
 
-  ProcessActivity(Instant start, Instant end, long processId, Iterable<TaskActivity> tasks) {
+  ProcessActivity(
+      Instant start, Instant end, ProcessComponent processComponent, Iterable<TaskActivity> tasks) {
     this.start = start;
     this.end = end;
-    this.component = new ProcessComponent(processId);
+    this.component = processComponent;
     tasks.forEach(this.tasks::add);
   }
 

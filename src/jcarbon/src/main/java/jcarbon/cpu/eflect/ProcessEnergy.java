@@ -16,10 +16,11 @@ public final class ProcessEnergy implements Interval<List<TaskEnergy>>, Comparab
   private final ProcessComponent component;
   private final ArrayList<TaskEnergy> tasks = new ArrayList<>();
 
-  ProcessEnergy(Instant start, Instant end, long processId, Iterable<TaskEnergy> tasks) {
+  ProcessEnergy(
+      Instant start, Instant end, ProcessComponent processComponent, Iterable<TaskEnergy> tasks) {
     this.start = start;
     this.end = end;
-    this.component = new ProcessComponent(processId);
+    this.component = processComponent;
     tasks.forEach(this.tasks::add);
   }
 
@@ -36,10 +37,6 @@ public final class ProcessEnergy implements Interval<List<TaskEnergy>>, Comparab
   @Override
   public Component component() {
     return component;
-  }
-
-  public long processId() {
-    return component.processId;
   }
 
   @Override

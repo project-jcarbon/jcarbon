@@ -76,8 +76,8 @@ public final class ProcTask {
         int offset = stat.length - STAT_LENGTH;
         readings.add(
             new TaskJiffies(
-                Long.parseLong(stat[TaskIndex.TID.index]),
                 pid,
+                Long.parseLong(stat[TaskIndex.TID.index]),
                 // TODO: the name is usually garbage unfortunately :/
                 // getName(stat, offset),
                 Integer.parseInt(stat[TaskIndex.CPU.index + offset]),

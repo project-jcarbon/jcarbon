@@ -24,23 +24,22 @@ public final class ProcessJiffies
     return new ProcessJiffies(
         first.timestamp(),
         second.timestamp(),
-        first.processId(),
+        first.component,
         difference(first.data(), second.data()));
   }
 
   private static List<TaskJiffies> difference(List<TaskJiffies> first, List<TaskJiffies> second) {
-    Map<Long, TaskJiffies> secondMap = second.stream().collect(toMap(r -> r.taskId, r -> r));
+    Map<Long, TaskJiffies> secondMap =
+        second.stream().collect(toMap(r -> r.component.taskId, r -> r));
     ArrayList<TaskJiffies> jiffies = new ArrayList<>();
     for (TaskJiffies task : first) {
-      if (secondMap.containsKey(task.taskId)) {
-        TaskJiffies other = secondMap.get(task.taskId);
+      if (secondMap.containsKey(task.component.taskId)) {
+        TaskJiffies other = secondMap.get(task.component.taskId);
         if ((other.userJiffies - task.userJiffies) > 0
             || (other.systemJiffies - task.systemJiffies) > 0) {
           jiffies.add(
               new TaskJiffies(
-                  task.taskId,
-                  task.processId,
-                  task.cpu,
+                  task.component,
                   Math.max(0, other.userJiffies - task.userJiffies),
                   Math.max(0, other.systemJiffies - task.systemJiffies)));
         }
@@ -49,15 +48,20 @@ public final class ProcessJiffies
     return jiffies;
   }
 
+  final ProcessComponent component;
+
   private final Instant start;
   private final Instant end;
-  private final ProcessComponent component;
   private final ArrayList<TaskJiffies> readings = new ArrayList<>();
 
-  ProcessJiffies(Instant start, Instant end, long processId, Iterable<TaskJiffies> readings) {
+  ProcessJiffies(
+      Instant start,
+      Instant end,
+      ProcessComponent processComponent,
+      Iterable<TaskJiffies> readings) {
     this.start = start;
     this.end = end;
-    this.component = new ProcessComponent(processId);
+    this.component = processComponent;
     readings.forEach(this.readings::add);
   }
 

@@ -42,12 +42,13 @@ public final class Powercap {
 
   /** Computes the difference of two {@link RaplReadings}. */
   public static RaplReading difference(RaplReading first, RaplReading second) {
-    if (first.socket != second.socket) {
+    if (first.component.socket != second.component.socket) {
       throw new IllegalArgumentException(
           String.format(
-              "readings are not from the same domain (%d != %d)", first.socket, second.socket));
+              "readings are not from the same domain (%d != %d)",
+              first.component.socket, second.component.socket));
     }
-    return new RaplReading(first.socket, second.pkg - first.pkg, second.dram - first.dram, 0, 0);
+    return new RaplReading(first.component, second.pkg - first.pkg, second.dram - first.dram, 0, 0);
   }
 
   /** Computes the difference of two {@link RaplReadings}, applying the wraparound. */

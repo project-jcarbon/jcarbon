@@ -30,19 +30,19 @@ public final class SystemJiffies implements Interval<CpuJiffies[]>, Comparable<S
     }
     CpuJiffies[] jiffies = new CpuJiffies[first.length];
     for (CpuJiffies cpu : first) {
-      jiffies[cpu.cpu] =
+      jiffies[cpu.component.cpu] =
           new CpuJiffies(
-              cpu.cpu,
-              second[cpu.cpu].user - cpu.user,
-              second[cpu.cpu].nice - cpu.nice,
-              second[cpu.cpu].system - cpu.system,
-              second[cpu.cpu].idle - cpu.idle,
-              second[cpu.cpu].iowait - cpu.iowait,
-              second[cpu.cpu].irq - cpu.irq,
-              second[cpu.cpu].softirq - cpu.softirq,
-              second[cpu.cpu].steal - cpu.steal,
-              second[cpu.cpu].guest - cpu.guest,
-              second[cpu.cpu].guestNice - cpu.guestNice);
+              cpu.component,
+              second[cpu.component.cpu].user - cpu.user,
+              second[cpu.component.cpu].nice - cpu.nice,
+              second[cpu.component.cpu].system - cpu.system,
+              second[cpu.component.cpu].idle - cpu.idle,
+              second[cpu.component.cpu].iowait - cpu.iowait,
+              second[cpu.component.cpu].irq - cpu.irq,
+              second[cpu.component.cpu].softirq - cpu.softirq,
+              second[cpu.component.cpu].steal - cpu.steal,
+              second[cpu.component.cpu].guest - cpu.guest,
+              second[cpu.component.cpu].guestNice - cpu.guestNice);
     }
     return jiffies;
   }

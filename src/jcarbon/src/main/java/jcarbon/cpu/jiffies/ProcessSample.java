@@ -11,8 +11,9 @@ import jcarbon.data.Sample;
 
 /** A {@link Sample} of task jiffies for a process since task birth. */
 public final class ProcessSample implements Sample<List<TaskJiffies>>, Comparable<ProcessSample> {
+  final ProcessComponent component;
+
   private final Instant timestamp;
-  private final ProcessComponent component;
   private final ArrayList<TaskJiffies> jiffies = new ArrayList<>();
 
   ProcessSample(Instant timestamp, long processId, Iterable<TaskJiffies> jiffies) {
@@ -29,10 +30,6 @@ public final class ProcessSample implements Sample<List<TaskJiffies>>, Comparabl
   @Override
   public Component component() {
     return component;
-  }
-
-  public long processId() {
-    return component.processId;
   }
 
   @Override

@@ -48,7 +48,7 @@ final class RaplSmokeTest {
     RaplEnergy interval = Rapl.difference(start, Rapl.sample().get());
 
     if (IntStream.range(0, MicroArchitecture.SOCKETS)
-            .mapToDouble(socket -> interval.data()[socket].total)
+            .mapToDouble(socket -> interval.data()[socket].energy)
             .sum()
         == 0) {
       logger.info("no energy consumed with the difference of two rapl samples!");
@@ -91,7 +91,7 @@ final class RaplSmokeTest {
     RaplEnergy interval = Powercap.difference(start, Powercap.sample().get());
 
     if (IntStream.range(0, MicroArchitecture.SOCKETS)
-            .mapToDouble(socket -> interval.data()[socket].total)
+            .mapToDouble(socket -> interval.data()[socket].energy)
             .sum()
         == 0) {
       logger.info("no energy consumed with the difference of two powercap samples!");

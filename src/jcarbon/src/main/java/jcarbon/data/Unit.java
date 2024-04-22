@@ -1,7 +1,8 @@
 package jcarbon.data;
 
 public enum Unit {
-    ACTIVITY,
-    JOULES,
-    GRAMS_OF_CO2;
+  JOULES,
+  JIFFIES,
+  ACTIVITY,
+  GRAMS_OF_CO2;
 }
