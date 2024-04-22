@@ -4,7 +4,7 @@ import static java.util.stream.Collectors.joining;
 
 import java.time.Instant;
 import java.util.Arrays;
-import jcarbon.cpu.CpuComponent;
+import jcarbon.cpu.SystemComponent;
 import jcarbon.data.Component;
 import jcarbon.data.Interval;
 
@@ -32,7 +32,7 @@ public final class RaplEnergy implements Interval<RaplReading[]>, Comparable<Rap
 
   @Override
   public Component component() {
-    return CpuComponent.INSTANCE;
+    return SystemComponent.INSTANCE;
   }
 
   @Override

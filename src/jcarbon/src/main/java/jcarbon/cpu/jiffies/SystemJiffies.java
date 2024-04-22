@@ -4,7 +4,7 @@ import static java.util.stream.Collectors.joining;
 
 import java.time.Instant;
 import java.util.Arrays;
-import jcarbon.cpu.CpuComponent;
+import jcarbon.cpu.SystemComponent;
 import jcarbon.data.Component;
 import jcarbon.data.Interval;
 
@@ -69,7 +69,7 @@ public final class SystemJiffies implements Interval<CpuJiffies[]>, Comparable<S
 
   @Override
   public Component component() {
-    return CpuComponent.INSTANCE;
+    return SystemComponent.INSTANCE;
   }
 
   @Override
