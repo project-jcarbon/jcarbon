@@ -1,7 +1,7 @@
 """ a client that can talk to an smaragdine JCarbon. """
 import grpc
 
-from jcarbon.jcarbon_service_pb2 import DumpRequest, StartRequest, StopRequest
+from jcarbon.jcarbon_service_pb2 import DumpRequest, ReadRequest, StartRequest, StopRequest
 from jcarbon.jcarbon_service_pb2_grpc import JCarbonServiceStub
 
 DEFAULT_PERIOD_MS = 10
@@ -23,3 +23,6 @@ class JCarbonClient:
 
     def dump(self, pid, output_path):
         self.stub.Dump(DumpRequest(process_id=pid, output_path=output_path))
+
+    def read(self, pid, signals):
+        return self.stub.Read(ReadRequest(process_id=pid, signals=signals))

@@ -8,6 +8,13 @@ from time import sleep
 from jcarbon.client import JCarbonClient
 
 
+def fib(n):
+    if n == 0 or n == 1:
+        return 1
+    else:
+        return fib(n - 1) + fib(n - 2)
+
+
 def parse_args():
     """ Parses client-side arguments. """
     parser = ArgumentParser()
@@ -56,13 +63,12 @@ def main():
         client.dump(args.pid, args.output_path)
     elif args.command in ['smoke_test', 'test', 'smoke-test', 'smoketest']:
         client.start(args.pid)
-        sleep(1)
+        fib(25)
         client.stop(args.pid)
-        file_path = '/tmp/jcarbon-smoke_test-{args.pid}.json'
-        client.dump(args.pid, '/tmp/jcarbon-smoke_test-{args.pid}.json')
-        with open(file_path) as f:
-            report = json.loads(f)
-        print(report)
+        jcarbon_signal = client.read(
+            args.pid, ['jcarbon.emissions.Emissions']).signal
+        print({signal.signal_name: sum(s.data.value for s in signal.signal)
+              for signal in jcarbon_signal})
 
 
 if __name__ == '__main__':

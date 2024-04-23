@@ -14,7 +14,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x15jcarbon_service.proto\x12\x0fjcarbon.service\"d\n\x0cStartRequest\x12\x17\n\nprocess_id\x18\x01 \x01(\x04H\x00\x88\x01\x01\x12\x1a\n\rperiod_millis\x18\x02 \x01(\rH\x01\x88\x01\x01\x42\r\n\x0b_process_idB\x10\n\x0e_period_millis\"\x0f\n\rStartResponse\"5\n\x0bStopRequest\x12\x17\n\nprocess_id\x18\x01 \x01(\x04H\x00\x88\x01\x01\x42\r\n\x0b_process_id\"\x0e\n\x0cStopResponse\"_\n\x0b\x44umpRequest\x12\x17\n\nprocess_id\x18\x01 \x01(\x04H\x00\x88\x01\x01\x12\x18\n\x0boutput_path\x18\x02 \x01(\tH\x01\x88\x01\x01\x42\r\n\x0b_process_idB\x0e\n\x0c_output_path\"\x0e\n\x0c\x44umpResponse2\xe8\x01\n\x0eJCarbonService\x12H\n\x05Start\x12\x1d.jcarbon.service.StartRequest\x1a\x1e.jcarbon.service.StartResponse\"\x00\x12\x45\n\x04Stop\x12\x1c.jcarbon.service.StopRequest\x1a\x1d.jcarbon.service.StopResponse\"\x00\x12\x45\n\x04\x44ump\x12\x1c.jcarbon.service.DumpRequest\x1a\x1d.jcarbon.service.DumpResponse\"\x00\x42\x13\n\x0fjcarbon.serviceP\x01\x62\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x15jcarbon_service.proto\x12\x0fjcarbon.service\"d\n\x0cStartRequest\x12\x17\n\nprocess_id\x18\x01 \x01(\x04H\x00\x88\x01\x01\x12\x1a\n\rperiod_millis\x18\x02 \x01(\rH\x01\x88\x01\x01\x42\r\n\x0b_process_idB\x10\n\x0e_period_millis\"\x0f\n\rStartResponse\"5\n\x0bStopRequest\x12\x17\n\nprocess_id\x18\x01 \x01(\x04H\x00\x88\x01\x01\x42\r\n\x0b_process_id\"\x0e\n\x0cStopResponse\"_\n\x0b\x44umpRequest\x12\x17\n\nprocess_id\x18\x01 \x01(\x04H\x00\x88\x01\x01\x12\x18\n\x0boutput_path\x18\x02 \x01(\tH\x01\x88\x01\x01\x42\r\n\x0b_process_idB\x0e\n\x0c_output_path\"\x0e\n\x0c\x44umpResponse\"F\n\x0bReadRequest\x12\x17\n\nprocess_id\x18\x01 \x01(\x04H\x00\x88\x01\x01\x12\x0f\n\x07signals\x18\x02 \x03(\tB\r\n\x0b_process_id\">\n\x0cReadResponse\x12.\n\x06signal\x18\x01 \x03(\x0b\x32\x1e.jcarbon.service.JCarbonSignal\"b\n\rJCarbonSignal\x12\x18\n\x0bsignal_name\x18\x01 \x01(\tH\x00\x88\x01\x01\x12\'\n\x06signal\x18\x02 \x03(\x0b\x32\x17.jcarbon.service.SignalB\x0e\n\x0c_signal_name\"\xe1\x02\n\x06Signal\x12\x35\n\x05start\x18\x01 \x01(\x0b\x32!.jcarbon.service.Signal.TimestampH\x00\x88\x01\x01\x12\x33\n\x03\x65nd\x18\x02 \x01(\x0b\x32!.jcarbon.service.Signal.TimestampH\x01\x88\x01\x01\x12\x11\n\tcomponent\x18\x03 \x03(\t\x12*\n\x04\x64\x61ta\x18\x04 \x03(\x0b\x32\x1c.jcarbon.service.Signal.Data\x1a\x45\n\tTimestamp\x12\x11\n\x04secs\x18\x01 \x01(\x04H\x00\x88\x01\x01\x12\x12\n\x05nanos\x18\x02 \x01(\x04H\x01\x88\x01\x01\x42\x07\n\x05_secsB\x08\n\x06_nanos\x1aS\n\x04\x44\x61ta\x12\x11\n\tcomponent\x18\x01 \x03(\t\x12\x11\n\x04unit\x18\x02 \x01(\tH\x00\x88\x01\x01\x12\x12\n\x05value\x18\x03 \x01(\x01H\x01\x88\x01\x01\x42\x07\n\x05_unitB\x08\n\x06_valueB\x08\n\x06_startB\x06\n\x04_end2\xaf\x02\n\x0eJCarbonService\x12H\n\x05Start\x12\x1d.jcarbon.service.StartRequest\x1a\x1e.jcarbon.service.StartResponse\"\x00\x12\x45\n\x04Stop\x12\x1c.jcarbon.service.StopRequest\x1a\x1d.jcarbon.service.StopResponse\"\x00\x12\x45\n\x04\x44ump\x12\x1c.jcarbon.service.DumpRequest\x1a\x1d.jcarbon.service.DumpResponse\"\x00\x12\x45\n\x04Read\x12\x1c.jcarbon.service.ReadRequest\x1a\x1d.jcarbon.service.ReadResponse\"\x00\x42\x13\n\x0fjcarbon.serviceP\x01\x62\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -34,6 +34,18 @@ if _descriptor._USE_C_DESCRIPTORS == False:
   _globals['_DUMPREQUEST']._serialized_end=327
   _globals['_DUMPRESPONSE']._serialized_start=329
   _globals['_DUMPRESPONSE']._serialized_end=343
-  _globals['_JCARBONSERVICE']._serialized_start=346
-  _globals['_JCARBONSERVICE']._serialized_end=578
+  _globals['_READREQUEST']._serialized_start=345
+  _globals['_READREQUEST']._serialized_end=415
+  _globals['_READRESPONSE']._serialized_start=417
+  _globals['_READRESPONSE']._serialized_end=479
+  _globals['_JCARBONSIGNAL']._serialized_start=481
+  _globals['_JCARBONSIGNAL']._serialized_end=579
+  _globals['_SIGNAL']._serialized_start=582
+  _globals['_SIGNAL']._serialized_end=935
+  _globals['_SIGNAL_TIMESTAMP']._serialized_start=763
+  _globals['_SIGNAL_TIMESTAMP']._serialized_end=832
+  _globals['_SIGNAL_DATA']._serialized_start=834
+  _globals['_SIGNAL_DATA']._serialized_end=917
+  _globals['_JCARBONSERVICE']._serialized_start=938
+  _globals['_JCARBONSERVICE']._serialized_end=1241
 # @@protoc_insertion_point(module_scope)

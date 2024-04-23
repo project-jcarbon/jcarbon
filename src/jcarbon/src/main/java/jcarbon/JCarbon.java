@@ -117,24 +117,39 @@ public final class JCarbon {
         raplFuture = null;
 
         // virtual signals
-        report.addSignal(
-            ProcessActivity.class,
+        List<ProcessActivity> activity =
             forwardPartialAlign(
                 report.getSignal(ProcessJiffies.class),
                 report.getSignal(SystemJiffies.class),
-                JiffiesAccounting::computeTaskActivity));
-        if (report.hasSignal(RaplEnergy.class)) {
+                JiffiesAccounting::computeTaskActivity);
+        if (activity.size() > 1) {
+          report.addSignal(
+              ProcessActivity.class,
+              forwardPartialAlign(
+                  report.getSignal(ProcessJiffies.class),
+                  report.getSignal(SystemJiffies.class),
+                  JiffiesAccounting::computeTaskActivity));
+        } else {
+          logger.info("no activity could be produced");
+        }
+        if (report.hasSignal(RaplEnergy.class) && report.hasSignal(ProcessActivity.class)) {
           report.addSignal(
               ProcessEnergy.class,
               forwardPartialAlign(
                   report.getSignal(ProcessActivity.class),
                   report.getSignal(RaplEnergy.class),
                   EflectAccounting::computeTaskEnergy));
+        } else {
+          logger.info("no process energy could be produced");
+        }
+        if (report.hasSignal(ProcessEnergy.class)) {
           report.addSignal(
               Emissions.class,
               report.getSignal(ProcessEnergy.class).stream()
                   .map(nrg -> converter.convert(nrg))
                   .collect(toList()));
+        } else {
+          logger.info("no emissions could be produced");
         }
         return Optional.of(report);
       }
