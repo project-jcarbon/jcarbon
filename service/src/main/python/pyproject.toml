@@ -5,4 +5,4 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "jcarbon-client"
 version = "0.1.0"
-dependencies = ["psutil", "grpcio"]
+dependencies = ["psutil", "grpcio", "protobuf"]
