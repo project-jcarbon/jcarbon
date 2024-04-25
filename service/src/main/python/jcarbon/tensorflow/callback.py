@@ -14,10 +14,10 @@ class JCarbonCallback(Callback):
         self.output_dir = output_dir
         self.i = 0
 
-    def on_epoch_begin(self, run_context):
+    def on_epoch_begin(self, epoch, logs = None):
         self.client.start(self.pid, self.period_ms)
 
-    def on_epoch_end(self, run_context, run_values):
+    def on_epoch_end(self, epoch, logs = None):
         self.client.stop(self.pid)
         self.client.dump(self.pid, os.path.join(
             self.output_dir, f'jcarbon-{self.pid}-{self.i}.json'))
