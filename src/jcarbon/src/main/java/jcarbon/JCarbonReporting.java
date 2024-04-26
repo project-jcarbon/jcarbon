@@ -54,7 +54,7 @@ public final class JCarbonReporting {
       for (JCarbonReport report : reports) {
         Set<Class<?>> signalTypes = report.getSignalTypes();
         int j = 0;
-        writer.write("[");
+        writer.write("{\"signal\":[");
         for (Class<?> signalType : signalTypes) {
           List<?> signal = report.getSignal(signalType);
           writer.println("{");
@@ -77,7 +77,7 @@ public final class JCarbonReporting {
             writer.println();
           }
         }
-        writer.write("]");
+        writer.write("]}");
         if (i + 1 < reports.size()) {
           writer.println(",");
           i++;
