@@ -1,11 +1,14 @@
 package jcarbon.cpu.rapl;
 
+import static java.util.stream.Collectors.toList;
 import static jcarbon.util.LoggerUtil.getLogger;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
@@ -32,9 +35,9 @@ public final class Powercap {
     }
 
     Instant timestamp = Instant.now();
-    RaplReading[] readings = new RaplReading[SOCKETS];
+    ArrayList<RaplReading> readings = new ArrayList<>();
     for (int socket = 0; socket < SOCKETS; socket++) {
-      readings[socket] = new RaplReading(socket, readPackage(socket), readDram(socket), 0.0, 0.0);
+      readings.add(new RaplReading(socket, readPackage(socket), readDram(socket), 0.0, 0.0));
     }
 
     return Optional.of(new RaplSample(timestamp, readings));
@@ -42,13 +45,12 @@ public final class Powercap {
 
   /** Computes the difference of two {@link RaplReadings}. */
   public static RaplReading difference(RaplReading first, RaplReading second) {
-    if (first.component.socket != second.component.socket) {
+    if (first.socket != second.socket) {
       throw new IllegalArgumentException(
           String.format(
-              "readings are not from the same domain (%d != %d)",
-              first.component.socket, second.component.socket));
+              "readings are not from the same domain (%d != %d)", first.socket, second.socket));
     }
-    return new RaplReading(first.component, second.pkg - first.pkg, second.dram - first.dram, 0, 0);
+    return new RaplReading(first.socket, second.pkg - first.pkg, second.dram - first.dram, 0, 0);
   }
 
   /** Computes the difference of two {@link RaplReadings}, applying the wraparound. */
@@ -59,12 +61,14 @@ public final class Powercap {
               "first sample is not before second sample (%s !< %s)",
               first.timestamp(), second.timestamp()));
     }
+    List<RaplReading> firstData = first.data();
+    List<RaplReading> secondData = second.data();
     return new RaplEnergy(
         first.timestamp(),
         second.timestamp(),
         IntStream.range(0, SOCKETS)
-            .mapToObj(socket -> difference(first.data()[socket], second.data()[socket]))
-            .toArray(RaplReading[]::new));
+            .mapToObj(socket -> difference(firstData.get(socket), secondData.get(socket)))
+            .collect(toList()));
   }
 
   private static int getSocketCount() {

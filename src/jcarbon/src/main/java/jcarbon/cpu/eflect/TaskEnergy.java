@@ -1,23 +1,29 @@
 package jcarbon.cpu.eflect;
 
-import jcarbon.cpu.TaskComponent;
-import jcarbon.data.Component;
+import jcarbon.cpu.LinuxComponents;
 import jcarbon.data.Data;
 import jcarbon.data.Unit;
 
 /** Energy consumption of a task. */
 public final class TaskEnergy implements Data {
   // TODO: immutable data structures are "safe" as public
-  public final TaskComponent component;
+  public final long processId;
+  public final long taskId;
+  public final int cpu;
   public final double energy;
 
-  TaskEnergy(TaskComponent taskComponent, double energy) {
-    this.component = taskComponent;
+  private final String component;
+
+  TaskEnergy(long processId, long taskId, int cpu, double energy) {
+    this.processId = processId;
+    this.taskId = taskId;
+    this.cpu = cpu;
+    this.component = LinuxComponents.taskComponent(processId, taskId);
     this.energy = energy;
   }
 
   @Override
-  public Component component() {
+  public String component() {
     return component;
   }
 
@@ -33,9 +39,6 @@ public final class TaskEnergy implements Data {
 
   @Override
   public String toString() {
-    // TODO: temporarily using json
-    return String.format(
-        "{\"task_id\":%d,\"process_id\":%d,\"cpu\":%d,\"energy\":%.6f}",
-        component.taskId, component.processId, component.cpu, energy);
+    return toJson();
   }
 }

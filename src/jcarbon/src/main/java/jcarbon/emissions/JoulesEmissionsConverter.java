@@ -16,7 +16,7 @@ public final class JoulesEmissionsConverter implements EmissionsConverter {
   }
 
   @Override
-  public <T extends Interval<? extends Iterable<? extends Data>>> Emissions convert(T interval) {
+  public <T extends Interval<? extends Data>> Emissions convert(T interval) {
     ArrayList<Emission> emissions = new ArrayList<>();
     for (Data data : interval.data()) {
       if (data.unit() == Unit.JOULES) {

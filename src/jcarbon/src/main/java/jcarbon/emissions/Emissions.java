@@ -3,17 +3,16 @@ package jcarbon.emissions;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-import jcarbon.data.Component;
 import jcarbon.data.Interval;
 
 /** An {@link Interval} of emissions over a time range. */
-public final class Emissions implements Interval<List<Emission>> {
+public final class Emissions implements Interval<Emission> {
   private final Instant start;
   private final Instant end;
-  private final Component component;
+  private final String component;
   private final ArrayList<Emission> emissions = new ArrayList<>();
 
-  public Emissions(Instant start, Instant end, Component component, Iterable<Emission> emissions) {
+  public Emissions(Instant start, Instant end, String component, Iterable<Emission> emissions) {
     this.start = start;
     this.end = end;
     this.component = component;
@@ -31,7 +30,7 @@ public final class Emissions implements Interval<List<Emission>> {
   }
 
   @Override
-  public Component component() {
+  public String component() {
     return component;
   }
 
@@ -42,9 +41,6 @@ public final class Emissions implements Interval<List<Emission>> {
 
   @Override
   public String toString() {
-    // TODO: temporarily using json
-    return String.format(
-        "{\"start\":{\"seconds\":%d,\"nanos\":%d},\"end\":{\"seconds\":%d,\"nanos\":%d},\"data\":[%s]}",
-        start.getEpochSecond(), start.getNano(), end.getEpochSecond(), end.getNano(), emissions);
+    return toJson();
   }
 }

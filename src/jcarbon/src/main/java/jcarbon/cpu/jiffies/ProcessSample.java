@@ -1,24 +1,23 @@
 package jcarbon.cpu.jiffies;
 
-import static java.util.stream.Collectors.joining;
-
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-import jcarbon.cpu.ProcessComponent;
-import jcarbon.data.Component;
+import jcarbon.cpu.LinuxComponents;
 import jcarbon.data.Sample;
 
 /** A {@link Sample} of task jiffies for a process since task birth. */
-public final class ProcessSample implements Sample<List<TaskJiffies>>, Comparable<ProcessSample> {
-  final ProcessComponent component;
+public final class ProcessSample implements Sample<TaskJiffies>, Comparable<ProcessSample> {
+  public final long processId;
 
   private final Instant timestamp;
+  private final String component;
   private final ArrayList<TaskJiffies> jiffies = new ArrayList<>();
 
   ProcessSample(Instant timestamp, long processId, Iterable<TaskJiffies> jiffies) {
     this.timestamp = timestamp;
-    this.component = new ProcessComponent(processId);
+    this.processId = processId;
+    this.component = LinuxComponents.processComponent(processId);
     jiffies.forEach(this.jiffies::add);
   }
 
@@ -28,7 +27,7 @@ public final class ProcessSample implements Sample<List<TaskJiffies>>, Comparabl
   }
 
   @Override
-  public Component component() {
+  public String component() {
     return component;
   }
 
@@ -39,13 +38,7 @@ public final class ProcessSample implements Sample<List<TaskJiffies>>, Comparabl
 
   @Override
   public String toString() {
-    // TODO: temporarily using json
-    return String.format(
-        "{\"timestamp\":{\"seconds\":%d,\"nanos\":%d},\"process_id\":%d,\"data\":[%s]}",
-        timestamp.getEpochSecond(),
-        timestamp.getNano(),
-        component.processId,
-        jiffies.stream().map(TaskJiffies::toString).collect(joining(",")));
+    return toJson();
   }
 
   @Override

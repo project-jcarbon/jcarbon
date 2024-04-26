@@ -20,9 +20,9 @@ public final class JiffiesAccounting {
     }
     ArrayList<TaskActivity> tasks = new ArrayList<>();
     // Set this up to correct for kernel update.
-    int[] totalJiffies = new int[sys.data().length];
+    int[] totalJiffies = new int[sys.data().size()];
     for (TaskJiffies reading : proc.data()) {
-      totalJiffies[reading.component.cpu] += reading.totalJiffies;
+      totalJiffies[reading.cpu] += reading.totalJiffies;
     }
     for (TaskJiffies task : proc.data()) {
       // Don't bother if there are no jiffies.
@@ -31,10 +31,9 @@ public final class JiffiesAccounting {
       }
       // Correct for the kernel update by using total jiffies reported by tasks if the cpu
       // reported one is too small (this also catches zero jiffies reported by the cpu).
-      double cpuJiffies =
-          Math.max(sys.data()[task.component.cpu].activeJiffies, totalJiffies[task.component.cpu]);
+      double cpuJiffies = Math.max(sys.data().get(task.cpu).activeJiffies, totalJiffies[task.cpu]);
       double taskActivity = Math.min(1.0, task.totalJiffies / cpuJiffies);
-      tasks.add(new TaskActivity(task.component, taskActivity));
+      tasks.add(new TaskActivity(task.processId, task.taskId, task.cpu, taskActivity));
     }
     // Don't bother if there is no activity.
     if (!tasks.isEmpty()) {
@@ -42,7 +41,7 @@ public final class JiffiesAccounting {
           new ProcessActivity(
               TimeOperations.max(proc.start(), sys.start()),
               TimeOperations.min(proc.end(), sys.end()),
-              proc.component,
+              proc.processId,
               tasks));
     } else {
       return Optional.empty();

@@ -1,22 +1,20 @@
 package jcarbon.cpu.freq;
 
-import static java.util.stream.Collectors.joining;
-
 import java.time.Instant;
-import java.util.Arrays;
-import jcarbon.cpu.SystemComponent;
-import jcarbon.data.Component;
+import java.util.ArrayList;
+import java.util.List;
+import jcarbon.cpu.LinuxComponents;
 import jcarbon.data.Sample;
 
 /** A sample from the cpufreq system that represents the current frequencies ordered by cpu id. */
 public final class CpuFrequencySample
-    implements Sample<CpuFrequency[]>, Comparable<CpuFrequencySample> {
+    implements Sample<CpuFrequency>, Comparable<CpuFrequencySample> {
   private final Instant timestamp;
-  private final CpuFrequency[] frequencies;
+  private final ArrayList<CpuFrequency> frequencies = new ArrayList<>();
 
-  CpuFrequencySample(Instant timestamp, CpuFrequency[] frequencies) {
+  CpuFrequencySample(Instant timestamp, Iterable<CpuFrequency> frequencies) {
     this.timestamp = timestamp;
-    this.frequencies = Arrays.copyOf(frequencies, frequencies.length);
+    frequencies.forEach(this.frequencies::add);
   }
 
   @Override
@@ -25,23 +23,18 @@ public final class CpuFrequencySample
   }
 
   @Override
-  public Component component() {
-    return SystemComponent.INSTANCE;
+  public String component() {
+    return LinuxComponents.OS_COMPONENT;
   }
 
   @Override
-  public CpuFrequency[] data() {
-    return Arrays.copyOf(frequencies, frequencies.length);
+  public List<CpuFrequency> data() {
+    return new ArrayList<>(frequencies);
   }
 
   @Override
   public String toString() {
-    // TODO: temporarily using json
-    return String.format(
-        "{\"timestamp\":{\"seconds\":%d,\"nanos\":%d},\"data\":[%s]}",
-        timestamp.getEpochSecond(),
-        timestamp.getNano(),
-        Arrays.stream(frequencies).map(CpuFrequency::toString).collect(joining(",")));
+    return toJson();
   }
 
   @Override

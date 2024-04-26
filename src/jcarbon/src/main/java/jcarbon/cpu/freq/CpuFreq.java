@@ -4,6 +4,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Optional;
 
 /**
@@ -31,10 +32,10 @@ public final class CpuFreq {
 
   public static Optional<CpuFrequencySample> sample() {
     Instant timestamp = Instant.now();
-    CpuFrequency[] readings = new CpuFrequency[CPU_COUNT];
+    ArrayList<CpuFrequency> readings = new ArrayList<>();
     for (int cpu = 0; cpu < CPU_COUNT; cpu++) {
-      readings[cpu] =
-          new CpuFrequency(cpu, getGovernor(cpu), getObservedFrequency(cpu), getFrequency(cpu));
+      readings.add(
+          new CpuFrequency(cpu, getGovernor(cpu), getObservedFrequency(cpu), getFrequency(cpu)));
     }
     return Optional.of(new CpuFrequencySample(timestamp, readings));
   }

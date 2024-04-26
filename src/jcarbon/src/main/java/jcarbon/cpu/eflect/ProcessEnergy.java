@@ -1,26 +1,25 @@
 package jcarbon.cpu.eflect;
 
-import static java.util.stream.Collectors.joining;
-
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-import jcarbon.cpu.ProcessComponent;
-import jcarbon.data.Component;
+import jcarbon.cpu.LinuxComponents;
 import jcarbon.data.Interval;
 
 /** An {@link Interval} of task energy for a process over a time range. */
-public final class ProcessEnergy implements Interval<List<TaskEnergy>>, Comparable<ProcessEnergy> {
+public final class ProcessEnergy implements Interval<TaskEnergy>, Comparable<ProcessEnergy> {
+  public final long processId;
+
   private final Instant start;
   private final Instant end;
-  private final ProcessComponent component;
+  private final String component;
   private final ArrayList<TaskEnergy> tasks = new ArrayList<>();
 
-  ProcessEnergy(
-      Instant start, Instant end, ProcessComponent processComponent, Iterable<TaskEnergy> tasks) {
+  ProcessEnergy(Instant start, Instant end, long processId, Iterable<TaskEnergy> tasks) {
+    this.processId = processId;
     this.start = start;
     this.end = end;
-    this.component = processComponent;
+    this.component = LinuxComponents.processComponent(processId);
     tasks.forEach(this.tasks::add);
   }
 
@@ -35,7 +34,7 @@ public final class ProcessEnergy implements Interval<List<TaskEnergy>>, Comparab
   }
 
   @Override
-  public Component component() {
+  public String component() {
     return component;
   }
 
@@ -47,15 +46,7 @@ public final class ProcessEnergy implements Interval<List<TaskEnergy>>, Comparab
   @Override
   public String toString() {
     // TODO: temporarily using json
-    return String.format(
-        "{\"start\":{\"seconds\":%d,\"nanos\":%d},\"end\":"
-            + "{\"seconds\":%d,\"nanos\":%d},\"process_id\":%d,\"data\":[%s]}",
-        start.getEpochSecond(),
-        start.getNano(),
-        end.getEpochSecond(),
-        end.getNano(),
-        component.processId,
-        tasks.stream().map(TaskEnergy::toString).collect(joining(",")));
+    return toJson();
   }
 
   @Override

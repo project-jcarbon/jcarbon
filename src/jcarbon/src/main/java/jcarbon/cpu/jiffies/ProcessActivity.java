@@ -1,28 +1,25 @@
 package jcarbon.cpu.jiffies;
 
-import static java.util.stream.Collectors.joining;
-
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-import jcarbon.cpu.ProcessComponent;
-import jcarbon.data.Component;
+import jcarbon.cpu.LinuxComponents;
 import jcarbon.data.Interval;
 
 /** An {@link Interval} of fractional task activity for a process over a time range. */
-public final class ProcessActivity
-    implements Interval<List<TaskActivity>>, Comparable<ProcessActivity> {
-  public final ProcessComponent component;
+public final class ProcessActivity implements Interval<TaskActivity>, Comparable<ProcessActivity> {
+  public final long processId;
 
   private final Instant start;
   private final Instant end;
+  public final String component;
   private final ArrayList<TaskActivity> tasks = new ArrayList<>();
 
-  ProcessActivity(
-      Instant start, Instant end, ProcessComponent processComponent, Iterable<TaskActivity> tasks) {
+  ProcessActivity(Instant start, Instant end, long processId, Iterable<TaskActivity> tasks) {
+    this.processId = processId;
     this.start = start;
     this.end = end;
-    this.component = processComponent;
+    this.component = LinuxComponents.processComponent(processId);
     tasks.forEach(this.tasks::add);
   }
 
@@ -37,12 +34,8 @@ public final class ProcessActivity
   }
 
   @Override
-  public Component component() {
+  public String component() {
     return component;
-  }
-
-  public long processId() {
-    return component.processId;
   }
 
   @Override
@@ -52,16 +45,7 @@ public final class ProcessActivity
 
   @Override
   public String toString() {
-    // TODO: temporarily using json
-    return String.format(
-        "{\"start\":{\"seconds\":%d,\"nanos\":%d},\"end\":"
-            + "{\"seconds\":%d,\"nanos\":%d},\"process_id\":%d,\"data\":[%s]}",
-        start.getEpochSecond(),
-        start.getNano(),
-        end.getEpochSecond(),
-        end.getNano(),
-        component.processId,
-        tasks.stream().map(TaskActivity::toString).collect(joining(",")));
+    return toJson();
   }
 
   @Override

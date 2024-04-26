@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.time.Instant;
+import java.util.ArrayList;
 
 /**
  * Helper for reading system jiffies from /proc system. Refer to
@@ -60,14 +61,14 @@ public final class ProcStat {
   }
 
   /** Turns stat strings into a {@link CpuSample}. */
-  private static CpuJiffies[] parseCpus(String[] stats) {
-    CpuJiffies[] readings = new CpuJiffies[stats.length];
+  private static ArrayList<CpuJiffies> parseCpus(String[] stats) {
+    ArrayList<CpuJiffies> readings = new ArrayList<>();
     for (int i = 0; i < stats.length; i++) {
       String[] stat = stats[i].split(" ");
       if (stat.length != 11) {
         continue;
       }
-      readings[i] =
+      readings.add(
           new CpuJiffies(
               Integer.parseInt(stat[CpuIndex.CPU.index].substring(3)),
               Integer.parseInt(stat[CpuIndex.USER.index]),
@@ -79,7 +80,7 @@ public final class ProcStat {
               Integer.parseInt(stat[CpuIndex.SOFTIRQ.index]),
               Integer.parseInt(stat[CpuIndex.STEAL.index]),
               Integer.parseInt(stat[CpuIndex.GUEST.index]),
-              Integer.parseInt(stat[CpuIndex.GUEST_NICE.index]));
+              Integer.parseInt(stat[CpuIndex.GUEST_NICE.index])));
     }
     return readings;
   }

@@ -1,21 +1,19 @@
 package jcarbon.cpu.rapl;
 
-import static java.util.stream.Collectors.joining;
-
 import java.time.Instant;
-import java.util.Arrays;
-import jcarbon.cpu.SystemComponent;
-import jcarbon.data.Component;
+import java.util.ArrayList;
+import java.util.List;
+import jcarbon.cpu.LinuxComponents;
 import jcarbon.data.Sample;
 
 /** A {@link Sample} of rapl energy consumption since boot. */
-public final class RaplSample implements Sample<RaplReading[]>, Comparable<RaplSample> {
+public final class RaplSample implements Sample<RaplReading>, Comparable<RaplSample> {
   private final Instant timestamp;
-  private final RaplReading[] readings;
+  private final ArrayList<RaplReading> readings = new ArrayList<>();
 
-  RaplSample(Instant timestamp, RaplReading[] readings) {
+  RaplSample(Instant timestamp, Iterable<RaplReading> readings) {
     this.timestamp = timestamp;
-    this.readings = Arrays.copyOf(readings, readings.length);
+    readings.forEach(this.readings::add);
   }
 
   @Override
@@ -24,23 +22,19 @@ public final class RaplSample implements Sample<RaplReading[]>, Comparable<RaplS
   }
 
   @Override
-  public Component component() {
-    return SystemComponent.INSTANCE;
+  public String component() {
+    return LinuxComponents.OS_COMPONENT;
   }
 
   @Override
-  public RaplReading[] data() {
-    return Arrays.copyOf(readings, readings.length);
+  public List<RaplReading> data() {
+    return new ArrayList<>(readings);
   }
 
   @Override
   public String toString() {
     // TODO: temporarily using json
-    return String.format(
-        "{\"timestamp\":{\"seconds\":%d,\"nanos\":%d},\"data\":[%s]}",
-        timestamp.getEpochSecond(),
-        timestamp.getNano(),
-        Arrays.stream(readings).map(RaplReading::toString).collect(joining(",")));
+    return toJson();
   }
 
   @Override

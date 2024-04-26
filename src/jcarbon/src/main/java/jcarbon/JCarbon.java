@@ -130,7 +130,7 @@ public final class JCarbon {
                   report.getSignal(SystemJiffies.class),
                   JiffiesAccounting::computeTaskActivity));
         } else {
-          logger.info("no activity could be produced");
+          logger.info("no linux activity could be produced");
         }
         if (report.hasSignal(RaplEnergy.class) && report.hasSignal(ProcessActivity.class)) {
           report.addSignal(
@@ -142,6 +142,15 @@ public final class JCarbon {
         } else {
           logger.info("no process energy could be produced");
         }
+        if (report.hasSignal(RaplEnergy.class)) {
+          report.addSignal(
+              Emissions.class,
+              report.getSignal(RaplEnergy.class).stream()
+                  .map(nrg -> converter.convert(nrg))
+                  .collect(toList()));
+        } else {
+          logger.info("no rapl emissions could be produced");
+        }
         if (report.hasSignal(ProcessEnergy.class)) {
           report.addSignal(
               Emissions.class,
@@ -149,7 +158,7 @@ public final class JCarbon {
                   .map(nrg -> converter.convert(nrg))
                   .collect(toList()));
         } else {
-          logger.info("no emissions could be produced");
+          logger.info("no linux process emissions could be produced");
         }
         return Optional.of(report);
       }

@@ -1,23 +1,21 @@
 package jcarbon.cpu.rapl;
 
-import static java.util.stream.Collectors.joining;
-
 import java.time.Instant;
-import java.util.Arrays;
-import jcarbon.cpu.SystemComponent;
-import jcarbon.data.Component;
+import java.util.ArrayList;
+import java.util.List;
+import jcarbon.cpu.LinuxComponents;
 import jcarbon.data.Interval;
 
 /** An {@link Interval} of rapl energy consumption over a time range. */
-public final class RaplEnergy implements Interval<RaplReading[]>, Comparable<RaplEnergy> {
+public final class RaplEnergy implements Interval<RaplReading>, Comparable<RaplEnergy> {
   private final Instant start;
   private final Instant end;
-  private final RaplReading[] readings;
+  private final ArrayList<RaplReading> readings = new ArrayList<>();
 
-  RaplEnergy(Instant start, Instant end, RaplReading[] readings) {
+  RaplEnergy(Instant start, Instant end, Iterable<RaplReading> readings) {
     this.start = start;
     this.end = end;
-    this.readings = Arrays.copyOf(readings, readings.length);
+    readings.forEach(this.readings::add);
   }
 
   @Override
@@ -31,25 +29,18 @@ public final class RaplEnergy implements Interval<RaplReading[]>, Comparable<Rap
   }
 
   @Override
-  public Component component() {
-    return SystemComponent.INSTANCE;
+  public String component() {
+    return LinuxComponents.OS_COMPONENT;
   }
 
   @Override
-  public RaplReading[] data() {
-    return Arrays.copyOf(readings, readings.length);
+  public List<RaplReading> data() {
+    return new ArrayList<>(readings);
   }
 
   @Override
   public String toString() {
-    // TODO: temporarily using json
-    return String.format(
-        "{\"start\":{\"seconds\":%d,\"nanos\":%d},\"end\":{\"seconds\":%d,\"nanos\":%d},\"data\":[%s]}",
-        start.getEpochSecond(),
-        start.getNano(),
-        end.getEpochSecond(),
-        end.getNano(),
-        Arrays.stream(readings).map(RaplReading::toString).collect(joining(",")));
+    return toJson();
   }
 
   @Override

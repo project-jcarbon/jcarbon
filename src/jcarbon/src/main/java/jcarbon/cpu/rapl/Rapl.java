@@ -1,10 +1,13 @@
 package jcarbon.cpu.rapl;
 
+import static java.util.stream.Collectors.toList;
 import static jcarbon.util.LoggerUtil.getLogger;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Optional;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
@@ -51,7 +54,7 @@ public final class Rapl {
     Instant timestamp = Instant.ofEpochSecond(secs, nanos);
 
     // pull out energy values
-    RaplReading[] readings = new RaplReading[MicroArchitecture.SOCKETS];
+    ArrayList<RaplReading> readings = new ArrayList<>();
     for (int socket = 0; socket < MicroArchitecture.SOCKETS; socket++) {
       // TODO: i was lazy, probably should use a builder or compress this somehow.
       double pkg = 0;
@@ -75,7 +78,7 @@ public final class Rapl {
             break;
         }
       }
-      readings[socket] = new RaplReading(socket, pkg, dram, core, gpu);
+      readings.add(new RaplReading(socket, pkg, dram, core, gpu));
     }
 
     return new RaplSample(timestamp, readings);
@@ -92,14 +95,13 @@ public final class Rapl {
 
   /** Computes the difference of two {@link RaplReadings}, applying the wraparound. */
   public static RaplReading difference(RaplReading first, RaplReading second) {
-    if (first.component.socket != second.component.socket) {
+    if (first.socket != second.socket) {
       throw new IllegalArgumentException(
           String.format(
-              "readings are not from the same domain (%d != %d)",
-              first.component.socket, second.component.socket));
+              "readings are not from the same domain (%d != %d)", first.socket, second.socket));
     }
     return new RaplReading(
-        first.component,
+        first.socket,
         diffWithWraparound(first.pkg, second.pkg),
         diffWithDramWraparound(first.dram, second.dram),
         diffWithWraparound(first.core, second.core),
@@ -114,12 +116,14 @@ public final class Rapl {
               "first sample is not before second sample (%s !< %s)",
               first.timestamp(), second.timestamp()));
     }
+    List<RaplReading> firstData = first.data();
+    List<RaplReading> secondData = second.data();
     return new RaplEnergy(
         first.timestamp(),
         second.timestamp(),
         IntStream.range(0, MicroArchitecture.SOCKETS)
-            .mapToObj(socket -> difference(first.data()[socket], second.data()[socket]))
-            .toArray(RaplReading[]::new));
+            .mapToObj(socket -> difference(firstData.get(socket), secondData.get(socket)))
+            .collect(toList()));
   }
 
   private static double diffWithWraparound(double first, double second) {

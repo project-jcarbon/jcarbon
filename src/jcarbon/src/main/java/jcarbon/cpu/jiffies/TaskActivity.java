@@ -1,23 +1,29 @@
 package jcarbon.cpu.jiffies;
 
-import jcarbon.cpu.TaskComponent;
-import jcarbon.data.Component;
+import jcarbon.cpu.LinuxComponents;
 import jcarbon.data.Data;
 import jcarbon.data.Unit;
 
 /** Fractional activity (i.e. cpu utilization) of a task. */
 public final class TaskActivity implements Data {
   // TODO: immutable data structures are "safe" as public
-  public final TaskComponent component;
+  public final long processId;
+  public final long taskId;
+  public final int cpu;
   public final double activity;
 
-  TaskActivity(TaskComponent taskComponent, double activity) {
-    this.component = taskComponent;
+  private final String component;
+
+  TaskActivity(long processId, long taskId, int cpu, double activity) {
+    this.processId = processId;
+    this.taskId = taskId;
+    this.cpu = cpu;
+    this.component = LinuxComponents.taskComponent(processId, taskId);
     this.activity = activity;
   }
 
   @Override
-  public Component component() {
+  public String component() {
     return component;
   }
 
@@ -33,9 +39,6 @@ public final class TaskActivity implements Data {
 
   @Override
   public String toString() {
-    // TODO: temporarily using json
-    return String.format(
-        "{\"task_id\":%d,\"process_id\":%d,\"cpu\":%d,\"activity\":%.6f}",
-        component.taskId, component.processId, component.cpu, activity);
+    return toJson();
   }
 }

@@ -30,7 +30,7 @@ public final class JCarbonReport {
     if (hasSignal(cls)) {
       return new ArrayList<>((List<T>) dataSignals.get(cls));
     }
-    return List.of();
+    return new ArrayList<>();
   }
 
   /** Deep copy of the storage. */
@@ -49,15 +49,17 @@ public final class JCarbonReport {
                 e ->
                     String.format(
                         "\"%s\":[%s]",
-                        e.getKey().getSimpleName(),
+                        e.getKey(),
                         e.getValue().stream().map(Object::toString).collect(joining(","))))
             .collect(joining(",")));
   }
 
   /** Type-checked way of adding data. */
   <T> void addSignal(Class<T> cls, List<T> data) {
-    dataSignals.put(cls, data);
-    logger.info(String.format("added signal for %s", cls.getSimpleName()));
+    List<T> signal = getSignal(cls);
+    signal.addAll(data);
+    dataSignals.put(cls, signal);
+    logger.info(String.format("added signal for %s", cls));
   }
 
   JCarbonReport() {}

@@ -6,6 +6,7 @@ BENCHMARK_SRCS = [
 java_binary(
     name = "dacapo",
     main_class = "Harness",
+    visibility = ["//benchmarks:__pkg__"],
     srcs = ["JCarbonCallback.java"],
     deps = [
         "//benchmarks/src/main/java/jcarbon/benchmarks/util",
@@ -21,6 +22,7 @@ java_binary(
 java_binary(
     name = "renaissance",
     main_class = "org.renaissance.core.Launcher",
+    visibility = ["//benchmarks:__pkg__"],
     srcs = ["JCarbonPlugin.java"],
     deps = [
         "//benchmarks/src/main/java/jcarbon/benchmarks/util",

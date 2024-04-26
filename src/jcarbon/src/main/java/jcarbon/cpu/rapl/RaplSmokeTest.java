@@ -4,6 +4,7 @@ import static java.util.stream.Collectors.joining;
 import static jcarbon.util.LoggerUtil.getLogger;
 
 import java.time.Duration;
+import java.util.List;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
 
@@ -47,8 +48,9 @@ final class RaplSmokeTest {
 
     RaplEnergy interval = Rapl.difference(start, Rapl.sample().get());
 
+    List<RaplReading> readings = interval.data();
     if (IntStream.range(0, MicroArchitecture.SOCKETS)
-            .mapToDouble(socket -> interval.data()[socket].energy)
+            .mapToDouble(socket -> readings.get(socket).energy)
             .sum()
         == 0) {
       logger.info("no energy consumed with the difference of two rapl samples!");
@@ -69,10 +71,10 @@ final class RaplSmokeTest {
                         String.format(
                             " - socket: %d, package: %.6fJ, dram: %.6fJ, core: %.6fJ, gpu: %.6fJ",
                             socket + 1,
-                            interval.data()[socket].pkg,
-                            interval.data()[socket].dram,
-                            interval.data()[socket].core,
-                            interval.data()[socket].gpu))
+                            readings.get(socket).pkg,
+                            readings.get(socket).dram,
+                            readings.get(socket).core,
+                            readings.get(socket).gpu))
                 .collect(joining(System.lineSeparator()))));
     return true;
   }
@@ -90,8 +92,9 @@ final class RaplSmokeTest {
 
     RaplEnergy interval = Powercap.difference(start, Powercap.sample().get());
 
+    List<RaplReading> readings = interval.data();
     if (IntStream.range(0, MicroArchitecture.SOCKETS)
-            .mapToDouble(socket -> interval.data()[socket].energy)
+            .mapToDouble(socket -> readings.get(socket).energy)
             .sum()
         == 0) {
       logger.info("no energy consumed with the difference of two powercap samples!");
@@ -110,7 +113,7 @@ final class RaplSmokeTest {
                     socket ->
                         String.format(
                             " - socket: %d, package: %.6fJ, dram: %.6fJ",
-                            socket + 1, interval.data()[socket].pkg, interval.data()[socket].dram))
+                            socket + 1, readings.get(socket).pkg, readings.get(socket).dram))
                 .collect(joining(System.lineSeparator()))));
     return true;
   }
@@ -147,6 +150,8 @@ final class RaplSmokeTest {
       return false;
     }
 
+    List<RaplReading> raplReadings = rapl.data();
+    List<RaplReading> powercapReadings = powercap.data();
     logger.info(
         String.join(
             System.lineSeparator(),
@@ -158,14 +163,16 @@ final class RaplSmokeTest {
                             (Duration.between(rapl.start(), rapl.end()).toNanos()
                                 - Duration.between(powercap.start(), powercap.end()).toNanos()))
                     / 1000000000),
-            IntStream.range(0, powercap.data().length)
+            IntStream.range(0, powercapReadings.size())
                 .mapToObj(
                     socket ->
                         String.format(
                             " - socket: %d, package difference: %.6fJ, dram difference: %.6fJ",
                             socket + 1,
-                            Math.abs(powercap.data()[socket].pkg - rapl.data()[socket].pkg),
-                            Math.abs(powercap.data()[socket].dram - rapl.data()[socket].dram)))
+                            Math.abs(
+                                powercapReadings.get(socket).pkg - raplReadings.get(socket).pkg),
+                            Math.abs(
+                                powercapReadings.get(socket).dram - raplReadings.get(socket).dram)))
                 .collect(joining(System.lineSeparator()))));
     return true;
   }
@@ -194,18 +201,20 @@ final class RaplSmokeTest {
   }
 
   private static boolean validateComponents(RaplEnergy powercap, RaplEnergy rapl) {
-    if (powercap.data().length != rapl.data().length) {
+    List<RaplReading> raplReadings = rapl.data();
+    List<RaplReading> powercapReadings = powercap.data();
+    if (powercapReadings.size() != raplReadings.size()) {
       logger.info(
           String.format(
               "powercap reading count (%s) does not match rapl reading count (%s)",
-              powercap.data().length, rapl.data().length));
+              powercapReadings.size(), raplReadings.size()));
       return false;
     }
 
     boolean passed = true;
-    for (int socket = 0; socket < powercap.data().length; socket++) {
-      RaplReading powercapReading = powercap.data()[socket];
-      RaplReading raplReading = rapl.data()[socket];
+    for (int socket = 0; socket < powercapReadings.size(); socket++) {
+      RaplReading powercapReading = powercapReadings.get(socket);
+      RaplReading raplReading = raplReadings.get(socket);
       if (Math.abs(powercapReading.pkg - raplReading.pkg) > 1) {
         logger.info(
             String.format(

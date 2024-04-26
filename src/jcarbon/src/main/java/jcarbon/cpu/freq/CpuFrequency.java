@@ -1,25 +1,44 @@
 package jcarbon.cpu.freq;
 
+import jcarbon.cpu.LinuxComponents;
+import jcarbon.data.Data;
+import jcarbon.data.Unit;
+
 /** A reading from a rapl energy system. */
-public final class CpuFrequency {
+public final class CpuFrequency implements Data {
   // TODO: immutable data structures are "safe" as public
-  public final int cpuId;
+  public final int cpu;
   public final String governor;
   public final int frequency;
   public final int setFrequency;
 
-  CpuFrequency(int cpuId, String governor, int frequency, int setFrequency) {
-    this.cpuId = cpuId;
+  private final String component;
+
+  CpuFrequency(int cpu, String governor, int frequency, int setFrequency) {
+    this.cpu = cpu;
     this.governor = governor;
     this.frequency = frequency;
     this.setFrequency = setFrequency;
+    this.component = LinuxComponents.cpuComponent(cpu);
+  }
+
+  @Override
+  public String component() {
+    return component;
+  }
+
+  @Override
+  public Unit unit() {
+    return Unit.MEGAHERTZ;
+  }
+
+  @Override
+  public double value() {
+    return frequency;
   }
 
   @Override
   public String toString() {
-    // TODO: temporarily using json
-    return String.format(
-        "{\"cpu_id\":%d,\"governor\":%s,\"frequency\":%d,\"set_frequency\":%d}",
-        cpuId, governor, frequency, setFrequency);
+    return toJson();
   }
 }

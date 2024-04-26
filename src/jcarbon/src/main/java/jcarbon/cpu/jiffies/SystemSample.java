@@ -1,21 +1,19 @@
 package jcarbon.cpu.jiffies;
 
-import static java.util.stream.Collectors.joining;
-
 import java.time.Instant;
-import java.util.Arrays;
-import jcarbon.cpu.SystemComponent;
-import jcarbon.data.Component;
+import java.util.ArrayList;
+import java.util.List;
+import jcarbon.cpu.LinuxComponents;
 import jcarbon.data.Sample;
 
 /** A {@link Sample} of cpu jiffies since boot. */
-public final class SystemSample implements Sample<CpuJiffies[]>, Comparable<SystemSample> {
+public final class SystemSample implements Sample<CpuJiffies>, Comparable<SystemSample> {
   private final Instant timestamp;
-  private final CpuJiffies[] jiffies;
+  private final ArrayList<CpuJiffies> jiffies = new ArrayList<>();
 
-  SystemSample(Instant timestamp, CpuJiffies[] jiffies) {
+  SystemSample(Instant timestamp, List<CpuJiffies> jiffies) {
     this.timestamp = timestamp;
-    this.jiffies = Arrays.copyOf(jiffies, jiffies.length);
+    jiffies.forEach(this.jiffies::add);
   }
 
   @Override
@@ -24,23 +22,18 @@ public final class SystemSample implements Sample<CpuJiffies[]>, Comparable<Syst
   }
 
   @Override
-  public Component component() {
-    return SystemComponent.INSTANCE;
+  public String component() {
+    return LinuxComponents.OS_COMPONENT;
   }
 
   @Override
-  public CpuJiffies[] data() {
-    return Arrays.copyOf(jiffies, jiffies.length);
+  public List<CpuJiffies> data() {
+    return new ArrayList<>(jiffies);
   }
 
   @Override
   public String toString() {
-    // TODO: temporarily using json
-    return String.format(
-        "{\"timestamp\":{\"seconds\":%d,\"nanos\":%d},\"data\":[%s]}",
-        timestamp.getEpochSecond(),
-        timestamp.getNano(),
-        Arrays.stream(jiffies).map(CpuJiffies::toString).collect(joining(",")));
+    return toJson();
   }
 
   @Override

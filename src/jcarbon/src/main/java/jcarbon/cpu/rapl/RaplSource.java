@@ -1,5 +1,6 @@
 package jcarbon.cpu.rapl;
 
+import static java.util.stream.Collectors.toList;
 import static jcarbon.cpu.CpuInfo.SOCKETS;
 import static jcarbon.util.LoggerUtil.getLogger;
 
@@ -56,11 +57,12 @@ public final class RaplSource {
     return new RaplSource(
         () -> {
           int value = counter.getAndIncrement();
-          RaplReading[] readings =
-              IntStream.range(0, SOCKETS)
-                  .mapToObj(cpu -> forPackage(cpu, value))
-                  .toArray(RaplReading[]::new);
-          return Optional.of(new RaplSample(Instant.now(), readings));
+          return Optional.of(
+              new RaplSample(
+                  Instant.now(),
+                  IntStream.range(0, SOCKETS)
+                      .mapToObj(cpu -> forPackage(cpu, value))
+                      .collect(toList())));
         },
         RaplSource::sampleDifference);
   }
@@ -80,7 +82,8 @@ public final class RaplSource {
         first.timestamp(),
         second.timestamp(),
         IntStream.range(0, SOCKETS)
-            .mapToObj(socket -> Powercap.difference(first.data()[socket], second.data()[socket]))
-            .toArray(RaplReading[]::new));
+            .mapToObj(
+                socket -> Powercap.difference(first.data().get(socket), second.data().get(socket)))
+            .collect(toList()));
   }
 }

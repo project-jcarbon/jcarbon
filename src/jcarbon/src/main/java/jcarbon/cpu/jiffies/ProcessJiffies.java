@@ -1,19 +1,16 @@
 package jcarbon.cpu.jiffies;
 
-import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toMap;
 
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import jcarbon.cpu.ProcessComponent;
-import jcarbon.data.Component;
+import jcarbon.cpu.LinuxComponents;
 import jcarbon.data.Interval;
 
 /** An {@link Interval} of task jiffies for a process over a time range. */
-public final class ProcessJiffies
-    implements Interval<List<TaskJiffies>>, Comparable<ProcessJiffies> {
+public final class ProcessJiffies implements Interval<TaskJiffies>, Comparable<ProcessJiffies> {
   public static ProcessJiffies between(ProcessSample first, ProcessSample second) {
     if (first.compareTo(second) > -1) {
       throw new IllegalArgumentException(
@@ -24,22 +21,23 @@ public final class ProcessJiffies
     return new ProcessJiffies(
         first.timestamp(),
         second.timestamp(),
-        first.component,
+        first.processId,
         difference(first.data(), second.data()));
   }
 
   private static List<TaskJiffies> difference(List<TaskJiffies> first, List<TaskJiffies> second) {
-    Map<Long, TaskJiffies> secondMap =
-        second.stream().collect(toMap(r -> r.component.taskId, r -> r));
+    Map<Long, TaskJiffies> secondMap = second.stream().collect(toMap(r -> r.taskId, r -> r));
     ArrayList<TaskJiffies> jiffies = new ArrayList<>();
     for (TaskJiffies task : first) {
-      if (secondMap.containsKey(task.component.taskId)) {
-        TaskJiffies other = secondMap.get(task.component.taskId);
+      if (secondMap.containsKey(task.taskId)) {
+        TaskJiffies other = secondMap.get(task.taskId);
         if ((other.userJiffies - task.userJiffies) > 0
             || (other.systemJiffies - task.systemJiffies) > 0) {
           jiffies.add(
               new TaskJiffies(
-                  task.component,
+                  task.processId,
+                  task.taskId,
+                  task.cpu,
                   Math.max(0, other.userJiffies - task.userJiffies),
                   Math.max(0, other.systemJiffies - task.systemJiffies)));
         }
@@ -48,20 +46,18 @@ public final class ProcessJiffies
     return jiffies;
   }
 
-  final ProcessComponent component;
+  public final long processId;
 
   private final Instant start;
   private final Instant end;
+  private final String component;
   private final ArrayList<TaskJiffies> readings = new ArrayList<>();
 
-  ProcessJiffies(
-      Instant start,
-      Instant end,
-      ProcessComponent processComponent,
-      Iterable<TaskJiffies> readings) {
+  ProcessJiffies(Instant start, Instant end, long processId, Iterable<TaskJiffies> readings) {
+    this.processId = processId;
     this.start = start;
     this.end = end;
-    this.component = processComponent;
+    this.component = LinuxComponents.processComponent(processId);
     readings.forEach(this.readings::add);
   }
 
@@ -76,12 +72,8 @@ public final class ProcessJiffies
   }
 
   @Override
-  public Component component() {
+  public String component() {
     return component;
-  }
-
-  public long processId() {
-    return component.processId;
   }
 
   @Override
@@ -91,15 +83,7 @@ public final class ProcessJiffies
 
   @Override
   public String toString() {
-    // TODO: temporarily using json
-    return String.format(
-        "{\"start\":{\"seconds\":%d,\"nanos\":%d},\"end\":{\"seconds\":%d,\"nanos\":%d},\"process_id\":%d,\"data\":[%s]}",
-        start.getEpochSecond(),
-        start.getNano(),
-        end.getEpochSecond(),
-        end.getNano(),
-        component.processId,
-        readings.stream().map(TaskJiffies::toString).collect(joining(",")));
+    return toJson();
   }
 
   @Override
