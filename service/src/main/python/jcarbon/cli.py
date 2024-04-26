@@ -1,9 +1,6 @@
 """ a client that can talk to an jcarbon server. """
-import json
-
 from argparse import ArgumentParser
 from os import getpid
-from time import sleep
 
 from psutil import pid_exists
 
@@ -19,14 +16,10 @@ def fib(n):
 
 def parse_args():
     """ Parses client-side arguments. """
-    parser = ArgumentParser()
+    parser = ArgumentParser('jcarbon cli')
     parser.add_argument(
         dest='command',
-        choices=[
-            'start', 'stop', 'read',
-            'monitor', 'watch',
-            'test', 'smoke_test', 'smoke-test', 'smoketest'
-        ],
+        choices=['start', 'stop', 'dump', 'read'],
         help='request to make',
     )
     parser.add_argument(
@@ -44,11 +37,19 @@ def parse_args():
         help='address of the smaragdine server',
     )
     parser.add_argument(
+        '-s',
+        '--signals',
+        dest='signals',
+        type=str,
+        default='jcarbon.emissions.Emissions',
+        help='signals to read from jcarbon for \'read\'',
+    )
+    parser.add_argument(
         '--output_path',
         dest='output_path',
         type=str,
         default='/tmp',
-        help='location to write the report',
+        help='location to write the report for \'dump\'',
     )
     return parser.parse_args()
 
@@ -56,37 +57,20 @@ def parse_args():
 def main():
     args = parse_args()
 
+    signals = args.signals.split(',')
     client = JCarbonClient(args.addr)
     if args.command == 'start':
-        if args.pid < 0:
+        if args.pid < 0 or not pid_exists(args.pid):
             raise Exception(
                 'invalid pid to monitor ({})'.format(args.pid))
         client.start(args.pid)
     elif args.command == 'stop':
         client.stop(args.pid)
-    elif args.command == 'read':
+    elif args.command == 'dump':
         client.dump(args.pid, args.output_path)
-    elif args.command in ['monitor', 'watch']:
-        if getpid() == args.pid:
-            print('i refuse to watch myself!')
-            return
-        client.start(args.pid)
-        while pid_exists(args.pid):
-            sleep(1)
-        client.stop(args.pid)
-        jcarbon_signal = client.read(args.pid, ['jcarbon.emissions.Emissions'])
-        print({
-            signal.signal_name: sum(
-                s.data.value for s in signal.signal) for signal in jcarbon_signal.signal})
-    elif args.command in ['smoke_test', 'test', 'smoke-test', 'smoketest']:
-        pid = getpid()
-        client.start(pid)
-        fib(25)
-        client.stop(pid)
-        jcarbon_signal = client.read(pid, ['jcarbon.emissions.Emissions'])
-        print({
-            signal.signal_name: sum(
-                s.data.value for s in signal.signal) for signal in jcarbon_signal.signal})
+    elif args.command == 'read':
+        print(client.read(args.pid, signals))
+
 
 if __name__ == '__main__':
     main()

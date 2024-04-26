@@ -1,8 +1,10 @@
 package jcarbon.server;
 
+import static jcarbon.JCarbonReporting.writeReport;
 import static jcarbon.server.LoggerUtil.getLogger;
 
 import io.grpc.stub.StreamObserver;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.logging.Logger;
 import jcarbon.JCarbon;
@@ -15,6 +17,7 @@ import jcarbon.service.JCarbonServiceGrpc;
 import jcarbon.service.JCarbonSignal;
 import jcarbon.service.ReadRequest;
 import jcarbon.service.ReadResponse;
+import jcarbon.service.Signal;
 import jcarbon.service.StartRequest;
 import jcarbon.service.StartResponse;
 import jcarbon.service.StopRequest;
@@ -69,7 +72,7 @@ final class JCarbonServerImpl extends JCarbonServiceGrpc.JCarbonServiceImplBase 
     if (data.containsKey(processId)) {
       String outputPath = request.getOutputPath();
       logger.info(String.format("dumping jcarbon report for %d at %s", processId, outputPath));
-      JsonUtil.dump(outputPath, data.get(processId));
+      writeReport(data.get(processId), Path.of(outputPath));
     } else {
       logger.info(
           String.format(
@@ -87,6 +90,8 @@ final class JCarbonServerImpl extends JCarbonServiceGrpc.JCarbonServiceImplBase 
     logger.info(String.format("reading jcarbon report for %d", processId));
     if (data.containsKey(processId)) {
       JCarbonReport report = data.get(processId);
+      jcarbon.service.JCarbonReport.Builder reportBuilder =
+          jcarbon.service.JCarbonReport.newBuilder();
       for (String signalName : request.getSignalsList()) {
         try {
           Class<?> signal = Class.forName(signalName);
@@ -100,13 +105,12 @@ final class JCarbonServerImpl extends JCarbonServiceGrpc.JCarbonServiceImplBase 
             logger.info(
                 String.format("reading signal %s from jcarbon report for %d", signal, processId));
             JCarbonSignal.Builder signalBuilder =
-                JCarbonSignal.newBuilder().setSignalName(signal.getSimpleName());
+                JCarbonSignal.newBuilder().setSignalName(signal.getName());
             for (Object signalData : report.getSignal(signal)) {
               signalBuilder.addSignal(
-                  ProtoUtil.toProtoSignal(
-                      (Interval<? extends Iterable<? extends Data>>) signalData));
+                  toProtoSignal((Interval<? extends Iterable<? extends Data>>) signalData));
             }
-            response.addSignal(signalBuilder);
+            reportBuilder.addSignal(signalBuilder);
           } else {
             logger.info(
                 String.format(
@@ -122,6 +126,7 @@ final class JCarbonServerImpl extends JCarbonServiceGrpc.JCarbonServiceImplBase 
                   processId, signalName));
         }
       }
+      response.setReport(reportBuilder);
     } else {
       logger.info(
           String.format(
@@ -129,5 +134,27 @@ final class JCarbonServerImpl extends JCarbonServiceGrpc.JCarbonServiceImplBase 
     }
     resultObserver.onNext(response.build());
     resultObserver.onCompleted();
+  }
+
+  private static <T extends Interval<? extends Iterable<? extends Data>>> Signal toProtoSignal(
+      T interval) {
+    Signal.Builder signal = Signal.newBuilder();
+    signal
+        .getStartBuilder()
+        .setSecs(interval.start().getEpochSecond())
+        .setNanos(interval.start().getNano());
+    signal
+        .getEndBuilder()
+        .setSecs(interval.end().getEpochSecond())
+        .setNanos(interval.end().getNano());
+    signal.setComponent(interval.component().toString());
+    for (Data data : interval.data()) {
+      signal.addData(
+          Signal.Data.newBuilder()
+              .setComponent(data.component().toString())
+              .setUnit(data.unit().toString())
+              .setValue(data.value()));
+    }
+    return signal.build();
   }
 }

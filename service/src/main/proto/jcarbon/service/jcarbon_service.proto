@@ -20,20 +20,26 @@ message StartRequest {
   optional uint32 period_millis = 2;
 }
 
-message StartResponse {}
+message StartResponse {
+  optional string response = 1;
+}
 
 message StopRequest {
   optional uint64 process_id = 1;
 }
 
-message StopResponse {}
+message StopResponse {
+  optional string response = 1;
+}
 
 message DumpRequest {
   optional uint64 process_id = 1;
   optional string output_path = 2;
 }
 
-message DumpResponse {}
+message DumpResponse {
+  optional string response = 1;
+}
 
 message ReadRequest {
   optional uint64 process_id = 1;
@@ -41,6 +47,10 @@ message ReadRequest {
 }
 
 message ReadResponse {
+  optional JCarbonReport report = 1;
+}
+
+message JCarbonReport {
   repeated JCarbonSignal signal = 1;
 }
 
@@ -52,7 +62,7 @@ message JCarbonSignal {
 message Signal {
   optional Timestamp start = 1;
   optional Timestamp end = 2;
-  repeated string component = 3;
+  optional string component = 3;
   repeated Data data = 4;
 
   message Timestamp {
@@ -61,7 +71,7 @@ message Signal {
   }
 
   message Data {
-    repeated string component = 1;
+    optional string component = 1;
     optional string unit = 2;
     optional double value = 3;
   }
