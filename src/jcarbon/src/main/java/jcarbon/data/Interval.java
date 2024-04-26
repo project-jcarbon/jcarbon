@@ -23,7 +23,7 @@ public interface Interval<T extends Data> {
     Instant start = start();
     Instant end = end();
     return String.format(
-        "{\"start\":{\"seconds\":%d,\"nanos\":%d},\"end\":{\"seconds\":%d,\"nanos\":%d},\"component\":\"%s\",\"data\":[%s]}",
+        "{\"start\":{\"secs\":%d,\"nanos\":%d},\"end\":{\"secs\":%d,\"nanos\":%d},\"component\":\"%s\",\"data\":[%s]}",
         start.getEpochSecond(),
         start.getNano(),
         end.getEpochSecond(),

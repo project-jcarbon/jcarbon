@@ -19,7 +19,7 @@ public interface Sample<T extends Data> {
   public default String toJson() {
     Instant timestamp = timestamp();
     return String.format(
-        "{\"timestamp\":{\"seconds\":%d,\"nanos\":%d},\"component\":\"%s\",\"data\":[%s]}",
+        "{\"timestamp\":{\"secs\":%d,\"nanos\":%d},\"component\":\"%s\",\"data\":[%s]}",
         timestamp.getEpochSecond(),
         timestamp.getNano(),
         component(),

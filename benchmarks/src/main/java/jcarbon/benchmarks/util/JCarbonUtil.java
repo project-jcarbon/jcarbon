@@ -1,15 +1,13 @@
 package jcarbon.benchmarks.util;
 
-import static java.nio.file.Files.newBufferedWriter;
 import static java.util.stream.Collectors.groupingBy;
+import static jcarbon.JCarbonReporting.writeReports;
 import static jcarbon.benchmarks.util.LoggerUtil.getLogger;
 
-import java.io.PrintWriter;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import jcarbon.JCarbon;
@@ -100,44 +98,6 @@ public final class JCarbonUtil {
   }
 
   public static void dump(List<JCarbonReport> reports) {
-    Path outputPath = outputPath();
-    logger.info(String.format("writing reports to %s", outputPath));
-    try (PrintWriter writer = new PrintWriter(newBufferedWriter(outputPath)); ) {
-      writer.write("[");
-      int i = 0;
-      for (JCarbonReport report : reports) {
-        Set<Class<?>> signalTypes = report.getSignalTypes();
-        int j = 0;
-        writer.println("{");
-        for (Class<?> signalType : signalTypes) {
-          // System.out.println("?");
-          List<?> signal = report.getSignal(signalType);
-          writer.println(String.format("  \"%s\":[", signalType.getName()));
-          int k = 0;
-          for (Object data : signal) {
-            writer.write("    " + data.toString());
-            if (k + 1 < signal.size()) {
-              writer.println(",");
-              k++;
-            }
-          }
-          writer.write("]");
-          if (j + 1 < signalTypes.size()) {
-            writer.println(",");
-            j++;
-          } else {
-            writer.println();
-          }
-        }
-        writer.write("}");
-        if (i + 1 < reports.size()) {
-          writer.println(",");
-          i++;
-        }
-      }
-      writer.println("]");
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
+    writeReports(reports, outputPath());
   }
 }
