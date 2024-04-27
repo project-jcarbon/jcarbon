@@ -4,10 +4,12 @@ import static jcarbon.server.LoggerUtil.getLogger;
 
 import io.grpc.Grpc;
 import io.grpc.InsecureServerCredentials;
+import io.grpc.ManagedChannelBuilder;
 import io.grpc.Server;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
+import jcarbon.service.JCarbonServiceGrpc;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Option;
@@ -23,7 +25,12 @@ final class JCarbonServer {
     this.port = port;
     this.server =
         Grpc.newServerBuilderForPort(port, InsecureServerCredentials.create())
-            .addService(new JCarbonServerImpl())
+            .addService(
+                new JCarbonServerImpl(
+                    JCarbonServiceGrpc.newBlockingStub(
+                        ManagedChannelBuilder.forAddress("localhost", 8981)
+                            .usePlaintext()
+                            .build())))
             .build();
   }
 

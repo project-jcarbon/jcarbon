@@ -78,6 +78,17 @@ class NvmlSampler:
         return report
 
 
+def create_report(data):
+    report = JCarbonReport()
+    for signal_name in data:
+        jcarbon_signal = JCarbonSignal()
+        jcarbon_signal.signal_name = signal_name
+        for first, second in zip(data[signal_name], data[signal_name][1:]):
+            jcarbon_signal.signal.append(sample_difference(first, second))
+        report.signal.append(jcarbon_signal)
+    return report
+
+
 def sample_difference(first, second):
     signal = Signal()
 

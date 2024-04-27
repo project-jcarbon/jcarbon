@@ -1,6 +1,7 @@
 """ a client that can talk to an jcarbon server. """
 from argparse import ArgumentParser
 from os import getpid
+from pprint import pprint
 
 from jcarbon.client import JCarbonClient
 
@@ -52,10 +53,18 @@ def main():
     client.start(pid)
     fib(args.n)
     client.stop(pid)
-    report = client.read(pid, signals).report
+    report = client.read(pid, signals)
     # TODO: this is too vague
-    print({signal.signal_name: sum(d.value for s in signal.signal for d in s.data)
-           for signal in report.signal})
+    results = {}
+    for jcarbon_signal in report.signal:
+        results[jcarbon_signal.signal_name] = {}
+        for signal in jcarbon_signal.signal:
+            key = (signal.component, signal.unit)
+            if key not in results[jcarbon_signal.signal_name]:
+                results[jcarbon_signal.signal_name][key] = 0
+            results[jcarbon_signal.signal_name][key] += sum(
+                data.value for data in signal.data)
+    pprint(results)
 
 
 if __name__ == '__main__':

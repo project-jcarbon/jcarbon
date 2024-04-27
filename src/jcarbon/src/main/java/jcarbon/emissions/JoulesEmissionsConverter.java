@@ -27,7 +27,7 @@ public final class JoulesEmissionsConverter implements EmissionsConverter {
     return new Emissions(interval.start(), interval.end(), interval.component(), emissions);
   }
 
-  private double convertJoules(double joules) {
+  public double convertJoules(double joules) {
     return carbonIntensity * joules * JOULE_TO_KWH;
   }
 }

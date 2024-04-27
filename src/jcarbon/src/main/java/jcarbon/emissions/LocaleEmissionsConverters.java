@@ -22,10 +22,10 @@ public final class LocaleEmissionsConverters {
       System.getProperty("jcarbon.emissions.locale", "USA");
   private static final Map<String, Double> CARBON_INTENSITY_MAP = getCarbonIntensity();
 
-  public static final EmissionsConverter GLOBAL_CONVERTER =
+  public static final JoulesEmissionsConverter GLOBAL_CONVERTER =
       new JoulesEmissionsConverter(GLOBAL_INTENSITY);
 
-  public static EmissionsConverter forLocale(String locale) {
+  public static JoulesEmissionsConverter forLocale(String locale) {
     if (CARBON_INTENSITY_MAP.containsKey(locale)) {
       logger.info(
           String.format(
@@ -41,7 +41,7 @@ public final class LocaleEmissionsConverters {
     }
   }
 
-  public static EmissionsConverter forDefaultLocale() {
+  public static JoulesEmissionsConverter forDefaultLocale() {
     return forLocale(DEFAULT_LOCALE);
   }
 

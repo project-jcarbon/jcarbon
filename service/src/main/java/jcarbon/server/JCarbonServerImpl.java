@@ -1,18 +1,25 @@
 package jcarbon.server;
 
-import static jcarbon.JCarbonReporting.writeReport;
+import static java.nio.file.Files.newOutputStream;
+import static java.util.stream.Collectors.toList;
 import static jcarbon.server.LoggerUtil.getLogger;
 
 import io.grpc.stub.StreamObserver;
+import java.io.OutputStream;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 import jcarbon.JCarbon;
-import jcarbon.JCarbonReport;
 import jcarbon.data.Data;
 import jcarbon.data.Interval;
+import jcarbon.data.Unit;
+import jcarbon.emissions.Emissions;
+import jcarbon.emissions.JoulesEmissionsConverter;
+import jcarbon.emissions.LocaleEmissionsConverters;
 import jcarbon.service.DumpRequest;
 import jcarbon.service.DumpResponse;
+import jcarbon.service.JCarbonReport;
 import jcarbon.service.JCarbonServiceGrpc;
 import jcarbon.service.JCarbonSignal;
 import jcarbon.service.ReadRequest;
@@ -25,9 +32,16 @@ import jcarbon.service.StopResponse;
 
 final class JCarbonServerImpl extends JCarbonServiceGrpc.JCarbonServiceImplBase {
   private static final Logger logger = getLogger();
+  private static final JoulesEmissionsConverter converter =
+      LocaleEmissionsConverters.forDefaultLocale();
 
+  private final JCarbonServiceGrpc.JCarbonServiceBlockingStub nvmlClient;
   private final HashMap<Long, JCarbon> jcarbons = new HashMap<>();
   private final HashMap<Long, JCarbonReport> data = new HashMap<>();
+
+  public JCarbonServerImpl(JCarbonServiceGrpc.JCarbonServiceBlockingStub nvmlClient) {
+    this.nvmlClient = nvmlClient;
+  }
 
   @Override
   public void start(StartRequest request, StreamObserver<StartResponse> resultObserver) {
@@ -37,6 +51,7 @@ final class JCarbonServerImpl extends JCarbonServiceGrpc.JCarbonServiceImplBase 
       JCarbon jcarbon = new JCarbon(request.getPeriodMillis(), processId);
       jcarbon.start();
       jcarbons.put(processId, jcarbon);
+      nvmlClient.start(request);
     } else {
       logger.info(
           String.format(
@@ -53,10 +68,29 @@ final class JCarbonServerImpl extends JCarbonServiceGrpc.JCarbonServiceImplBase 
       logger.info(String.format("stopping jcarbon for %d", processId));
       JCarbon jcarbon = jcarbons.get(processId);
       jcarbons.remove(processId);
-      JCarbonReport report = jcarbon.stop().get();
+      nvmlClient.stop(request);
+      jcarbon.JCarbonReport report = jcarbon.stop().get();
+
+      JCarbonReport.Builder reportBuilder = toProtoReport(report).toBuilder();
+      JCarbonReport nvmlReport = nvmlClient.read(ReadRequest.getDefaultInstance()).getReport();
+      reportBuilder.addAllSignal(nvmlReport.getSignalList());
+      logger.info(
+          String.format(
+              "adding signal classes %s to report for %d",
+              nvmlReport.getSignalList().stream().map(s -> s.getSignalName()).collect(toList()),
+              processId));
+      for (JCarbonSignal.Builder jcarbonSignal : reportBuilder.getSignalBuilderList()) {
+        if (!jcarbonSignal.getSignalName().equals(Emissions.class.getName())) {
+          continue;
+        }
+        jcarbonSignal.addAllSignal(
+            nvmlReport.getSignalList().stream()
+                .flatMap(JCarbonServerImpl::convertNvmlSignals)
+                .collect(toList()));
+      }
       // TODO: need to be able to combine/delete reports
       logger.info(String.format("storing jcarbon report for %d", processId));
-      data.put(processId, report);
+      data.put(processId, reportBuilder.build());
     } else {
       logger.info(
           String.format(
@@ -72,7 +106,11 @@ final class JCarbonServerImpl extends JCarbonServiceGrpc.JCarbonServiceImplBase 
     if (data.containsKey(processId)) {
       String outputPath = request.getOutputPath();
       logger.info(String.format("dumping jcarbon report for %d at %s", processId, outputPath));
-      writeReport(data.get(processId), Path.of(outputPath));
+      try (OutputStream writer = newOutputStream(Path.of(outputPath)); ) {
+        data.get(processId).writeTo(writer);
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
     } else {
       logger.info(
           String.format(
@@ -89,44 +127,12 @@ final class JCarbonServerImpl extends JCarbonServiceGrpc.JCarbonServiceImplBase 
     ReadResponse.Builder response = ReadResponse.newBuilder();
     logger.info(String.format("reading jcarbon report for %d", processId));
     if (data.containsKey(processId)) {
-      JCarbonReport report = data.get(processId);
-      jcarbon.service.JCarbonReport.Builder reportBuilder =
-          jcarbon.service.JCarbonReport.newBuilder();
-      for (String signalName : request.getSignalsList()) {
-        try {
-          Class<?> signal = Class.forName(signalName);
-          if (signal == null) {
-            logger.info(
-                String.format(
-                    "ignoring request to read jcarbon report for %d since no signal class could be"
-                        + " found for '%s'",
-                    processId, signal));
-          } else if (report.hasSignal(signal)) {
-            logger.info(
-                String.format("reading signal %s from jcarbon report for %d", signal, processId));
-            JCarbonSignal.Builder signalBuilder =
-                JCarbonSignal.newBuilder().setSignalName(signal.getName());
-            for (Object signalData : report.getSignal(signal)) {
-              signalBuilder.addSignal(
-                  toProtoSignal((Interval<? extends Iterable<? extends Data>>) signalData));
-            }
-            reportBuilder.addSignal(signalBuilder);
-          } else {
-            logger.info(
-                String.format(
-                    "ignoring request to read jcarbon report for %d since it does not have a %s"
-                        + " signal",
-                    processId, signal));
-          }
-        } catch (ClassNotFoundException e) {
-          logger.info(
-              String.format(
-                  "ignoring request to read jcarbon report for %d since no signal class could be"
-                      + " found for '%s'",
-                  processId, signalName));
-        }
-      }
-      response.setReport(reportBuilder);
+      response.setReport(
+          JCarbonReport.newBuilder()
+              .addAllSignal(
+                  data.get(processId).getSignalList().stream()
+                      .filter(signal -> request.getSignalsList().contains(signal.getSignalName()))
+                      .collect(toList())));
     } else {
       logger.info(
           String.format(
@@ -134,6 +140,38 @@ final class JCarbonServerImpl extends JCarbonServiceGrpc.JCarbonServiceImplBase 
     }
     resultObserver.onNext(response.build());
     resultObserver.onCompleted();
+  }
+
+  private static Stream<Signal> convertNvmlSignals(JCarbonSignal signal) {
+    return signal.getSignalList().stream().map(JCarbonServerImpl::convertJoulesSignal);
+  }
+
+  private static Signal convertJoulesSignal(Signal signal) {
+    return signal.toBuilder()
+        .setUnit(Unit.GRAMS_OF_CO2.name())
+        .addAllData(
+            signal.getDataList().stream()
+                .map(
+                    data ->
+                        data.toBuilder().setValue(converter.convertJoules(data.getValue())).build())
+                .collect(toList()))
+        .build();
+  }
+
+  private static <T extends Interval<? extends Iterable<? extends Data>>>
+      JCarbonReport toProtoReport(jcarbon.JCarbonReport report) {
+    JCarbonReport.Builder reportBuilder = JCarbonReport.newBuilder();
+    for (Class<?> signal : report.getSignalTypes()) {
+      logger.info(String.format("converting signal %s", signal));
+      JCarbonSignal.Builder signalBuilder =
+          JCarbonSignal.newBuilder().setSignalName(signal.getName());
+      for (Object signalData : report.getSignal(signal)) {
+        signalBuilder.addSignal(
+            toProtoSignal((Interval<? extends Iterable<? extends Data>>) signalData));
+      }
+      reportBuilder.addSignal(signalBuilder);
+    }
+    return reportBuilder.build();
   }
 
   private static <T extends Interval<? extends Iterable<? extends Data>>> Signal toProtoSignal(

@@ -21,6 +21,7 @@ java_binary(
     runtime_deps = ["@io_grpc_grpc_java//netty"],
     deps = [
         ":server_impl",
+        "//service/src/main/proto/jcarbon/service:jcarbon_service_java_grpc",
         "@io_grpc_grpc_java//api",
         "@maven//:commons_cli_commons_cli",
     ]

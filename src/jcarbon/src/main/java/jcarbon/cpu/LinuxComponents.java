@@ -2,7 +2,7 @@ package jcarbon.cpu;
 
 public final class LinuxComponents {
   public static final String OS_COMPONENT =
-      String.format("os-%s", System.getProperty("os.name", "unknown"));
+      String.format("os=%s", System.getProperty("os.name", "unknown"));
 
   public static String socketComponent(int socket) {
     return String.format("socket=%d", socket);
