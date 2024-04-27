@@ -1,3 +1,5 @@
+import json
+
 from argparse import ArgumentParser
 from math import sqrt
 from pprint import pprint
@@ -7,65 +9,6 @@ from tqdm import tqdm
 
 from jcarbon.jcarbon_service_pb2 import JCarbonSignal
 from jcarbon.nvml.sampler import NvmlSampler, sample_difference
-
-
-def summarize(nvml_signal):
-    device_energy = {}
-    faults = {}
-    is_faulting = True
-    for signal in nvml_signal.signal:
-        for data in signal.data:
-            energy = 0
-            unit = data.unit
-            if unit == 'JOULES':
-                if data.value == 0:
-                    fault_time = 1000000000 * signal.start.secs + signal.start.nanos
-                    elapsed = 1000000000.0 * \
-                        (signal.end.secs - signal.start.secs)
-                    if signal.start.nanos > signal.end.nanos:
-                        elapsed += 1000000000.0 + signal.end.nanos - signal.start.nanos
-                        if elapsed >= 1000000000.0:
-                            elapsed -= 1000000000.0
-                    else:
-                        elapsed += signal.end.nanos - signal.start.nanos
-                    faults[fault_time] = (is_faulting, elapsed / 1000000000.0)
-                    is_faulting = True
-                else:
-                    is_faulting = False
-                    energy = data.value
-            elif unit == 'WATTS':
-                unit = 'WATTS_TO_JOULES'
-                elapsed = 1000000000.0 * (signal.end.secs - signal.start.secs)
-                if signal.start.nanos > signal.end.nanos:
-                    elapsed += 1000000000.0 + signal.end.nanos - signal.start.nanos
-                    if elapsed >= 1000000000.0:
-                        elapsed -= 1000000000.0
-                else:
-                    elapsed += signal.end.nanos - signal.start.nanos
-                energy = data.value * elapsed / 1000000000.0
-            if (data.component, unit) not in device_energy:
-                device_energy[data.component, unit] = 0
-            device_energy[data.component, unit] += energy
-    faults = [timestamp for (timestamp, faulted)
-              in faults.items() if not faulted[0]]
-    faults = [t2 - t1 for (t1, t2) in zip(faults, faults[1:])]
-    return device_energy, faults
-
-
-def get_energy(signal, data):
-    energy = data.value
-    unit = data.unit
-    if unit == 'WATTS':
-        unit = 'WATTS_TO_JOULES'
-        elapsed = 1000000000.0 * (signal.end.secs - signal.start.secs)
-        if signal.start.nanos > signal.end.nanos:
-            elapsed += 1000000000.0 + signal.end.nanos - signal.start.nanos
-            if elapsed >= 1000000000.0:
-                elapsed -= 1000000000.0
-        else:
-            elapsed += signal.end.nanos - signal.start.nanos
-        energy = energy * elapsed / 1000000000.0
-    return energy, unit
 
 
 def equivalence_test(sleep_time, period):
@@ -82,6 +25,9 @@ def equivalence_test(sleep_time, period):
 
 
 DEFAULT_PERIODS = [
+    0.0001,
+    0.0002,
+    0.0005,
     0.001,
     0.002,
     0.005,
@@ -98,7 +44,7 @@ DEFAULT_PERIODS = [
     15.00,
 ]
 
-DEFAULT_WARMUP_ITERATIONS = 50
+DEFAULT_WARMUP_ITERATIONS = 10
 DEFAULT_DATA_ITERATIONS = 20
 DEFAULT_TIME = 30.0
 DEFAULT_OUTPUT = '/tmp/jcarbon-nvml-equivalence.json'
@@ -189,6 +135,8 @@ def main():
                 energy[component][signal_name] = f'{mean:.3f}+/-{std}'
         tests[period] = energy
     pprint(tests)
+    with open(args.output_path, 'w') as f:
+        json.dump(f, tests)
 
 
 if __name__ == '__main__':
