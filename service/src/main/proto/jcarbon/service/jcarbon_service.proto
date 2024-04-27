@@ -63,7 +63,8 @@ message Signal {
   optional Timestamp start = 1;
   optional Timestamp end = 2;
   optional string component = 3;
-  repeated Data data = 4;
+  optional string unit = 4;
+  repeated Data data = 5;
 
   message Timestamp {
     optional uint64 secs = 1;
@@ -72,7 +73,6 @@ message Signal {
 
   message Data {
     optional string component = 1;
-    optional string unit = 2;
-    optional double value = 3;
+    optional double value = 2;
   }
 }

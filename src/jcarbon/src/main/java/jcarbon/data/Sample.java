@@ -13,16 +13,20 @@ public interface Sample<T extends Data> {
   /** The executing component. */
   String component();
 
+  /** What the data is. */
+  Unit unit();
+
   /** What is in the sample. */
   List<T> data();
 
   public default String toJson() {
     Instant timestamp = timestamp();
     return String.format(
-        "{\"timestamp\":{\"secs\":%d,\"nanos\":%d},\"component\":\"%s\",\"data\":[%s]}",
+        "{\"timestamp\":{\"secs\":%d,\"nanos\":%d},\"component\":\"%s\",\"unit\":\"%s\"\"data\":[%s]}",
         timestamp.getEpochSecond(),
         timestamp.getNano(),
         component(),
+        unit(),
         data().stream().map(Data::toJson).collect(joining(",")));
   }
 }

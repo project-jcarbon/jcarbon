@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import jcarbon.cpu.LinuxComponents;
 import jcarbon.data.Interval;
+import jcarbon.data.Unit;
 
 /** An {@link Interval} of task jiffies for a process over a time range. */
 public final class ProcessJiffies implements Interval<TaskJiffies>, Comparable<ProcessJiffies> {
@@ -74,6 +75,11 @@ public final class ProcessJiffies implements Interval<TaskJiffies>, Comparable<P
   @Override
   public String component() {
     return component;
+  }
+
+  @Override
+  public Unit unit() {
+    return Unit.JIFFIES;
   }
 
   @Override

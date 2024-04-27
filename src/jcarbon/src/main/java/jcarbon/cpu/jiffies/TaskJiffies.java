@@ -2,7 +2,6 @@ package jcarbon.cpu.jiffies;
 
 import jcarbon.cpu.LinuxComponents;
 import jcarbon.data.Data;
-import jcarbon.data.Unit;
 
 /** Jiffies from proc/<pid>/task/<tid>/stat. */
 public final class TaskJiffies implements Data {
@@ -29,11 +28,6 @@ public final class TaskJiffies implements Data {
   @Override
   public String component() {
     return component;
-  }
-
-  @Override
-  public Unit unit() {
-    return Unit.JIFFIES;
   }
 
   @Override

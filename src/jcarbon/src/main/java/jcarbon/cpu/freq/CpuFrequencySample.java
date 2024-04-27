@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import jcarbon.cpu.LinuxComponents;
 import jcarbon.data.Sample;
+import jcarbon.data.Unit;
 
 /** A sample from the cpufreq system that represents the current frequencies ordered by cpu id. */
 public final class CpuFrequencySample
@@ -25,6 +26,11 @@ public final class CpuFrequencySample
   @Override
   public String component() {
     return LinuxComponents.OS_COMPONENT;
+  }
+
+  @Override
+  public Unit unit() {
+    return Unit.MEGAHERTZ;
   }
 
   @Override

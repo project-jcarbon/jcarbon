@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import jcarbon.cpu.LinuxComponents;
 import jcarbon.data.Interval;
+import jcarbon.data.Unit;
 
 /** An {@link Interval} of rapl energy consumption over a time range. */
 public final class RaplEnergy implements Interval<RaplReading>, Comparable<RaplEnergy> {
@@ -31,6 +32,11 @@ public final class RaplEnergy implements Interval<RaplReading>, Comparable<RaplE
   @Override
   public String component() {
     return LinuxComponents.OS_COMPONENT;
+  }
+
+  @Override
+  public Unit unit() {
+    return Unit.JOULES;
   }
 
   @Override

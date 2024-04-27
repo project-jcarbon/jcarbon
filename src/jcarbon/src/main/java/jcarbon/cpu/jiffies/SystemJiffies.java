@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import jcarbon.cpu.LinuxComponents;
 import jcarbon.data.Interval;
+import jcarbon.data.Unit;
 
 /** An {@link Interval} of cpu jiffies over a time range. */
 public final class SystemJiffies implements Interval<CpuJiffies>, Comparable<SystemJiffies> {
@@ -68,6 +69,11 @@ public final class SystemJiffies implements Interval<CpuJiffies>, Comparable<Sys
   @Override
   public String component() {
     return LinuxComponents.OS_COMPONENT;
+  }
+
+  @Override
+  public Unit unit() {
+    return Unit.JIFFIES;
   }
 
   @Override

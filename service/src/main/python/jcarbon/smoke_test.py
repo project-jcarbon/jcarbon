@@ -53,6 +53,7 @@ def main():
     fib(args.n)
     client.stop(pid)
     report = client.read(pid, signals).report
+    # TODO: this is too vague
     print({signal.signal_name: sum(d.value for s in signal.signal for d in s.data)
            for signal in report.signal})
 

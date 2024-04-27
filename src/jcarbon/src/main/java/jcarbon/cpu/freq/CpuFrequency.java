@@ -2,7 +2,6 @@ package jcarbon.cpu.freq;
 
 import jcarbon.cpu.LinuxComponents;
 import jcarbon.data.Data;
-import jcarbon.data.Unit;
 
 /** A reading from a rapl energy system. */
 public final class CpuFrequency implements Data {
@@ -25,11 +24,6 @@ public final class CpuFrequency implements Data {
   @Override
   public String component() {
     return component;
-  }
-
-  @Override
-  public Unit unit() {
-    return Unit.MEGAHERTZ;
   }
 
   @Override

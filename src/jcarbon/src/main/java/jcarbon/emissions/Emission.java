@@ -1,7 +1,6 @@
 package jcarbon.emissions;
 
 import jcarbon.data.Data;
-import jcarbon.data.Unit;
 
 /** Carbon emission of some component. */
 public final class Emission implements Data {
@@ -18,11 +17,6 @@ public final class Emission implements Data {
   @Override
   public String component() {
     return component;
-  }
-
-  @Override
-  public Unit unit() {
-    return Unit.GRAMS_OF_CO2;
   }
 
   @Override

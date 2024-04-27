@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import jcarbon.cpu.LinuxComponents;
 import jcarbon.data.Sample;
+import jcarbon.data.Unit;
 
 /** A {@link Sample} of cpu jiffies since boot. */
 public final class SystemSample implements Sample<CpuJiffies>, Comparable<SystemSample> {
@@ -24,6 +25,11 @@ public final class SystemSample implements Sample<CpuJiffies>, Comparable<System
   @Override
   public String component() {
     return LinuxComponents.OS_COMPONENT;
+  }
+
+  @Override
+  public Unit unit() {
+    return Unit.JIFFIES;
   }
 
   @Override

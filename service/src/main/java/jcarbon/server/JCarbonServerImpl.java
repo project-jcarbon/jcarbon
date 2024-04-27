@@ -138,7 +138,10 @@ final class JCarbonServerImpl extends JCarbonServiceGrpc.JCarbonServiceImplBase 
 
   private static <T extends Interval<? extends Iterable<? extends Data>>> Signal toProtoSignal(
       T interval) {
-    Signal.Builder signal = Signal.newBuilder();
+    Signal.Builder signal =
+        Signal.newBuilder()
+            .setComponent(interval.component().toString())
+            .setUnit(interval.unit().toString());
     signal
         .getStartBuilder()
         .setSecs(interval.start().getEpochSecond())
@@ -147,12 +150,10 @@ final class JCarbonServerImpl extends JCarbonServiceGrpc.JCarbonServiceImplBase 
         .getEndBuilder()
         .setSecs(interval.end().getEpochSecond())
         .setNanos(interval.end().getNano());
-    signal.setComponent(interval.component().toString());
     for (Data data : interval.data()) {
       signal.addData(
           Signal.Data.newBuilder()
               .setComponent(data.component().toString())
-              .setUnit(data.unit().toString())
               .setValue(data.value()));
     }
     return signal.build();

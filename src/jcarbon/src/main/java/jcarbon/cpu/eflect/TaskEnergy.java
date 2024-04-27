@@ -2,7 +2,6 @@ package jcarbon.cpu.eflect;
 
 import jcarbon.cpu.LinuxComponents;
 import jcarbon.data.Data;
-import jcarbon.data.Unit;
 
 /** Energy consumption of a task. */
 public final class TaskEnergy implements Data {
@@ -25,11 +24,6 @@ public final class TaskEnergy implements Data {
   @Override
   public String component() {
     return component;
-  }
-
-  @Override
-  public Unit unit() {
-    return Unit.JOULES;
   }
 
   @Override

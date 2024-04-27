@@ -2,7 +2,6 @@ package jcarbon.cpu.rapl;
 
 import jcarbon.cpu.LinuxComponents;
 import jcarbon.data.Data;
-import jcarbon.data.Unit;
 
 /** A reading from a rapl energy system. */
 public final class RaplReading implements Data {
@@ -31,11 +30,6 @@ public final class RaplReading implements Data {
   @Override
   public String component() {
     return component;
-  }
-
-  @Override
-  public Unit unit() {
-    return Unit.JOULES;
   }
 
   @Override

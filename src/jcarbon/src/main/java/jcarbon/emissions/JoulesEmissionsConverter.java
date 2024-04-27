@@ -9,6 +9,7 @@ import jcarbon.data.Unit;
 public final class JoulesEmissionsConverter implements EmissionsConverter {
   private static final double JOULE_TO_KWH = 2.77778e-7;
 
+  // grams of carbon per kwh
   private final double carbonIntensity;
 
   public JoulesEmissionsConverter(double carbonIntensity) {
@@ -18,8 +19,8 @@ public final class JoulesEmissionsConverter implements EmissionsConverter {
   @Override
   public <T extends Interval<? extends Data>> Emissions convert(T interval) {
     ArrayList<Emission> emissions = new ArrayList<>();
-    for (Data data : interval.data()) {
-      if (data.unit() == Unit.JOULES) {
+    if (interval.unit() == Unit.JOULES) {
+      for (Data data : interval.data()) {
         emissions.add(new Emission(data.component(), convertJoules(data.value())));
       }
     }

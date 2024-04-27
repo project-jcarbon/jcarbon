@@ -2,7 +2,6 @@ package jcarbon.cpu.jiffies;
 
 import jcarbon.cpu.LinuxComponents;
 import jcarbon.data.Data;
-import jcarbon.data.Unit;
 
 /** Jiffies from /proc/stat. */
 public final class CpuJiffies implements Data {
@@ -53,11 +52,6 @@ public final class CpuJiffies implements Data {
   @Override
   public String component() {
     return component;
-  }
-
-  @Override
-  public Unit unit() {
-    return Unit.JIFFIES;
   }
 
   @Override

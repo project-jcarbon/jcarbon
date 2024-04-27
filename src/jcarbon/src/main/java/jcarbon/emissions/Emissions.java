@@ -4,6 +4,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import jcarbon.data.Interval;
+import jcarbon.data.Unit;
 
 /** An {@link Interval} of emissions over a time range. */
 public final class Emissions implements Interval<Emission> {
@@ -32,6 +33,11 @@ public final class Emissions implements Interval<Emission> {
   @Override
   public String component() {
     return component;
+  }
+
+  @Override
+  public Unit unit() {
+    return Unit.GRAMS_OF_CO2;
   }
 
   @Override

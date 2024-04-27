@@ -16,6 +16,9 @@ public interface Interval<T extends Data> {
   /** The executing component. */
   String component();
 
+  /** What the data is. */
+  Unit unit();
+
   /** What is in the interval. */
   List<T> data();
 
@@ -23,12 +26,13 @@ public interface Interval<T extends Data> {
     Instant start = start();
     Instant end = end();
     return String.format(
-        "{\"start\":{\"secs\":%d,\"nanos\":%d},\"end\":{\"secs\":%d,\"nanos\":%d},\"component\":\"%s\",\"data\":[%s]}",
+      "{\"start\":{\"secs\":%d,\"nanos\":%d},\"end\":{\"secs\":%d,\"nanos\":%d},\"component\":\"%s\",\"unit\":\"%s\",\"data\":[%s]}",
         start.getEpochSecond(),
         start.getNano(),
         end.getEpochSecond(),
         end.getNano(),
         component(),
+        unit(),
         data().stream().map(Data::toJson).collect(joining(",")));
   }
 }

@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import jcarbon.cpu.LinuxComponents;
 import jcarbon.data.Interval;
+import jcarbon.data.Unit;
 
 /** An {@link Interval} of fractional task activity for a process over a time range. */
 public final class ProcessActivity implements Interval<TaskActivity>, Comparable<ProcessActivity> {
@@ -36,6 +37,11 @@ public final class ProcessActivity implements Interval<TaskActivity>, Comparable
   @Override
   public String component() {
     return component;
+  }
+
+  @Override
+  public Unit unit() {
+    return Unit.ACTIVITY;
   }
 
   @Override

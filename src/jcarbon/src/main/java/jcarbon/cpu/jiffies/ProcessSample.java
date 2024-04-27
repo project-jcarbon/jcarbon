@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import jcarbon.cpu.LinuxComponents;
 import jcarbon.data.Sample;
+import jcarbon.data.Unit;
 
 /** A {@link Sample} of task jiffies for a process since task birth. */
 public final class ProcessSample implements Sample<TaskJiffies>, Comparable<ProcessSample> {
@@ -29,6 +30,11 @@ public final class ProcessSample implements Sample<TaskJiffies>, Comparable<Proc
   @Override
   public String component() {
     return component;
+  }
+
+  @Override
+  public Unit unit() {
+    return Unit.JIFFIES;
   }
 
   @Override

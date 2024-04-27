@@ -2,7 +2,6 @@ package jcarbon.cpu.jiffies;
 
 import jcarbon.cpu.LinuxComponents;
 import jcarbon.data.Data;
-import jcarbon.data.Unit;
 
 /** Fractional activity (i.e. cpu utilization) of a task. */
 public final class TaskActivity implements Data {
@@ -25,11 +24,6 @@ public final class TaskActivity implements Data {
   @Override
   public String component() {
     return component;
-  }
-
-  @Override
-  public Unit unit() {
-    return Unit.ACTIVITY;
   }
 
   @Override

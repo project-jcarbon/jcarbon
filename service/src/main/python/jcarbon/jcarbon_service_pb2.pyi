@@ -74,7 +74,7 @@ class JCarbonSignal(_message.Message):
     def __init__(self, signal_name: _Optional[str] = ..., signal: _Optional[_Iterable[_Union[Signal, _Mapping]]] = ...) -> None: ...
 
 class Signal(_message.Message):
-    __slots__ = ("start", "end", "component", "data")
+    __slots__ = ("start", "end", "component", "unit", "data")
     class Timestamp(_message.Message):
         __slots__ = ("secs", "nanos")
         SECS_FIELD_NUMBER: _ClassVar[int]
@@ -83,20 +83,20 @@ class Signal(_message.Message):
         nanos: int
         def __init__(self, secs: _Optional[int] = ..., nanos: _Optional[int] = ...) -> None: ...
     class Data(_message.Message):
-        __slots__ = ("component", "unit", "value")
+        __slots__ = ("component", "value")
         COMPONENT_FIELD_NUMBER: _ClassVar[int]
-        UNIT_FIELD_NUMBER: _ClassVar[int]
         VALUE_FIELD_NUMBER: _ClassVar[int]
         component: str
-        unit: str
         value: float
-        def __init__(self, component: _Optional[str] = ..., unit: _Optional[str] = ..., value: _Optional[float] = ...) -> None: ...
+        def __init__(self, component: _Optional[str] = ..., value: _Optional[float] = ...) -> None: ...
     START_FIELD_NUMBER: _ClassVar[int]
     END_FIELD_NUMBER: _ClassVar[int]
     COMPONENT_FIELD_NUMBER: _ClassVar[int]
+    UNIT_FIELD_NUMBER: _ClassVar[int]
     DATA_FIELD_NUMBER: _ClassVar[int]
     start: Signal.Timestamp
     end: Signal.Timestamp
     component: str
+    unit: str
     data: _containers.RepeatedCompositeFieldContainer[Signal.Data]
-    def __init__(self, start: _Optional[_Union[Signal.Timestamp, _Mapping]] = ..., end: _Optional[_Union[Signal.Timestamp, _Mapping]] = ..., component: _Optional[str] = ..., data: _Optional[_Iterable[_Union[Signal.Data, _Mapping]]] = ...) -> None: ...
+    def __init__(self, start: _Optional[_Union[Signal.Timestamp, _Mapping]] = ..., end: _Optional[_Union[Signal.Timestamp, _Mapping]] = ..., component: _Optional[str] = ..., unit: _Optional[str] = ..., data: _Optional[_Iterable[_Union[Signal.Data, _Mapping]]] = ...) -> None: ...
