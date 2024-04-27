@@ -97,16 +97,37 @@ def main():
     args = parse_args()
 
     tests = {}
+    pbar = tqdm(range(args.warm_up + args.iterations))
     for period in args.periods:
+        pbar.reset()
+        pbar.set_postfix()
+        pbar.refresh()
         if period > args.time:
             continue
-        print(f'testing period of {period:.3f} seconds')
+        if period > 1:
+            period_fmt = f'{period:.4f} secs  '
+        else:
+            period_fmt = f'{(period / 1000.0):.4f} millis'
+        pbar.set_description(f'[{period_fmt}]', refresh=True)
+
         reports = []
-        for n in tqdm(range(args.warm_up + args.iterations)):
+        for n in range(args.warm_up + args.iterations):
+            pbar.update(1)
             try:
                 report = equivalence_test(args.time, period)
                 if n < args.warm_up:
                     continue
+                energy = {}
+                for jcarbon_signal in report.signal:
+                    signal_name = jcarbon_signal.signal_name
+                    for signal in jcarbon_signal.signal:
+                        for data in signal.data:
+                            key = signal_name.split('.')[-1][4:-6].lower()
+                            if key not in energy:
+                                energy[key] = 0
+                            energy[key] += data.value
+                pbar.set_postfix(
+                    {key: f'{value:.4f}' for (key, value) in energy.items()})
                 reports.append(report)
             except KeyboardInterrupt:
                 print('equivalence test ended by user')
@@ -134,9 +155,11 @@ def main():
                     sum((mean - value) ** 2 for value in data) / count)
                 energy[component][signal_name] = f'{mean:.3f}+/-{std}'
         tests[period] = energy
+    pbar.close()
+
     pprint(tests)
     with open(args.output_path, 'w') as f:
-        json.dump(f, tests)
+        json.dump(tests, f)
 
 
 if __name__ == '__main__':
