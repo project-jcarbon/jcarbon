@@ -107,7 +107,7 @@ def main():
         if period > 1:
             period_fmt = f'{period:.4f} secs  '
         else:
-            period_fmt = f'{(period / 1000.0):.4f} millis'
+            period_fmt = f'{(period * 1000.0):.4f} millis'
         pbar.set_description(f'[{period_fmt}]', refresh=True)
 
         reports = []
