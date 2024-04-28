@@ -6,10 +6,13 @@ import io.grpc.Grpc;
 import io.grpc.InsecureServerCredentials;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.Server;
+import io.grpc.ServerBuilder;
 import java.io.IOException;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 import jcarbon.service.JCarbonServiceGrpc;
+import jcarbon.service.StopRequest;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Option;
@@ -21,17 +24,20 @@ final class JCarbonServer {
   private final int port;
   private final Server server;
 
-  private JCarbonServer(int port) throws IOException {
-    this.port = port;
-    this.server =
-        Grpc.newServerBuilderForPort(port, InsecureServerCredentials.create())
-            .addService(
-                new JCarbonServerImpl(
-                    JCarbonServiceGrpc.newBlockingStub(
-                        ManagedChannelBuilder.forAddress("localhost", 8981)
-                            .usePlaintext()
-                            .build())))
-            .build();
+  private JCarbonServer(ServerArgs args) throws IOException {
+    this.port = args.port;
+    ServerBuilder serverBuilder =
+        Grpc.newServerBuilderForPort(args.port, InsecureServerCredentials.create());
+    if (args.useNvml) {
+      JCarbonServiceGrpc.JCarbonServiceBlockingStub stub =
+          JCarbonServiceGrpc.newBlockingStub(
+              ManagedChannelBuilder.forAddress("localhost", 8981).usePlaintext().build());
+      stub.stop(StopRequest.getDefaultInstance());
+      serverBuilder.addService(new JCarbonServerImpl(Optional.of(stub))).build();
+    } else {
+      serverBuilder.addService(new JCarbonServerImpl(Optional.empty()));
+    }
+    this.server = serverBuilder.build();
   }
 
   /** Start serving requests. */
@@ -70,9 +76,11 @@ final class JCarbonServer {
 
   private static class ServerArgs {
     private final int port;
+    private final boolean useNvml;
 
-    private ServerArgs(int port) {
+    private ServerArgs(int port, boolean useNvml) {
       this.port = port;
+      this.useNvml = useNvml;
     }
   }
 
@@ -86,9 +94,13 @@ final class JCarbonServer {
             .desc("port to host the server")
             .type(Integer.class)
             .build();
-    Options options = new Options().addOption(portOption);
+    Options options =
+        new Options()
+            .addOption(portOption)
+            .addOption("nvml", false, "create a client to the nvml server");
     CommandLine cmd = new DefaultParser().parse(options, args);
-    return new ServerArgs(cmd.getParsedOptionValue(portOption, DEFAULT_PORT).intValue());
+    return new ServerArgs(
+        cmd.getParsedOptionValue(portOption, DEFAULT_PORT).intValue(), cmd.hasOption("nvml"));
   }
 
   /** Spins up the server. */
@@ -96,7 +108,10 @@ final class JCarbonServer {
     ServerArgs serverArgs = getServerArgs(args);
 
     logger.info(String.format("starting new jcarbon server at localhost:%d", serverArgs.port));
-    JCarbonServer server = new JCarbonServer(serverArgs.port);
+    if (serverArgs.useNvml) {
+      logger.info(String.format("creating client to nvml server at localhost:8981"));
+    }
+    JCarbonServer server = new JCarbonServer(serverArgs);
     server.start();
     server.blockUntilShutdown();
     logger.info(String.format("terminating jcarbon server at localhost:%d", serverArgs.port));

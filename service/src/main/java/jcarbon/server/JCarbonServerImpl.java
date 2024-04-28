@@ -8,6 +8,7 @@ import io.grpc.stub.StreamObserver;
 import java.io.OutputStream;
 import java.nio.file.Path;
 import java.util.HashMap;
+import java.util.Optional;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 import jcarbon.JCarbon;
@@ -35,11 +36,11 @@ final class JCarbonServerImpl extends JCarbonServiceGrpc.JCarbonServiceImplBase 
   private static final JoulesEmissionsConverter converter =
       LocaleEmissionsConverters.forDefaultLocale();
 
-  private final JCarbonServiceGrpc.JCarbonServiceBlockingStub nvmlClient;
+  private final Optional<JCarbonServiceGrpc.JCarbonServiceBlockingStub> nvmlClient;
   private final HashMap<Long, JCarbon> jcarbons = new HashMap<>();
   private final HashMap<Long, JCarbonReport> data = new HashMap<>();
 
-  public JCarbonServerImpl(JCarbonServiceGrpc.JCarbonServiceBlockingStub nvmlClient) {
+  public JCarbonServerImpl(Optional<JCarbonServiceGrpc.JCarbonServiceBlockingStub> nvmlClient) {
     this.nvmlClient = nvmlClient;
   }
 
@@ -51,7 +52,7 @@ final class JCarbonServerImpl extends JCarbonServiceGrpc.JCarbonServiceImplBase 
       JCarbon jcarbon = new JCarbon(request.getPeriodMillis(), processId);
       jcarbon.start();
       jcarbons.put(processId, jcarbon);
-      nvmlClient.start(request);
+      nvmlClient.ifPresent(client -> client.start(request));
     } else {
       logger.info(
           String.format(
@@ -68,25 +69,31 @@ final class JCarbonServerImpl extends JCarbonServiceGrpc.JCarbonServiceImplBase 
       logger.info(String.format("stopping jcarbon for %d", processId));
       JCarbon jcarbon = jcarbons.get(processId);
       jcarbons.remove(processId);
-      nvmlClient.stop(request);
+      nvmlClient.ifPresent(client -> client.stop(request));
       jcarbon.JCarbonReport report = jcarbon.stop().get();
 
       JCarbonReport.Builder reportBuilder = toProtoReport(report).toBuilder();
-      JCarbonReport nvmlReport = nvmlClient.read(ReadRequest.getDefaultInstance()).getReport();
-      reportBuilder.addAllSignal(nvmlReport.getSignalList());
-      logger.info(
-          String.format(
-              "adding signal classes %s to report for %d",
-              nvmlReport.getSignalList().stream().map(s -> s.getSignalName()).collect(toList()),
-              processId));
-      for (JCarbonSignal.Builder jcarbonSignal : reportBuilder.getSignalBuilderList()) {
-        if (!jcarbonSignal.getSignalName().equals(Emissions.class.getName())) {
-          continue;
+      if (nvmlClient.isPresent()) {
+        JCarbonReport nvmlReport =
+            nvmlClient
+                .map(client -> client.read(ReadRequest.getDefaultInstance()))
+                .get()
+                .getReport();
+        reportBuilder.addAllSignal(nvmlReport.getSignalList());
+        logger.info(
+            String.format(
+                "adding signal classes %s to report for %d",
+                nvmlReport.getSignalList().stream().map(s -> s.getSignalName()).collect(toList()),
+                processId));
+        for (JCarbonSignal.Builder jcarbonSignal : reportBuilder.getSignalBuilderList()) {
+          if (!jcarbonSignal.getSignalName().equals(Emissions.class.getName())) {
+            continue;
+          }
+          jcarbonSignal.addAllSignal(
+              nvmlReport.getSignalList().stream()
+                  .flatMap(JCarbonServerImpl::convertNvmlSignals)
+                  .collect(toList()));
         }
-        jcarbonSignal.addAllSignal(
-            nvmlReport.getSignalList().stream()
-                .flatMap(JCarbonServerImpl::convertNvmlSignals)
-                .collect(toList()));
       }
       // TODO: need to be able to combine/delete reports
       logger.info(String.format("storing jcarbon report for %d", processId));
