@@ -23,6 +23,8 @@ import jcarbon.service.DumpResponse;
 import jcarbon.service.JCarbonReport;
 import jcarbon.service.JCarbonServiceGrpc;
 import jcarbon.service.JCarbonSignal;
+import jcarbon.service.PurgeRequest;
+import jcarbon.service.PurgeResponse;
 import jcarbon.service.ReadRequest;
 import jcarbon.service.ReadResponse;
 import jcarbon.service.Signal;
@@ -146,6 +148,19 @@ final class JCarbonServerImpl extends JCarbonServiceGrpc.JCarbonServiceImplBase 
               "ignoring request to read jcarbon report for %d since it does not exist", processId));
     }
     resultObserver.onNext(response.build());
+    resultObserver.onCompleted();
+  }
+
+  @Override
+  public void purge(PurgeRequest request, StreamObserver<PurgeResponse> resultObserver) {
+    logger.info(String.format("purging jcarbon"));
+
+    jcarbons.forEach((pid, jcarbon) -> jcarbon.stop());
+    jcarbons.clear();
+    data.clear();
+    nvmlClient.ifPresent(client -> client.stop(StopRequest.getDefaultInstance()));
+
+    resultObserver.onNext(PurgeResponse.getDefaultInstance());
     resultObserver.onCompleted();
   }
 

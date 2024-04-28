@@ -59,6 +59,14 @@ class ReadResponse(_message.Message):
     report: JCarbonReport
     def __init__(self, report: _Optional[_Union[JCarbonReport, _Mapping]] = ...) -> None: ...
 
+class PurgeRequest(_message.Message):
+    __slots__ = ()
+    def __init__(self) -> None: ...
+
+class PurgeResponse(_message.Message):
+    __slots__ = ()
+    def __init__(self) -> None: ...
+
 class JCarbonReport(_message.Message):
     __slots__ = ("signal",)
     SIGNAL_FIELD_NUMBER: _ClassVar[int]

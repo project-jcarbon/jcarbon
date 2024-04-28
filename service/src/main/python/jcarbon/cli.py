@@ -19,7 +19,7 @@ def parse_args():
     parser = ArgumentParser('jcarbon cli')
     parser.add_argument(
         dest='command',
-        choices=['start', 'stop', 'dump', 'read'],
+        choices=['start', 'stop', 'dump', 'read', 'purge'],
         help='request to make',
     )
     parser.add_argument(
@@ -70,6 +70,8 @@ def main():
         client.dump(args.pid, args.output_path)
     elif args.command == 'read':
         print(client.read(args.pid, signals))
+    elif args.command == 'purge':
+        print(client.purge())
 
 
 if __name__ == '__main__':
