@@ -29,11 +29,16 @@ final class JCarbonServer {
     ServerBuilder serverBuilder =
         Grpc.newServerBuilderForPort(args.port, InsecureServerCredentials.create());
     if (args.useNvml) {
-      JCarbonServiceGrpc.JCarbonServiceBlockingStub stub =
-          JCarbonServiceGrpc.newBlockingStub(
-              ManagedChannelBuilder.forAddress("localhost", 8981).usePlaintext().build());
-      stub.stop(StopRequest.getDefaultInstance());
-      serverBuilder.addService(new JCarbonServerImpl(Optional.of(stub))).build();
+      try {
+        JCarbonServiceGrpc.JCarbonServiceBlockingStub stub =
+            JCarbonServiceGrpc.newBlockingStub(
+                ManagedChannelBuilder.forAddress("localhost", 8981).usePlaintext().build());
+        stub.stop(StopRequest.getDefaultInstance());
+        serverBuilder.addService(new JCarbonServerImpl(Optional.of(stub))).build();
+      } catch (Exception e) {
+        logger.info("could not connect to nvml server...ignoring it");
+        serverBuilder.addService(new JCarbonServerImpl(Optional.empty()));
+      }
     } else {
       serverBuilder.addService(new JCarbonServerImpl(Optional.empty()));
     }
