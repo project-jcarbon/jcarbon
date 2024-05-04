@@ -8,9 +8,11 @@ java_library(
     deps = [
         "//service/src/main/proto/jcarbon/service:jcarbon_service_java_grpc",
         "//src/jcarbon",
+        "//src/jcarbon/src/main/java/jcarbon/cpu",
         "//src/jcarbon/src/main/java/jcarbon/data",
         "@maven//:org_json_json",
-    ]
+    ],
+    resources = ["//src/native:libjrapl.so"],
 )
 
 

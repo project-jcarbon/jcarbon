@@ -7,11 +7,16 @@ import static jcarbon.server.LoggerUtil.getLogger;
 import io.grpc.stub.StreamObserver;
 import java.io.OutputStream;
 import java.nio.file.Path;
+import java.time.Instant;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 import jcarbon.JCarbon;
+import jcarbon.cpu.LinuxComponents;
 import jcarbon.data.Data;
 import jcarbon.data.Interval;
 import jcarbon.data.Unit;
@@ -32,6 +37,7 @@ import jcarbon.service.StartRequest;
 import jcarbon.service.StartResponse;
 import jcarbon.service.StopRequest;
 import jcarbon.service.StopResponse;
+import jcarbon.util.SamplingFuture;
 
 final class JCarbonServerImpl extends JCarbonServiceGrpc.JCarbonServiceImplBase {
   private static final Logger logger = getLogger();
@@ -39,8 +45,18 @@ final class JCarbonServerImpl extends JCarbonServiceGrpc.JCarbonServiceImplBase 
       LocaleEmissionsConverters.forDefaultLocale();
 
   private final Optional<JCarbonServiceGrpc.JCarbonServiceBlockingStub> nvmlClient;
+
   private final HashMap<Long, JCarbon> jcarbons = new HashMap<>();
   private final HashMap<Long, JCarbonReport> data = new HashMap<>();
+  private final ScheduledExecutorService executor =
+      Executors.newSingleThreadScheduledExecutor(
+          r -> {
+            Thread t = new Thread(r, "jcarbon-monotonic-time-sampling-thread");
+            t.setDaemon(true);
+            return t;
+          });
+
+  private SamplingFuture<List<Object>> monotonicTimeFuture;
 
   public JCarbonServerImpl(Optional<JCarbonServiceGrpc.JCarbonServiceBlockingStub> nvmlClient) {
     this.nvmlClient = nvmlClient;
@@ -55,6 +71,12 @@ final class JCarbonServerImpl extends JCarbonServiceGrpc.JCarbonServiceImplBase 
       jcarbon.start();
       jcarbons.put(processId, jcarbon);
       nvmlClient.ifPresent(client -> client.start(request));
+      final MonotonicTimestamp monotime = MonotonicTimestamp.getInstance();
+      monotonicTimeFuture =
+          SamplingFuture.fixedPeriodMillis(
+              () -> List.of(Instant.now(), monotime.getMonotonicTimestamp()),
+              request.getPeriodMillis(),
+              executor);
     } else {
       logger.info(
           String.format(
@@ -97,6 +119,31 @@ final class JCarbonServerImpl extends JCarbonServiceGrpc.JCarbonServiceImplBase 
                   .collect(toList()));
         }
       }
+
+      JCarbonSignal.Builder monotimeSignal =
+          JCarbonSignal.newBuilder().setSignalName("jcarbon.server.MonotonicTimestamp");
+      monotonicTimeFuture
+          .get()
+          .forEach(
+              ts -> {
+                Instant timestamp = (Instant) ts.get(0);
+                Signal.Timestamp.Builder tsBuilder =
+                    Signal.Timestamp.newBuilder()
+                        .setSecs(timestamp.getEpochSecond())
+                        .setNanos(timestamp.getNano());
+                long monotime = (long) ts.get(1);
+                monotimeSignal.addSignal(
+                    Signal.newBuilder()
+                        .setStart(tsBuilder)
+                        .setEnd(tsBuilder)
+                        .setComponent(LinuxComponents.OS_COMPONENT)
+                        .setUnit(Unit.NANOSECONDS.name())
+                        .addData(
+                            Signal.Data.newBuilder()
+                                .setComponent(LinuxComponents.OS_COMPONENT)
+                                .setValue(monotime)));
+              });
+      reportBuilder.addSignal(monotimeSignal);
       // TODO: need to be able to combine/delete reports
       logger.info(String.format("storing jcarbon report for %d", processId));
       data.put(processId, reportBuilder.build());

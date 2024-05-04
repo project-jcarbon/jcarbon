@@ -35,6 +35,7 @@ cc_binary(
     visibility = [
       "//src/jcarbon:__pkg__",
       "//src/jcarbon/src/main/java/jcarbon/cpu/rapl:__pkg__",
+      "//service/src/main/java/jcarbon/server:__pkg__",
     ],
     linkshared = True,
     data = glob(["*.h"]),
