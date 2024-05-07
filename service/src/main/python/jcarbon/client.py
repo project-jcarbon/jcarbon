@@ -1,4 +1,4 @@
-""" a client that can talk to an smaragdine JCarbon. """
+""" a thin client to talk to a jcarbon server. """
 import grpc
 
 from jcarbon.jcarbon_service_pb2 import DumpRequest, PurgeRequest, ReadRequest, StartRequest, StopRequest

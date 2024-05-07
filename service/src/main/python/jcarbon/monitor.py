@@ -1,4 +1,4 @@
-""" a client that can talk to an jcarbon server. """
+""" a tool that watches another process until it dies """
 import json
 
 from argparse import ArgumentParser
@@ -20,11 +20,6 @@ def fib(n):
 def parse_args():
     """ Parses client-side arguments. """
     parser = ArgumentParser()
-    parser.add_argument(
-        dest='command',
-        choices=['start', 'stop', 'read'],
-        help='request to make',
-    )
     parser.add_argument(
         '--pid',
         dest='pid',

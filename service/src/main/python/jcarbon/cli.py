@@ -1,17 +1,11 @@
-""" a client that can talk to an jcarbon server. """
+""" a cli to talk with a jcarbon server. """
 from argparse import ArgumentParser
 from os import getpid
 
 from psutil import pid_exists
 
 from jcarbon.client import JCarbonClient
-
-
-def fib(n):
-    if n == 0 or n == 1:
-        return 1
-    else:
-        return fib(n - 1) + fib(n - 2)
+from jcarbon.report import to_dataframe
 
 
 def parse_args():
@@ -69,7 +63,7 @@ def main():
     elif args.command == 'dump':
         client.dump(args.pid, args.output_path)
     elif args.command == 'read':
-        print(client.read(args.pid, signals))
+        print(to_dataframe(client.read(args.pid, signals)))
     elif args.command == 'purge':
         print(client.purge())
 
