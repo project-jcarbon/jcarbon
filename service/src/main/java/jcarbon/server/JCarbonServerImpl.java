@@ -119,7 +119,7 @@ final class JCarbonServerImpl extends JCarbonServiceGrpc.JCarbonServiceImplBase 
                   .collect(toList()));
         }
       }
-
+      logger.info("adding signal jcarbon.server.MonotonicTimestamp");
       JCarbonSignal.Builder monotimeSignal =
           JCarbonSignal.newBuilder().setSignalName("jcarbon.server.MonotonicTimestamp");
       monotonicTimeFuture

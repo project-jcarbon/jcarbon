@@ -21,7 +21,7 @@ def parse_args():
         '--number',
         dest='n',
         type=int,
-        default=42,
+        default=37,
         help='fibonacci number to compute',
     )
     parser.add_argument(
@@ -50,7 +50,7 @@ def main():
 
     print(f'smoke testing server at {args.addr} with fib({args.n})')
     client = JCarbonClient(args.addr)
-    client.start(pid)
+    client.start(pid, 10)
     fib(args.n)
     client.stop(pid)
     report = client.read(pid, signals)

@@ -24,6 +24,13 @@ def parse_args():
         help='pid to be monitored',
     )
     parser.add_argument(
+        '--period',
+        dest='period',
+        type=int,
+        default=10,
+        help='sampling period for \'start\'',
+    )
+    parser.add_argument(
         '--addr',
         dest='addr',
         type=str,
@@ -57,7 +64,7 @@ def main():
         if args.pid < 0 or not pid_exists(args.pid):
             raise Exception(
                 'invalid pid to monitor ({})'.format(args.pid))
-        client.start(args.pid)
+        client.start(args.pid, args.period)
     elif args.command == 'stop':
         client.stop(args.pid)
     elif args.command == 'dump':

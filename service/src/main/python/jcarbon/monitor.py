@@ -28,6 +28,13 @@ def parse_args():
         help='pid to be monitored',
     )
     parser.add_argument(
+        '--period',
+        dest='period',
+        type=int,
+        default=10,
+        help='sampling period',
+    )
+    parser.add_argument(
         '--addr',
         dest='addr',
         type=str,
@@ -61,7 +68,7 @@ def main():
         return
     if any('jcarbon.cpu' in signal or 'jcarbon.emissions' for signal in signals):
         client = JCarbonClient(args.addr)
-        client.start(args.pid)
+        client.start(args.pid, args.period)
     while pid_exists(args.pid):
         sleep(1)
     if any('jcarbon.cpu' in signal or 'jcarbon.emissions' for signal in signals):
@@ -70,6 +77,7 @@ def main():
     print({
         signal.signal_name: sum(
             s.data.value for s in signal.signal) for signal in jcarbon_signal.signal})
+
 
 if __name__ == '__main__':
     main()

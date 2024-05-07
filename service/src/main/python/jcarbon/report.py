@@ -49,6 +49,8 @@ def to_dataframe(report, signals=None):
     signals_df['start_norm'] = normalize_timestamps(signals_df.start, diff)
     monotonic_time.index = normalize_timestamps(monotonic_time.index, diff)
     signals_df['ts'] = signals_df.start_norm.map(monotonic_time.to_dict())
+    signals_df['start'] = pd.to_datetime(signals_df.start, unit='ns')
+    signals_df['end'] = pd.to_datetime(signals_df.end, unit='ns')
 
     return signals_df.set_index(['signal', 'start', 'end', 'unit', 'ts']).value.sort_index()
 
