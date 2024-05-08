@@ -31,8 +31,9 @@ class JCarbonEpochCallback(Callback):
         self.reports.append(to_dataframe(
             self.client.read(self.pid, self.signals)))
         if logs is not None:
-            for (signal, unit), df in self.reports[-1].groupby(['signal', 'unit']):
-                logs[f'jcarbon-epoch-{signal}-{unit}'] = df.sum()
+            for (signal, component, unit), df in self.reports[-1].groupby(['signal', 'component', 'unit']):
+                # TODO: this should really not ignore negatives
+                logs[f'jcarbon-epoch-{signal}-{component}-{unit}'] = df[df > 0].sum()
 
 
 class JCarbonBatchCallback(Callback):
@@ -51,5 +52,6 @@ class JCarbonBatchCallback(Callback):
         self.reports.append(to_dataframe(
             self.client.read(self.pid, self.signals)))
         if logs is not None:
-            for (signal, unit), df in self.reports[-1].groupby(['signal', 'unit']):
-                logs[f'jcarbon-epoch-{signal}-{unit}'] = df.sum()
+            for (signal, component, unit), df in self.reports[-1].groupby(['signal', 'component', 'unit']):
+                # TODO: this should really not ignore negatives
+                logs[f'jcarbon-epoch-{signal}-{component}-{unit}'] = df[df > 0].sum()

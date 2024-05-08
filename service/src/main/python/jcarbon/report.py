@@ -38,11 +38,13 @@ def to_dataframe(report, signals=None):
                         jcarbon_signal.signal_name,
                         start,
                         end,
+                        signal.component.replace(',', ':'),
                         signal.unit,
-                        data.value
+                        data.component.replace(',', ':'),
+                        data.value,
                     ])
             signals_df.append(pd.DataFrame(data=df, columns=[
-                              'signal', 'start', 'end', 'unit', 'value']))
+                              'signal', 'start', 'end', 'component', 'unit', 'subcomponent', 'value']))
 
     signals_df = pd.concat(signals_df)
     diff = (signals_df.end - signals_df.start).min() // 1000
@@ -52,7 +54,7 @@ def to_dataframe(report, signals=None):
     signals_df['start'] = pd.to_datetime(signals_df.start, unit='ns')
     signals_df['end'] = pd.to_datetime(signals_df.end, unit='ns')
 
-    return signals_df.set_index(['signal', 'start', 'end', 'unit', 'ts']).value.sort_index()
+    return signals_df.set_index(['signal', 'start', 'end', 'ts', 'component', 'unit', 'subcomponent']).value.sort_index()
 
 
 def parse_args():
