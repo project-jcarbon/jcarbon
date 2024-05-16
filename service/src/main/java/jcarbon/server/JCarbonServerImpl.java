@@ -212,12 +212,14 @@ final class JCarbonServerImpl extends JCarbonServiceGrpc.JCarbonServiceImplBase 
   }
 
   private static Stream<Signal> convertNvmlSignals(JCarbonSignal signal) {
-    return signal.getSignalList().stream().map(JCarbonServerImpl::convertJoulesSignal);
+    return signal.getSignalList().stream().map(s -> convertJoulesSignal(s, signal.getSignalName()));
   }
 
-  private static Signal convertJoulesSignal(Signal signal) {
+  private static Signal convertJoulesSignal(Signal signal, String signalName) {
     return signal.toBuilder()
         .setUnit(Unit.GRAMS_OF_CO2.name())
+        .setComponent(signalName)
+        .clearData()
         .addAllData(
             signal.getDataList().stream()
                 .map(
