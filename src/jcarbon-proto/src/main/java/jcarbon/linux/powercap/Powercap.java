@@ -3,6 +3,7 @@ package jcarbon.linux.powercap;
 import static java.util.stream.Collectors.toList;
 import static jcarbon.util.LoggerUtil.getLogger;
 import static jcarbon.util.Timestamps.fromInstant;
+import static jcarbon.util.Timestamps.nowAsInstant;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -15,7 +16,6 @@ import java.util.logging.Logger;
 import java.util.stream.IntStream;
 import jcarbon.signal.SignalInterval;
 import jcarbon.signal.SignalInterval.SignalData;
-import jcarbon.util.Timestamps;
 
 /** Simple wrapper to read powercap's energy with pure Java. */
 // TODO: this doesn't appear to work on more modern implementations that are hierarchical
@@ -40,7 +40,7 @@ public final class Powercap {
       return Optional.empty();
     }
 
-    Instant timestamp = Timestamps.nowAsInstant();
+    Instant timestamp = nowAsInstant();
     ArrayList<PowercapReading> readings = new ArrayList<>();
     for (int socket = 0; socket < SOCKETS; socket++) {
       readings.add(new PowercapReading(socket, readPackage(socket), readDram(socket), 0.0, 0.0));

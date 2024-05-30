@@ -2,11 +2,11 @@ package jcarbon.linux.jiffies;
 
 import static java.util.stream.Collectors.toMap;
 import static jcarbon.util.Timestamps.fromInstant;
+import static jcarbon.util.Timestamps.nowAsInstant;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -38,12 +38,12 @@ public final class ProcTask {
 
   /** Reads from a process's tasks and returns a {@link Sample} of it. */
   public static ProcessSample sampleTasksFor(long pid) {
-    return new ProcessSample(Instant.now(), pid, parseTasks(readTasks(pid), pid));
+    return new ProcessSample(nowAsInstant(), pid, parseTasks(readTasks(pid), pid));
   }
 
   /** Reads this process's tasks and returns a {@link Sample} of it. */
   public static ProcessSample sampleTasks() {
-    return new ProcessSample(Instant.now(), PID, parseTasks(readTasks(PID), PID));
+    return new ProcessSample(nowAsInstant(), PID, parseTasks(readTasks(PID), PID));
   }
 
   public static SignalInterval between(ProcessSample first, ProcessSample second) {

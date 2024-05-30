@@ -47,7 +47,7 @@ final class JCarbonServerImpl extends JCarbonServiceGrpc.JCarbonServiceImplBase 
   private final Optional<JCarbonServiceGrpc.JCarbonServiceBlockingStub> nvmlClient;
 
   private final HashMap<Long, JCarbon> jcarbons = new HashMap<>();
-  private final HashMap<Long, JCarbonReport> data = new HashMap<>();
+  private final HashMap<Long, Report> data = new HashMap<>();
   private final ScheduledExecutorService executor =
       Executors.newSingleThreadScheduledExecutor(
           r -> {
@@ -74,7 +74,7 @@ final class JCarbonServerImpl extends JCarbonServiceGrpc.JCarbonServiceImplBase 
       final MonotonicTimestamp monotime = MonotonicTimestamp.getInstance();
       monotonicTimeFuture =
           SamplingFuture.fixedPeriodMillis(
-              () -> List.of(Instant.now(), monotime.getMonotonicTimestamp()),
+              () -> List.of(Instant.now(), Timestamps::monotime()),
               request.getPeriodMillis(),
               executor);
     } else {
@@ -94,11 +94,10 @@ final class JCarbonServerImpl extends JCarbonServiceGrpc.JCarbonServiceImplBase 
       JCarbon jcarbon = jcarbons.get(processId);
       jcarbons.remove(processId);
       nvmlClient.ifPresent(client -> client.stop(request));
-      jcarbon.JCarbonReport report = jcarbon.stop().get();
+      Report.Builder reportBuilder = jcarbon.stop().get().toBuilder();
 
-      JCarbonReport.Builder reportBuilder = toProtoReport(report).toBuilder();
       if (nvmlClient.isPresent()) {
-        JCarbonReport nvmlReport =
+        Report nvmlReport =
             nvmlClient
                 .map(client -> client.read(ReadRequest.getDefaultInstance()))
                 .get()
@@ -227,44 +226,5 @@ final class JCarbonServerImpl extends JCarbonServiceGrpc.JCarbonServiceImplBase 
                         data.toBuilder().setValue(converter.convertJoules(data.getValue())).build())
                 .collect(toList()))
         .build();
-  }
-
-  private static <T extends Interval<? extends Iterable<? extends Data>>>
-      JCarbonReport toProtoReport(jcarbon.JCarbonReport report) {
-    JCarbonReport.Builder reportBuilder = JCarbonReport.newBuilder();
-    for (Class<?> signal : report.getSignalTypes()) {
-      logger.info(String.format("converting signal %s", signal));
-      JCarbonSignal.Builder signalBuilder =
-          JCarbonSignal.newBuilder().setSignalName(signal.getName());
-      for (Object signalData : report.getSignal(signal)) {
-        signalBuilder.addSignal(
-            toProtoSignal((Interval<? extends Iterable<? extends Data>>) signalData));
-      }
-      reportBuilder.addSignal(signalBuilder);
-    }
-    return reportBuilder.build();
-  }
-
-  private static <T extends Interval<? extends Iterable<? extends Data>>> Signal toProtoSignal(
-      T interval) {
-    Signal.Builder signal =
-        Signal.newBuilder()
-            .setComponent(interval.component().toString())
-            .setUnit(interval.unit().toString());
-    signal
-        .getStartBuilder()
-        .setSecs(interval.start().getEpochSecond())
-        .setNanos(interval.start().getNano());
-    signal
-        .getEndBuilder()
-        .setSecs(interval.end().getEpochSecond())
-        .setNanos(interval.end().getNano());
-    for (Data data : interval.data()) {
-      signal.addData(
-          Signal.Data.newBuilder()
-              .setComponent(data.component().toString())
-              .setValue(data.value()));
-    }
-    return signal.build();
   }
 }

@@ -114,6 +114,11 @@ public final class Timestamps {
     return Timestamp.newBuilder().setSecs(secs).setNanos(nanos).build();
   }
 
+  public static class Timestamp {
+    public final Timestamp unixTime = now();
+    public final Timestamp montonicTime = montonicTime();
+  }
+
   private static native long epochTimeNative();
 
   private static native long monotonicTimeNative();

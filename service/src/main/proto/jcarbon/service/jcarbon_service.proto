@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package jcarbon.service;
 
+import "src/jcarbon-proto/src/main/proto/jcarbon/signal/signal.proto";
+
 option java_multiple_files = true;
 option java_package = "jcarbon.service";
 
@@ -49,36 +51,9 @@ message ReadRequest {
 }
 
 message ReadResponse {
-  optional JCarbonReport report = 1;
+  optional signal.Report report = 1;
 }
 
 message PurgeRequest {}
 
 message PurgeResponse {}
-
-message JCarbonReport {
-  repeated JCarbonSignal signal = 1;
-}
-
-message JCarbonSignal {
-  optional string signal_name = 1;
-  repeated Signal signal = 2;
-}
-
-message Signal {
-  optional Timestamp start = 1;
-  optional Timestamp end = 2;
-  optional string component = 3;
-  optional string unit = 4;
-  repeated Data data = 5;
-
-  message Timestamp {
-    optional uint64 secs = 1;
-    optional uint64 nanos = 2;
-  }
-
-  message Data {
-    optional string component = 1;
-    optional double value = 2;
-  }
-}

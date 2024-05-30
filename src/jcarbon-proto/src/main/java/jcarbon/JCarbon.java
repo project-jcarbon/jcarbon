@@ -97,18 +97,7 @@ public final class JCarbon {
             Component.newBuilder().setComponentType("linux_system").setComponentId(OS_NAME);
 
         // physical signals
-        Optional<Signal> processJiffies =
-            createPhysicalSignal(
-                forwardApply(processFuture.get(), ProcTask::between),
-                Signal.Unit.JIFFIES,
-                procTask);
-        processJiffies.ifPresent(processComponent::addSignal);
-        Optional<Signal> systemJiffies =
-            createPhysicalSignal(
-                forwardApply(systemFuture.get(), ProcStat::between),
-                Signal.Unit.JIFFIES,
-                PROC_STAT);
-        systemJiffies.ifPresent(systemComponent::addSignal);
+        logger.info("creating rapl energy signal");
         Optional<Signal> raplEnergy =
             createPhysicalSignal(
                 forwardApply(
@@ -120,19 +109,34 @@ public final class JCarbon {
                 Signal.Unit.JOULES,
                 "/sys/devices/virtual/powercap/intel-rapl");
         systemJiffies.ifPresent(systemComponent::addSignal);
+        logger.info("creating process jiffies signal");
+        Optional<Signal> processJiffies =
+            createPhysicalSignal(
+                forwardApply(processFuture.get(), ProcTask::between),
+                Signal.Unit.JIFFIES,
+                procTask);
+        processJiffies.ifPresent(processComponent::addSignal);
+        logger.info("creating system jiffies signal");
+        Optional<Signal> systemJiffies =
+            createPhysicalSignal(
+                forwardApply(systemFuture.get(), ProcStat::between),
+                Signal.Unit.JIFFIES,
+                PROC_STAT);
+        systemJiffies.ifPresent(systemComponent::addSignal);
         processFuture = null;
         systemFuture = null;
         raplFuture = null;
 
         // virtual signals
         if (raplEnergy.isEmpty()) {
-          logger.info("no rapl emissions could be produced");
+          logger.info("not creating rapl emissions: no rapl energy");
         } else {
+          logger.info("creating rapl emissions signal");
           systemComponent.addSignal(converter.convert(raplEnergy.get()));
         }
 
         if (processJiffies.isEmpty() && systemJiffies.isEmpty()) {
-          logger.info("no linux activity could be produced");
+          logger.info("not creating linux process activity: no jiffies");
         } else {
           List<SignalInterval> activity =
               forwardPartialAlign(
@@ -140,6 +144,7 @@ public final class JCarbon {
                   systemJiffies.get().getIntervalList(),
                   JiffiesAccounting::computeTaskActivity);
           if (activity.size() > 0) {
+            logger.info("creating linux process activity signal");
             processComponent.addSignal(
                 Signal.newBuilder()
                     .setUnit(Signal.Unit.ACTIVITY)
@@ -147,6 +152,7 @@ public final class JCarbon {
                     .addSource(PROC_STAT)
                     .addAllInterval(activity));
             if (raplEnergy.isPresent()) {
+              logger.info("creating linux process energy signal");
               Signal processEnergy =
                   Signal.newBuilder()
                       .setUnit(Signal.Unit.JOULES)
@@ -160,10 +166,14 @@ public final class JCarbon {
                               EflectAccounting::computeTaskEnergy))
                       .build();
               processComponent.addSignal(processEnergy);
+
+              logger.info("creating linux process emissions signal");
               processComponent.addSignal(converter.convert(processEnergy));
             } else {
-              logger.info("no process energy could be produced");
+              logger.info("not creating linux process energy: no rapl energy");
             }
+          } else {
+            logger.info("not creating linux process activity: no activity");
           }
         }
         Report.Builder report = Report.newBuilder();

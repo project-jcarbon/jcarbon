@@ -1,11 +1,11 @@
 package jcarbon.linux.jiffies;
 
 import static jcarbon.util.Timestamps.fromInstant;
+import static jcarbon.util.Timestamps.nowAsInstant;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import jcarbon.signal.SignalInterval;
@@ -52,7 +52,7 @@ public final class ProcStat {
       System.out.println("unable to read " + SYSTEM_STAT_FILE);
     }
 
-    return new SystemSample(Instant.now(), parseCpus(stats));
+    return new SystemSample(nowAsInstant(), parseCpus(stats));
   }
 
   public static SignalInterval between(SystemSample first, SystemSample second) {
