@@ -32,12 +32,14 @@ class StopResponse(_message.Message):
     def __init__(self, response: _Optional[str] = ...) -> None: ...
 
 class DumpRequest(_message.Message):
-    __slots__ = ("process_id", "output_path")
+    __slots__ = ("process_id", "output_path", "signals")
     PROCESS_ID_FIELD_NUMBER: _ClassVar[int]
     OUTPUT_PATH_FIELD_NUMBER: _ClassVar[int]
+    SIGNALS_FIELD_NUMBER: _ClassVar[int]
     process_id: int
     output_path: str
-    def __init__(self, process_id: _Optional[int] = ..., output_path: _Optional[str] = ...) -> None: ...
+    signals: _containers.RepeatedScalarFieldContainer[str]
+    def __init__(self, process_id: _Optional[int] = ..., output_path: _Optional[str] = ..., signals: _Optional[_Iterable[str]] = ...) -> None: ...
 
 class DumpResponse(_message.Message):
     __slots__ = ("response",)

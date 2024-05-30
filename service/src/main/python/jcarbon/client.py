@@ -15,8 +15,8 @@ class JCarbonClient:
     def stop(self, pid):
         self.stub.Stop(StopRequest(process_id=pid))
 
-    def dump(self, pid, output_path):
-        self.stub.Dump(DumpRequest(process_id=pid, output_path=output_path))
+    def dump(self, pid, output_path, signals):
+        self.stub.Dump(DumpRequest(process_id=pid, output_path=output_path, signals=signals))
 
     def read(self, pid, signals):
         return self.stub.Read(ReadRequest(process_id=pid, signals=signals)).report

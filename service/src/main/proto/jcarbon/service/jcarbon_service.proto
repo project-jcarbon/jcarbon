@@ -37,6 +37,7 @@ message StopResponse {
 message DumpRequest {
   optional uint64 process_id = 1;
   optional string output_path = 2;
+  repeated string signals = 3;
 }
 
 message DumpResponse {

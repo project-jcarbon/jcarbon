@@ -68,7 +68,7 @@ def main():
     elif args.command == 'stop':
         client.stop(args.pid)
     elif args.command == 'dump':
-        client.dump(args.pid, args.output_path)
+        client.dump(args.pid, args.output_path, signals)
     elif args.command == 'read':
         print(to_dataframe(client.read(args.pid, signals)))
     elif args.command == 'purge':

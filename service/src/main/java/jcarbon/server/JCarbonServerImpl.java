@@ -160,10 +160,17 @@ final class JCarbonServerImpl extends JCarbonServiceGrpc.JCarbonServiceImplBase 
   public void dump(DumpRequest request, StreamObserver<DumpResponse> resultObserver) {
     Long processId = Long.valueOf(request.getProcessId());
     if (data.containsKey(processId)) {
+      JCarbonReport report =
+          JCarbonReport.newBuilder()
+              .addAllSignal(
+                  data.get(processId).getSignalList().stream()
+                      .filter(signal -> request.getSignalsList().contains(signal.getSignalName()))
+                      .collect(toList()))
+              .build();
       String outputPath = request.getOutputPath();
       logger.info(String.format("dumping jcarbon report for %d at %s", processId, outputPath));
       try (OutputStream writer = newOutputStream(Path.of(outputPath)); ) {
-        data.get(processId).writeTo(writer);
+        report.writeTo(writer);
       } catch (Exception e) {
         e.printStackTrace();
       }
