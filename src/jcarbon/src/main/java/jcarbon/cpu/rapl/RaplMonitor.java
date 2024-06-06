@@ -21,7 +21,7 @@ final class RaplMonitor {
     Instant start = Instant.now();
     RaplSample last = source.sample().get();
     while (true) {
-      Thread.sleep(1000);
+      Thread.sleep(250);
       RaplSample current = source.sample().get();
       RaplEnergy interval = source.difference(last, current);
       String message =
