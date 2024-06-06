@@ -79,9 +79,9 @@ public final class Powercap {
 
   private static double diffWithWraparound(double first, double second, int socket, int component) {
     double energy = second - first;
-    if (energy < 0) {
-      energy += MAX_ENERGY_JOULES[socket][component];
-    }
+    // if (energy < 0) {
+    //   energy += MAX_ENERGY_JOULES[socket][component];
+    // }
     return energy;
   }
 
