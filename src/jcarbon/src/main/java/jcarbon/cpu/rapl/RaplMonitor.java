@@ -27,7 +27,7 @@ final class RaplMonitor {
       String message =
           Arrays.toString(interval.data().stream().mapToDouble(d -> d.value()).toArray());
       System.out.print(message);
-      System.out.print(String.join("", Collections.nCopies(message.length(), '\b')));
+      System.out.print(String.join("", Collections.nCopies(message.length(), "\b")));
       energy.add(interval);
       if (interval.data().stream().mapToDouble(d -> d.value()).sum() < 0) {
         System.out.println(String.format("overflow occurred!"));
