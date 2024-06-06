@@ -30,12 +30,14 @@ final class RaplMonitor {
       System.out.print(String.join("", Collections.nCopies(message.length(), "\b")));
       energy.add(interval);
       if (interval.data().stream().mapToDouble(d -> d.value()).sum() < 0) {
-        System.out.println(String.format("overflow occurred!"));
-        break;
+        Instant end = Instant.now();
+        System.out.println();
+        System.out.println(
+            String.format("overflow occurred as  %s!", Duration.between(start, end)));
+        start = end;
+        // break;
       }
       last = current;
     }
-    Instant end = Instant.now();
-    System.out.println(String.format("ran for %s", Duration.between(start, end)));
   }
 }
