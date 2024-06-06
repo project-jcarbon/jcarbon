@@ -83,7 +83,19 @@ public final class RaplSource {
         second.timestamp(),
         IntStream.range(0, SOCKETS)
             .mapToObj(
-                socket -> Powercap.difference(first.data().get(socket), second.data().get(socket)))
+                socket ->
+                    RaplSource.readingDifference(
+                        first.data().get(socket), second.data().get(socket)))
             .collect(toList()));
+  }
+
+  /** Computes the difference of two {@link RaplReadings}. */
+  public static RaplReading readingDifference(RaplReading first, RaplReading second) {
+    if (first.socket != second.socket) {
+      throw new IllegalArgumentException(
+          String.format(
+              "readings are not from the same domain (%d != %d)", first.socket, second.socket));
+    }
+    return new RaplReading(first.socket, second.pkg - first.pkg, second.dram - first.dram, 0, 0);
   }
 }
