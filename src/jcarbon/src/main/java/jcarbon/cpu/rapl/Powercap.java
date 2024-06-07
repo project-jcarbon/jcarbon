@@ -22,6 +22,7 @@ public final class Powercap {
       Paths.get("/sys", "devices", "virtual", "powercap", "intel-rapl");
 
   public static final int SOCKETS = getSocketCount();
+  public static final double[][] MAX_ENERGY_JOULES = getMaximumEnergy();
 
   /** Returns whether we can read values. */
   public static boolean isAvailable() {
@@ -44,13 +45,18 @@ public final class Powercap {
   }
 
   /** Computes the difference of two {@link RaplReadings}. */
-  public static RaplReading difference(RaplReading first, RaplReading second) {
+  public static RaplReading difference(RaplReading first, RaplReading second, int socket) {
     if (first.socket != second.socket) {
       throw new IllegalArgumentException(
           String.format(
               "readings are not from the same domain (%d != %d)", first.socket, second.socket));
     }
-    return new RaplReading(first.socket, second.pkg - first.pkg, second.dram - first.dram, 0, 0);
+    return new RaplReading(
+        first.socket,
+        diffWithWraparound(first.pkg, second.pkg, socket, 0),
+        diffWithWraparound(first.dram, second.dram, socket, 1),
+        0,
+        0);
   }
 
   /** Computes the difference of two {@link RaplReadings}, applying the wraparound. */
@@ -67,8 +73,17 @@ public final class Powercap {
         first.timestamp(),
         second.timestamp(),
         IntStream.range(0, SOCKETS)
-            .mapToObj(socket -> difference(firstData.get(socket), secondData.get(socket)))
+            .mapToObj(socket -> difference(firstData.get(socket), secondData.get(socket), socket))
             .collect(toList()));
+  }
+
+  private static double diffWithWraparound(double first, double second, int socket, int component) {
+    double energy = second - first;
+    if (energy < 0) {
+      logger.info(String.format("powercap overflow on %d:%d", socket, component));
+      energy += MAX_ENERGY_JOULES[socket][component];
+    }
+    return energy;
   }
 
   private static int getSocketCount() {
@@ -84,6 +99,41 @@ public final class Powercap {
     } catch (Exception e) {
       logger.warning("couldn't check the socket count; powercap likely not available");
       return 0;
+    }
+  }
+
+  private static double[][] getMaximumEnergy() {
+    if (!Files.exists(POWERCAP_ROOT)) {
+      logger.warning("couldn't check the maximum energy; powercap likely not available");
+      return new double[0][0];
+    }
+    try {
+      return Files.list(POWERCAP_ROOT)
+          .filter(p -> p.getFileName().toString().contains("intel-rapl"))
+          .map(
+              socket -> {
+                try {
+                  return Files.list(socket)
+                      .filter(p -> p.getFileName().toString().contains("max_energy_range_uj"))
+                      .mapToDouble(
+                          component -> {
+                            try {
+                              return Double.parseDouble(Files.readString(component)) / 1000000;
+                            } catch (Exception e) {
+                              return 0;
+                            }
+                          })
+                      .toArray();
+                } catch (Exception e) {
+                  logger.warning(
+                      String.format("couldn't check the maximum energy for socket %s", socket));
+                  return 0;
+                }
+              })
+          .toArray(double[][]::new);
+    } catch (Exception e) {
+      logger.warning("couldn't check the maximum energy; powercap likely not available");
+      return new double[0][0];
     }
   }
 
