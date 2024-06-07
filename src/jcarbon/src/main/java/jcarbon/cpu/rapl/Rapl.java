@@ -129,6 +129,7 @@ public final class Rapl {
   private static double diffWithWraparound(double first, double second) {
     double energy = second - first;
     if (energy < 0) {
+      logger.info(String.format("rapl overflow"));
       energy += WRAP_AROUND;
     }
     return energy;
@@ -137,6 +138,7 @@ public final class Rapl {
   private static double diffWithDramWraparound(double first, double second) {
     double energy = second - first;
     if (energy < 0) {
+      logger.info(String.format("rapl overflow on dram"));
       energy += DRAM_WRAP_AROUND;
     }
     return energy;

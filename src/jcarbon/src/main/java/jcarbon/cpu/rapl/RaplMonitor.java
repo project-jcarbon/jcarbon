@@ -1,6 +1,5 @@
 package jcarbon.cpu.rapl;
 
-import static jcarbon.util.LoggerUtil.getLogger;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -8,12 +7,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.logging.Logger;
 
 /** Very simple energy monitor that reports energy consumption over 10 millisecond intervals. */
 final class RaplMonitor {
-  private static final Logger logger = getLogger();
-
   public static void main(String[] args) throws Exception {
     List<RaplEnergy> energy = new ArrayList<>();
     RaplSource source = RaplSource.getRaplSource();
@@ -32,10 +28,8 @@ final class RaplMonitor {
       if (interval.data().stream().mapToDouble(d -> d.value()).sum() < 0) {
         Instant end = Instant.now();
         System.out.println();
-        System.out.println(
-            String.format("overflow occurred as  %s!", Duration.between(start, end)));
+        System.out.println(String.format("overflow occurred at %s!", Duration.between(start, end)));
         start = end;
-        // break;
       }
       last = current;
     }
