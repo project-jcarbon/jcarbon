@@ -3,6 +3,6 @@ java_library(
     visibility = ["//benchmarks/src/main/java/jcarbon:__subpackages__"],
     srcs = glob(["*.java"]),
     deps = [
-        "//src/jcarbon",
+        "//src/jcarbon-proto:jcarbon",
     ],
 )

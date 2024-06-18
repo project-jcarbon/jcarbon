@@ -10,7 +10,7 @@ java_binary(
     srcs = ["JCarbonCallback.java"],
     deps = [
         "//benchmarks/src/main/java/jcarbon/benchmarks/util",
-        "//src/jcarbon",
+        "//src/jcarbon-proto:jcarbon",
         "@dacapo",
     ],
     args = [
@@ -26,7 +26,7 @@ java_binary(
     srcs = ["JCarbonPlugin.java"],
     deps = [
         "//benchmarks/src/main/java/jcarbon/benchmarks/util",
-        "//src/jcarbon/src/main/java/jcarbon",
+        "//src/jcarbon-proto:jcarbon",
         "@renaissance//jar",
     ],
     args = [

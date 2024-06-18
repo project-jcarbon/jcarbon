@@ -1,23 +1,14 @@
 package jcarbon.benchmarks.util;
 
-import static java.util.stream.Collectors.groupingBy;
-import static jcarbon.JCarbonReporting.writeReports;
 import static jcarbon.benchmarks.util.LoggerUtil.getLogger;
 
 import java.nio.file.Path;
-import java.time.Duration;
-import java.time.Instant;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import jcarbon.JCarbon;
-import jcarbon.JCarbonReport;
-import jcarbon.cpu.eflect.ProcessEnergy;
-import jcarbon.cpu.eflect.TaskEnergy;
-import jcarbon.cpu.jiffies.ProcessActivity;
-import jcarbon.cpu.jiffies.TaskActivity;
-import jcarbon.emissions.Emission;
-import jcarbon.emissions.Emissions;
+import jcarbon.signal.Component;
+import jcarbon.signal.Report;
+import jcarbon.signal.Signal;
 
 public final class JCarbonUtil {
   private static final Logger logger = getLogger();
@@ -33,14 +24,14 @@ public final class JCarbonUtil {
       periodMillis = Integer.parseInt(period);
     } catch (Exception e) {
       logger.log(Level.INFO, String.format("ignoring bad period (%s) for new JCarbon", period), e);
-      return new JCarbon(DEFAULT_PERIOD_MS);
+      return new JCarbon(DEFAULT_PERIOD_MS, ProcessHandle.current().pid());
     }
     if (periodMillis < 0) {
       logger.info(String.format("rejecting negative period (%d) for new JCarbon", periodMillis));
-      return new JCarbon(DEFAULT_PERIOD_MS);
+      return new JCarbon(DEFAULT_PERIOD_MS, ProcessHandle.current().pid());
     }
     logger.info(String.format("creating JCarbon with period of %d milliseconds", periodMillis));
-    return new JCarbon(periodMillis);
+    return new JCarbon(periodMillis, ProcessHandle.current().pid());
   }
 
   public static Path outputPath() {
@@ -50,54 +41,37 @@ public final class JCarbonUtil {
             "jcarbon-%d-%d.json", ProcessHandle.current().pid(), System.currentTimeMillis()));
   }
 
-  public static void summary(JCarbonReport report) {
-    List<ProcessActivity> processActivity = report.getSignal(ProcessActivity.class);
-    double activity =
-        processActivity.stream()
-            .mapToDouble(
-                nrg -> nrg.data().stream().mapToDouble(TaskActivity::value).sum() / CPU_COUNT)
-            .average()
-            .getAsDouble();
-    List<ProcessEnergy> processEnergy = report.getSignal(ProcessEnergy.class);
-    double energy =
-        processEnergy.stream()
-            .mapToDouble(nrg -> nrg.data().stream().mapToDouble(TaskEnergy::value).sum())
-            .sum();
-    Instant start = processEnergy.stream().map(ProcessEnergy::start).min(Instant::compareTo).get();
-    Instant end = processEnergy.stream().map(ProcessEnergy::end).max(Instant::compareTo).get();
+  public static void summary(Report report) {
     logger.info("JCarbon report summary:");
-    logger.info(
-        String.format(" - %.4f seconds", (double) Duration.between(start, end).toMillis() / 1000));
-    logger.info(String.format(" - %.4f%s of cycles", activity, '%'));
-    logger.info(String.format(" - %.4f joules", energy));
-    logger.info(
-        String.format(" - %.4f watts", 1000 * energy / Duration.between(start, end).toMillis()));
-    report.getSignal(Emissions.class).stream()
-        .collect(groupingBy(emissions -> emissions.component()))
-        .forEach(
-            (component, signal) ->
-                logger.info(
-                    String.format(
-                        " - %.4f grams of CO2 consumed by %s",
-                        signal.stream()
-                            .mapToDouble(
-                                emissions ->
-                                    emissions.data().stream().mapToDouble(Emission::value).sum())
-                            .sum(),
-                        component)));
-    report.getSignal(Emissions.class).stream()
-        .filter(emissions -> emissions.component().contains("process="))
-        .flatMap(emissions -> emissions.data().stream())
-        .collect(groupingBy(emission -> emission.component()))
-        .forEach(
-            (component, emissions) ->
-                logger.info(
-                    String.format(
-                        " - %.4f grams of CO2 consumed by %s",
-                        emissions.stream().mapToDouble(Emission::value).sum(), component)));
+    for (Component component : report.getComponentList()) {
+      if (component.getComponentType() == "linux_process") {
+        for (Signal signal : component.getSignalList()) {
+          switch (signal.getUnit()) {
+            case GRAMS_OF_CO2:
+              logger.info(String.format(" - %.4f grams of CO2", sumSignal(signal, 1)));
+              break;
+            case JIFFIES:
+              logger.info(
+                  String.format(
+                      " - %.4f%s of cycles",
+                      sumSignal(signal, CPU_COUNT) / signal.getIntervalCount(), '%'));
+              break;
+            case JOULES:
+              logger.info(String.format(" - %.4f joules", sumSignal(signal, 1)));
+              break;
+            default:
+              continue;
+          }
+        }
+      }
+    }
   }
 
-  public static void dump(List<JCarbonReport> reports) {
-    writeReports(reports, outputPath());
+  private static double sumSignal(Signal signal, int factor) {
+    return signal.getIntervalList().stream()
+        .mapToDouble(
+            interval ->
+                interval.getDataList().stream().mapToDouble(d -> d.getValue()).sum() / factor)
+        .sum();
   }
 }

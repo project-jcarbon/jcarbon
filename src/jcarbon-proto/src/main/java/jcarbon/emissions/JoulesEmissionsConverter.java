@@ -13,9 +13,11 @@ public final class JoulesEmissionsConverter implements EmissionsConverter {
 
   // grams of carbon per kwh
   private final double carbonIntensity;
+  private final String source;
 
-  public JoulesEmissionsConverter(double carbonIntensity) {
+  public JoulesEmissionsConverter(double carbonIntensity, String source) {
     this.carbonIntensity = carbonIntensity;
+    this.source = source;
   }
 
   @Override
@@ -25,6 +27,7 @@ public final class JoulesEmissionsConverter implements EmissionsConverter {
       return Signal.newBuilder()
           .setUnit(Signal.Unit.GRAMS_OF_CO2)
           .addAllSource(signal.getSourceList())
+          .addSource(source)
           .addAllInterval(
               signal.getIntervalList().stream()
                   .map(

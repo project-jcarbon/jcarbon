@@ -36,15 +36,6 @@ message StopResponse {
   optional string response = 1;
 }
 
-message DumpRequest {
-  optional uint64 process_id = 1;
-  optional string output_path = 2;
-}
-
-message DumpResponse {
-  optional string response = 1;
-}
-
 message ReadRequest {
   optional uint64 process_id = 1;
   repeated string signals = 2;
@@ -52,6 +43,15 @@ message ReadRequest {
 
 message ReadResponse {
   optional signal.Report report = 1;
+}
+
+message DumpRequest {
+  optional uint64 process_id = 1;
+  optional string output_path = 2;
+}
+
+message DumpResponse {
+  optional string response = 1;
 }
 
 message PurgeRequest {}

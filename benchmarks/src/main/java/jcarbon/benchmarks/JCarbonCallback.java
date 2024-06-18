@@ -1,15 +1,18 @@
 package jcarbon.benchmarks;
 
+import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import jcarbon.JCarbon;
-import jcarbon.JCarbonReport;
 import jcarbon.benchmarks.util.JCarbonUtil;
+import jcarbon.signal.Report;
 import org.dacapo.harness.Callback;
 import org.dacapo.harness.CommandLineArgs;
 
 public class JCarbonCallback extends Callback {
   private final JCarbon jcarbon = JCarbonUtil.createJCarbon();
-  private final ArrayList<JCarbonReport> reports = new ArrayList<>();
+  private final ArrayList<Report> reports = new ArrayList<>();
 
   public JCarbonCallback(CommandLineArgs args) {
     super(args);
@@ -32,7 +35,14 @@ public class JCarbonCallback extends Callback {
   public boolean runAgain() {
     // if we have run every iteration, dump the data and terminate
     if (!super.runAgain()) {
-      JCarbonUtil.dump(reports);
+      System.out.println("writing jcarbon reports");
+      for (Report report : reports) {
+        try (OutputStream outputStream = Files.newOutputStream(JCarbonUtil.outputPath())) {
+          report.writeTo(outputStream);
+        } catch (IOException e) {
+          System.out.println("unable to write jcarbon report!");
+        }
+      }
       return false;
     } else {
       return true;

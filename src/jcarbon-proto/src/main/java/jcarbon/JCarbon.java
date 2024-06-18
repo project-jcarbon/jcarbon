@@ -17,14 +17,15 @@ import jcarbon.linux.jiffies.ProcStat;
 import jcarbon.linux.jiffies.ProcTask;
 import jcarbon.linux.jiffies.ProcessSample;
 import jcarbon.linux.jiffies.SystemSample;
-import jcarbon.linux.powercap.Powercap;
-import jcarbon.linux.powercap.PowercapSample;
 import jcarbon.signal.Component;
 import jcarbon.signal.Report;
 import jcarbon.signal.Signal;
 import jcarbon.signal.SignalInterval;
+import jcarbon.signal.SignalInterval.SignalData;
+import jcarbon.signal.SignalInterval.Timestamp;
 import jcarbon.util.LoggerUtil;
 import jcarbon.util.SamplingFuture;
+import jcarbon.util.Timestamps;
 
 /** A class to collect and provide jcarbon signals. */
 public final class JCarbon {
@@ -40,15 +41,17 @@ public final class JCarbon {
             t.setDaemon(true);
             return t;
           });
-  // private final RaplSource raplSource = RaplSource.getRaplSource();
+  // TODO: do we need to wire this back in?
+  private final RaplSource raplSource = RaplSource.getRaplSource();
   private final EmissionsConverter converter = LocaleEmissionsConverters.forDefaultLocale();
   private final int periodMillis;
   private final long processId;
 
   private boolean isRunning = false;
+  private SamplingFuture<MonotonicTimeSample> monotonicTimeFuture;
   private SamplingFuture<ProcessSample> processFuture;
   private SamplingFuture<SystemSample> systemFuture;
-  private SamplingFuture<Optional<PowercapSample>> raplFuture;
+  private SamplingFuture<Optional<?>> raplFuture;
 
   public JCarbon(int periodMillis) {
     this.periodMillis = periodMillis;
@@ -66,12 +69,15 @@ public final class JCarbon {
       if (!isRunning) {
         logger.info(
             String.format("starting jcarbon for process %d at %d ms", processId, periodMillis));
+        monotonicTimeFuture =
+            SamplingFuture.fixedPeriodMillis(MonotonicTimeSample::new, periodMillis, executor);
         processFuture =
             SamplingFuture.fixedPeriodMillis(
                 () -> ProcTask.sampleTasksFor(processId), periodMillis, executor);
         systemFuture =
             SamplingFuture.fixedPeriodMillis(ProcStat::sampleCpus, periodMillis, executor);
-        raplFuture = SamplingFuture.fixedPeriodMillis(Powercap::sample, periodMillis, executor);
+        raplFuture =
+            SamplingFuture.fixedPeriodMillis(raplSource.source::get, periodMillis, executor);
         isRunning = true;
       }
     }
@@ -97,6 +103,13 @@ public final class JCarbon {
             Component.newBuilder().setComponentType("linux_system").setComponentId(OS_NAME);
 
         // physical signals
+        logger.info("creating monotonic time signal");
+        createPhysicalSignal(
+                forwardApply(monotonicTimeFuture.get(), JCarbon::monotonicTimeDifference),
+                Signal.Unit.NANOSECONDS,
+                "clock_gettime(CLOCK_MONOTONIC, &ts)")
+            .ifPresent(systemComponent::addSignal);
+
         logger.info("creating rapl energy signal");
         Optional<Signal> raplEnergy =
             createPhysicalSignal(
@@ -105,10 +118,11 @@ public final class JCarbon {
                         .filter(Optional::isPresent)
                         .map(Optional::get)
                         .collect(toList()),
-                    Powercap::difference),
+                    raplSource::difference),
                 Signal.Unit.JOULES,
-                "/sys/devices/virtual/powercap/intel-rapl");
-        systemJiffies.ifPresent(systemComponent::addSignal);
+                raplSource.name);
+        raplEnergy.ifPresent(systemComponent::addSignal);
+
         logger.info("creating process jiffies signal");
         Optional<Signal> processJiffies =
             createPhysicalSignal(
@@ -116,6 +130,7 @@ public final class JCarbon {
                 Signal.Unit.JIFFIES,
                 procTask);
         processJiffies.ifPresent(processComponent::addSignal);
+
         logger.info("creating system jiffies signal");
         Optional<Signal> systemJiffies =
             createPhysicalSignal(
@@ -123,6 +138,7 @@ public final class JCarbon {
                 Signal.Unit.JIFFIES,
                 PROC_STAT);
         systemJiffies.ifPresent(systemComponent::addSignal);
+        monotonicTimeFuture = null;
         processFuture = null;
         systemFuture = null;
         raplFuture = null;
@@ -132,7 +148,7 @@ public final class JCarbon {
           logger.info("not creating rapl emissions: no rapl energy");
         } else {
           logger.info("creating rapl emissions signal");
-          systemComponent.addSignal(converter.convert(raplEnergy.get()));
+          systemComponent.addSignal(convertToEmissions(raplEnergy.get()));
         }
 
         if (processJiffies.isEmpty() && systemJiffies.isEmpty()) {
@@ -168,7 +184,7 @@ public final class JCarbon {
               processComponent.addSignal(processEnergy);
 
               logger.info("creating linux process emissions signal");
-              processComponent.addSignal(converter.convert(processEnergy));
+              processComponent.addSignal(convertToEmissions(processEnergy));
             } else {
               logger.info("not creating linux process energy: no rapl energy");
             }
@@ -191,12 +207,40 @@ public final class JCarbon {
     return Optional.empty();
   }
 
-  private Optional<Signal> getPhysicalSignal(
+  public Signal convertToEmissions(Signal signal) {
+    return converter.convert(signal);
+  }
+
+  private Optional<Signal> createPhysicalSignal(
       List<SignalInterval> intervals, Signal.Unit unit, String source) {
     if (intervals.isEmpty()) {
       return Optional.empty();
     }
     return Optional.of(
         Signal.newBuilder().setUnit(unit).addSource(source).addAllInterval(intervals).build());
+  }
+
+  private static class MonotonicTimeSample {
+    private final Timestamp timestamp;
+    private final Timestamp monotonicTime;
+
+    private MonotonicTimeSample() {
+      this.timestamp = Timestamps.now();
+      this.monotonicTime = Timestamps.monotonicTime();
+    }
+  }
+
+  private static SignalInterval monotonicTimeDifference(
+      MonotonicTimeSample first, MonotonicTimeSample second) {
+    return SignalInterval.newBuilder()
+        .setStart(first.timestamp)
+        .setEnd(second.timestamp)
+        .addData(
+            SignalData.newBuilder()
+                .setValue(
+                    (double)
+                        (1000000000 * first.monotonicTime.getSecs()
+                            + first.monotonicTime.getNanos())))
+        .build();
   }
 }

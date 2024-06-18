@@ -114,18 +114,14 @@ public final class Timestamps {
     return Timestamp.newBuilder().setSecs(secs).setNanos(nanos).build();
   }
 
-  public static class Timestamp {
-    public final Timestamp unixTime = now();
-    public final Timestamp montonicTime = montonicTime();
-  }
-
   private static native long epochTimeNative();
 
   private static native long monotonicTimeNative();
 
   private static boolean loadLibrary() {
     try {
-      NativeUtils.loadLibraryFromJar("/jcarbon/src/main/c/jcarbon/util/libtime.so");
+      // TODO: Remember to fix this when we migrate the files over to /src/jcarbon.
+      NativeUtils.loadLibraryFromJar("/jcarbon-proto/src/main/c/jcarbon/util/libtime.so");
       return true;
     } catch (Exception e) {
       LoggerUtil.getLogger().info("couldn't load native timestamps library");

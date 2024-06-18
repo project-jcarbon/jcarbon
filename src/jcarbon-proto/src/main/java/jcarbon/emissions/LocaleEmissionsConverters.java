@@ -23,7 +23,7 @@ public final class LocaleEmissionsConverters {
   private static final Map<String, Double> CARBON_INTENSITY_MAP = getCarbonIntensity();
 
   public static final JoulesEmissionsConverter GLOBAL_CONVERTER =
-      new JoulesEmissionsConverter(GLOBAL_INTENSITY);
+      new JoulesEmissionsConverter(GLOBAL_INTENSITY, "global");
 
   public static JoulesEmissionsConverter forLocale(String locale) {
     if (CARBON_INTENSITY_MAP.containsKey(locale)) {
@@ -31,7 +31,7 @@ public final class LocaleEmissionsConverters {
           String.format(
               "creating converter for locale %s (%.2f gCO2/kWh)",
               locale, CARBON_INTENSITY_MAP.get(locale).doubleValue()));
-      return new JoulesEmissionsConverter(CARBON_INTENSITY_MAP.get(locale).doubleValue());
+      return new JoulesEmissionsConverter(CARBON_INTENSITY_MAP.get(locale).doubleValue(), locale);
     } else {
       logger.info(
           String.format(
