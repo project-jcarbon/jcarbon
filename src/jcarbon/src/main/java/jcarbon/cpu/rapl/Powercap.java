@@ -108,29 +108,39 @@ public final class Powercap {
       return new double[0][0];
     }
     try {
-      return Files.list(POWERCAP_ROOT)
-          .filter(p -> p.getFileName().toString().contains("intel-rapl"))
-          .map(
-              socket -> {
-                try {
-                  return Files.list(socket)
-                      .filter(p -> p.getFileName().toString().contains("max_energy_range_uj"))
-                      .mapToDouble(
-                          component -> {
-                            try {
-                              return Double.parseDouble(Files.readString(component)) / 1000000;
-                            } catch (Exception e) {
-                              return 0;
-                            }
-                          })
-                      .toArray();
-                } catch (Exception e) {
-                  logger.warning(
-                      String.format("couldn't check the maximum energy for socket %s", socket));
-                  return 0;
-                }
-              })
-          .toArray(double[][]::new);
+      double[][] maxEnergy =
+          Files.list(POWERCAP_ROOT)
+              .filter(p -> p.getFileName().toString().contains("intel-rapl"))
+              .map(
+                  socket -> {
+                    double[] overflowValues = new double[2];
+                    try {
+                      overflowValues[0] =
+                          Double.parseDouble(
+                                  Files.readString(
+                                      Path.of(socket.toString(), "max_energy_range_uj")))
+                              / 1000000;
+                    } catch (Exception e) {
+                      logger.warning(
+                          String.format("couldn't check the maximum energy for socket %s", socket));
+                    }
+                    try {
+                      overflowValues[1] =
+                          Double.parseDouble(
+                                  Files.readString(
+                                      Path.of(
+                                          socket.toString(),
+                                          String.format("%s:0", socket.getFileName()),
+                                          "max_energy_range_uj")))
+                              / 1000000;
+                    } catch (Exception e) {
+                      logger.warning(
+                          String.format("couldn't check the maximum energy for socket %s", socket));
+                    }
+                    return overflowValues;
+                  })
+              .toArray(double[][]::new);
+      return maxEnergy;
     } catch (Exception e) {
       logger.warning("couldn't check the maximum energy; powercap likely not available");
       return new double[0][0];
