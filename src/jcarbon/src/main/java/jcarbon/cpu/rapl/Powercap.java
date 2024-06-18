@@ -107,6 +107,7 @@ public final class Powercap {
       logger.warning("couldn't check the maximum energy; powercap likely not available");
       return new double[0][0];
     }
+    // TODO: this is a hack and we need to formalize it
     try {
       double[][] maxEnergy =
           Files.list(POWERCAP_ROOT)
