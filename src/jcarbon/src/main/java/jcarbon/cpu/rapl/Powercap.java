@@ -139,7 +139,10 @@ public final class Powercap {
                       logger.warning(
                           String.format("couldn't check the maximum energy for socket %s", socket));
                     }
-                    System.out.println(Arrays.toString(overflowValues));
+                    logger.info(
+                        String.format(
+                            "retrieved overflow values for %s: %s",
+                            socket.getFileName(), Arrays.toString(overflowValues)));
                     return overflowValues;
                   })
               .toArray(double[][]::new);
