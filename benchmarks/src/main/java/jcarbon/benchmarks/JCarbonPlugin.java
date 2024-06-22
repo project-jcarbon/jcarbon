@@ -1,8 +1,5 @@
 package jcarbon.benchmarks;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import jcarbon.JCarbon;
 import jcarbon.benchmarks.util.JCarbonUtil;
@@ -29,14 +26,7 @@ public final class JCarbonPlugin
 
   @Override
   public void beforeBenchmarkTearDown(String benchmark) {
-    System.out.println("writing jcarbon reports");
-    for (Report report : reports) {
-      try (OutputStream outputStream = Files.newOutputStream(JCarbonUtil.outputPath())) {
-        report.writeTo(outputStream);
-      } catch (IOException e) {
-        System.out.println("unable to write jcarbon report!");
-      }
-    }
+    JCarbonUtil.writeReports(reports);
     reports.clear();
   }
 }
