@@ -16,7 +16,7 @@ def normalize_timestamps(timestamps, bucket_size_ms):
 
 def to_dataframe(report, signals=None):
     signals_df = []
-    monotonic_time = {}
+    monotonic_time = None
     for jcarbon_signal in report.signal:
         if jcarbon_signal.signal_name == 'jcarbon.server.MonotonicTimestamp':
             # TODO: for now, i'm always grabbing the monotonic time.
@@ -49,8 +49,11 @@ def to_dataframe(report, signals=None):
     signals_df = pd.concat(signals_df)
     diff = (signals_df.end - signals_df.start).min() // 1000
     signals_df['start_norm'] = normalize_timestamps(signals_df.start, diff)
-    monotonic_time.index = normalize_timestamps(monotonic_time.index, diff)
-    signals_df['ts'] = signals_df.start_norm.map(monotonic_time.to_dict())
+    if monotonic_time is not None:
+        monotonic_time.index = normalize_timestamps(monotonic_time.index, diff)
+        signals_df['ts'] = signals_df.start_norm.map(monotonic_time.to_dict())
+    else:
+        signals_df['ts'] = 0
     signals_df['start'] = pd.to_datetime(signals_df.start, unit='ns')
     signals_df['end'] = pd.to_datetime(signals_df.end, unit='ns')
 

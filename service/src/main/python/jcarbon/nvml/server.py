@@ -28,7 +28,7 @@ class JCarbonNvmlService(JCarbonService):
     def __init__(self):
         self.is_running = False
         self.report = None
-        self.executor = futures.ProcessPoolExecutor(10)
+        self.executor = futures.ThreadPoolExecutor(1)
 
     def Start(self, request, context):
         if not self.is_running:
