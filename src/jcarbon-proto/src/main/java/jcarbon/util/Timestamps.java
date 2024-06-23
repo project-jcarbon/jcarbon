@@ -73,6 +73,11 @@ public final class Timestamps {
     return Duration.between(toInstant(first), toInstant(second));
   }
 
+  /** Computes the difference in seconds between two timestamps. */
+  public static double betweenAsSecs(Timestamp first, Timestamp second) {
+    return (double) Duration.between(toInstant(first), toInstant(second)).toNanos() / 1000000000;
+  }
+
   /**
    * Computes the ratio of elapsed time between two {@link Durations}. It is recommended that the
    * {@code dividend} is less than the {@code divisor} otherwise the value is somewhat non-sensical.

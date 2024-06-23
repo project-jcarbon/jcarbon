@@ -88,6 +88,7 @@ final class JCarbonServerImpl extends JCarbonServiceGrpc.JCarbonServiceImplBase 
           componentBuilder.addAllSignal(
               componentBuilder.getSignalList().stream()
                   .map(jcarbon::convertToEmissions)
+                  .filter(l -> l.getIntervalCount() > 0)
                   .collect(toList()));
           logger.info(
               String.format(
@@ -99,6 +100,7 @@ final class JCarbonServerImpl extends JCarbonServiceGrpc.JCarbonServiceImplBase 
       // TODO: need to be able to combine/delete reports
       logger.info(String.format("storing jcarbon report for %d", processId));
       data.put(processId, reportBuilder.build());
+      resultObserver.onNext(StopResponse.getDefaultInstance());
     } else {
       String message =
           String.format(
@@ -106,21 +108,22 @@ final class JCarbonServerImpl extends JCarbonServiceGrpc.JCarbonServiceImplBase 
       logger.info(message);
       resultObserver.onNext(StopResponse.newBuilder().setResponse(message).build());
     }
-    resultObserver.onNext(StopResponse.getDefaultInstance());
     resultObserver.onCompleted();
   }
 
   @Override
   public void dump(DumpRequest request, StreamObserver<DumpResponse> resultObserver) {
     Long processId = Long.valueOf(request.getProcessId());
+    String outputPath = request.getOutputPath();
+    logger.info(String.format("dumping jcarbon report for %d at %s", processId, outputPath));
     if (data.containsKey(processId)) {
-      String outputPath = request.getOutputPath();
-      logger.info(String.format("dumping jcarbon report for %d at %s", processId, outputPath));
+      // TODO: need to wire in signal filtering
       try (OutputStream writer = newOutputStream(Path.of(outputPath))) {
         data.get(processId).writeTo(writer);
       } catch (Exception e) {
         e.printStackTrace();
       }
+      resultObserver.onNext(DumpResponse.getDefaultInstance());
     } else {
       String message =
           String.format(
@@ -128,7 +131,6 @@ final class JCarbonServerImpl extends JCarbonServiceGrpc.JCarbonServiceImplBase 
       logger.info(message);
       resultObserver.onNext(DumpResponse.newBuilder().setResponse(message).build());
     }
-    resultObserver.onNext(DumpResponse.getDefaultInstance());
     resultObserver.onCompleted();
   }
 
@@ -138,6 +140,7 @@ final class JCarbonServerImpl extends JCarbonServiceGrpc.JCarbonServiceImplBase 
     ReadResponse.Builder response = ReadResponse.newBuilder();
     logger.info(String.format("reading jcarbon report for %d", processId));
     if (data.containsKey(processId)) {
+      // TODO: need to wire in signal filtering
       response.setReport(data.get(processId));
     } else {
       logger.info(

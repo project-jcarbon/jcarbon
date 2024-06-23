@@ -41,6 +41,7 @@ class Signal(_message.Message):
     __slots__ = ("unit", "source", "interval")
     class Unit(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
         __slots__ = ()
+        UNKNOWN: _ClassVar[Signal.Unit]
         ACTIVITY: _ClassVar[Signal.Unit]
         GRAMS_OF_CO2: _ClassVar[Signal.Unit]
         JOULES: _ClassVar[Signal.Unit]
@@ -48,6 +49,7 @@ class Signal(_message.Message):
         MEGAHERTZ: _ClassVar[Signal.Unit]
         NANOSECONDS: _ClassVar[Signal.Unit]
         WATTS: _ClassVar[Signal.Unit]
+    UNKNOWN: Signal.Unit
     ACTIVITY: Signal.Unit
     GRAMS_OF_CO2: Signal.Unit
     JOULES: Signal.Unit
