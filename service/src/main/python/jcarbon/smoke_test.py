@@ -56,14 +56,12 @@ def main():
     report = client.read(pid, signals)
     # TODO: this is too vague
     results = {}
-    for jcarbon_signal in report.signal:
-        results[jcarbon_signal.signal_name] = {}
-        for signal in jcarbon_signal.signal:
-            key = (signal.component, signal.unit)
-            if key not in results[jcarbon_signal.signal_name]:
-                results[jcarbon_signal.signal_name][key] = 0
-            results[jcarbon_signal.signal_name][key] += sum(
-                data.value for data in signal.data)
+    for component in report.component:
+        for signal in component.signal:
+            key = f'{component.component_type}:{",".join(list(signal.source))}'
+            results[key] = sum(
+                data.value for interval in signal.interval for data in interval.data
+            )
     pprint(results)
 
 

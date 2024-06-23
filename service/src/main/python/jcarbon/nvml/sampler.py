@@ -4,7 +4,8 @@ from pynvml import nvmlInit, nvmlDeviceGetCount
 from pynvml import nvmlDeviceGetHandleByIndex, nvmlDeviceGetName
 from pynvml import nvmlDeviceGetTotalEnergyConsumption, nvmlDeviceGetPowerUsage
 
-from jcarbon.jcarbon_service_pb2 import JCarbonReport, JCarbonSignal, Signal
+
+from jcarbon.signal_pb2 import Report, Component, Signal, SignalInterval
 
 
 def get_timestamp():
@@ -15,111 +16,113 @@ def get_timestamp():
 
 
 DEFAULT_SIGNALS = [
-    'jcarbon.nvml.NvmlTotalEnergy',
-    'jcarbon.nvml.NvmlEstimatedEnergy'
+    'nvmlDeviceGetTotalEnergyConsumption',
+    'nvmlDeviceGetPowerUsage'
 ]
 
 
 class NvmlSampler:
     def __init__(self, signals=DEFAULT_SIGNALS):
         self.devices_handles = []
-        self.devices_names = []
+        self.device_metadata = []
         self.signals = signals
-        self.data = {}
+        self.samples = {}
         for signal in self.signals:
-            self.data[signal] = []
+            self.samples[signal] = []
         try:
             nvmlInit()
             for i in range(nvmlDeviceGetCount()):
                 self.devices_handles.append(nvmlDeviceGetHandleByIndex(i))
-                self.devices_names.append(
-                    nvmlDeviceGetName(self.devices_handles[i]))
+                # self.device_metadata.append(
+                #     {
+                #         'device': i,
+                #         'name': nvmlDeviceGetName(self.devices_handles[i])
+                #     }
+                # )
         except:
             # TODO: silently fail for now
+            import traceback
+            traceback.print_exc()
             pass
 
     def sample(self):
         timestamp = get_timestamp()
         for signal in self.signals:
-            if 'NvmlTotalEnergy' in signal:
-                unit = 'JOULES'
-            elif 'NvmlEstimatedEnergy' in signal:
-                unit = 'WATTS'
-            else:
-                unit = ''
             sample = {
                 'timestamp': timestamp,
-                'unit': unit,
                 'data': []}
             for i, handle in enumerate(self.devices_handles):
-                if 'NvmlTotalEnergy' in signal:
+                if 'nvmlDeviceGetTotalEnergyConsumption' in signal:
                     sample['data'].append({
-                        'component': f'device={i},name={self.devices_names[i]}',
+                        'metadata': {'device': i},
                         'value': nvmlDeviceGetTotalEnergyConsumption(handle) / 1000.0,
                     })
-                elif 'NvmlEstimatedEnergy':
+                elif 'nvmlDeviceGetPowerUsage':
                     sample['data'].append({
-                        'component': f'device={i},name={self.devices_names[i]}',
+                        'metadata': {'device': i},
                         'value': nvmlDeviceGetPowerUsage(handle) / 1000.0,
                     })
-            self.data[signal].append(sample)
-
-    def get_report(self):
-        report = JCarbonReport()
-        for signal_name in self.data:
-            jcarbon_signal = JCarbonSignal()
-            jcarbon_signal.signal_name = signal_name
-            for first, second in zip(self.data[signal_name], self.data[signal_name][1:]):
-                jcarbon_signal.signal.append(sample_difference(first, second))
-            report.signal.append(jcarbon_signal)
-        self.data = {}
-        for signal in self.signals:
-            self.data[signal] = []
-        return report
+            self.samples[signal].append(sample)
 
 
-def create_report(data):
-    report = JCarbonReport()
-    for signal_name in data:
-        jcarbon_signal = JCarbonSignal()
-        jcarbon_signal.signal_name = signal_name
-        for first, second in zip(data[signal_name], data[signal_name][1:]):
-            jcarbon_signal.signal.append(sample_difference(first, second))
-        report.signal.append(jcarbon_signal)
+def create_report(samples):
+    nvml_component = Component()
+    nvml_component.component_type = 'nvml'
+    nvml_component.component_id = ''
+    for signal_name in samples:
+        signal = Signal()
+        if 'nvmlDeviceGetTotalEnergyConsumption' in signal_name:
+            signal.unit = Signal.Unit.JOULES
+            for first, second in zip(samples[signal_name], samples[signal_name][1:]):
+                signal.interval.append(sample_difference(first, second))
+        elif 'nvmlDeviceGetPowerUsage' in signal_name:
+            signal.unit = Signal.Unit.WATTS
+            for first, second in zip(samples[signal_name], samples[signal_name][1:]):
+                interval = create_interval_with_timestamp(first, second)
+
+                for d in first['data']:
+                    data = SignalInterval.SignalData()
+                    for meta in d['metadata']:
+                        metadata = SignalInterval.SignalData.Metadata()
+                        metadata.name = meta
+                        metadata.value = str(d['metadata'][meta])
+                        data.metadata.append(metadata)
+                    data.value = d['value']
+                    interval.data.append(data)
+
+                signal.interval.append(interval)
+        else:
+            continue
+        signal.source.append(signal_name)
+
+        nvml_component.signal.append(signal)
+    report = Report()
+    report.component.append(nvml_component)
     return report
 
 
-def sample_difference(first, second):
-    signal = Signal()
+def sample_difference(first_samples, second_samples):
+    interval = create_interval_with_timestamp(first_samples, second_samples)
 
-    signal.start.secs = first['timestamp']['secs']
-    signal.start.nanos = first['timestamp']['nanos']
-    signal.end.secs = second['timestamp']['secs']
-    signal.end.nanos = second['timestamp']['nanos']
+    for first, second in zip(first_samples['data'], second_samples['data']):
+        data = SignalInterval.SignalData()
+        for meta in first['metadata']:
+            metadata = SignalInterval.SignalData.Metadata()
+            metadata.name = meta
+            metadata.value = str(first['metadata'][meta])
+            data.metadata.append(metadata)
+        data.value = second['value'] - first['value']
+        interval.data.append(data)
 
-    signal.component = 'nvml'
-    signal.unit = 'JOULES'
-    if first['unit'] == 'WATTS':
-        elapsed = 1000000000.0 * (signal.end.secs - signal.start.secs)
-        if signal.start.nanos > signal.end.nanos:
-            elapsed += 1000000000.0 + signal.end.nanos - signal.start.nanos
-            if elapsed >= 1000000000.0:
-                elapsed -= 1000000000.0
-        else:
-            elapsed += signal.end.nanos - signal.start.nanos
-        elapsed /= 1000000000.0
+    return interval
 
-    f = {data['component']: data for data in first['data']}
-    s = {data['component']: data for data in second['data']}
-    for component, data in f.items():
-        if component in s:
-            other = s[component]
-        signal_data = Signal.Data()
 
-        signal_data.component = component
-        if first['unit'] == 'JOULES':
-            signal_data.value = other['value'] - data['value']
-        elif first['unit'] == 'WATTS':
-            signal_data.value = data['value'] * elapsed
-        signal.data.append(signal_data)
-    return signal
+def create_interval_with_timestamp(first, second):
+    interval = SignalInterval()
+
+    interval.start.secs = first['timestamp']['secs']
+    interval.start.nanos = first['timestamp']['nanos']
+    interval.end.secs = second['timestamp']['secs']
+    interval.end.nanos = second['timestamp']['nanos']
+
+    return interval

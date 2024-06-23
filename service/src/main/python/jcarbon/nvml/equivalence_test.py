@@ -7,8 +7,7 @@ from time import sleep, time
 
 from tqdm import tqdm
 
-from jcarbon.jcarbon_service_pb2 import JCarbonSignal
-from jcarbon.nvml.sampler import NvmlSampler, sample_difference
+from jcarbon.nvml.sampler import NvmlSampler
 
 
 def equivalence_test(sleep_time, period):

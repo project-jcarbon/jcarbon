@@ -21,7 +21,7 @@ def run_sampler(period):
         remaining = period - elapsed
         if (remaining > 0):
             sleep(remaining)
-    return sampler.data
+    return sampler.samples
 
 
 class JCarbonNvmlService(JCarbonService):
@@ -35,7 +35,9 @@ class JCarbonNvmlService(JCarbonService):
             print('starting sampling')
             self.is_running = True
             self.sampling_future = self.executor.submit(
-                run_sampler, request.period_millis / 1000.0)
+                run_sampler,
+                request.period_millis / 1000.0
+            )
         return StartResponse()
 
     def Stop(self, request, context):

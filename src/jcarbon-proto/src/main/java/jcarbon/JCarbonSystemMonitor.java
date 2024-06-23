@@ -135,6 +135,7 @@ public final class JCarbonSystemMonitor implements JCarbon {
     return Optional.empty();
   }
 
+  @Override
   public Signal convertToEmissions(Signal signal) {
     return converter.convert(signal);
   }

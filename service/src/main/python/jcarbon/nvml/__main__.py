@@ -1,11 +1,9 @@
 from argparse import ArgumentParser
-from pprint import pprint
 from time import sleep, time
 
 from psutil import pid_exists
 
-from jcarbon.jcarbon_service_pb2 import JCarbonSignal
-from jcarbon.nvml.sampler import NvmlSampler, sample_difference
+from jcarbon.nvml.sampler import NvmlSampler, create_report
 
 
 def parse_args():
@@ -59,17 +57,13 @@ def main():
                 sleep(args.period - elapsed)
     except KeyboardInterrupt:
         print('monitoring ended by user')
-    report = sampler.get_report()
+    report = create_report(sampler.samples)
     energy = {}
-    for jcarbon_signal in report.signal:
-        signal_name = jcarbon_signal.signal_name
-        for signal in jcarbon_signal.signal:
-            for data in signal.data:
-                if data.component not in energy:
-                    energy[data.component] = []
-                if signal_name not in energy[data.component]:
-                    energy[data.component][signal_name].append(0)
-                energy[data.component][signal_name][-1] += data.value
+    for component in report.component:
+        for signal in component.signal:
+            energy[','.join(signal.source)] = sum(
+                data.value for interval in signal.interval for data in interval.data
+            )
     print(energy)
 
 

@@ -36,13 +36,14 @@ message Signal {
   // TODO: this needs to be maintained as we add new sources
   // TODO: some of these are intermediate representations that a user wouldn't truly want
   enum Unit {
-    ACTIVITY = 0;
-    GRAMS_OF_CO2 = 1;
-    JOULES = 2;
-    JIFFIES = 3;
-    MEGAHERTZ = 4;
-    NANOSECONDS = 5;
-    WATTS = 6;
+    UNKNOWN = 0;
+    ACTIVITY = 1;
+    GRAMS_OF_CO2 = 2;
+    JOULES = 3;
+    JIFFIES = 4;
+    MEGAHERTZ = 5;
+    NANOSECONDS = 6;
+    WATTS = 7;
   }
 }
 

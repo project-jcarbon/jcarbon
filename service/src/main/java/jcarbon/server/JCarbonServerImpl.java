@@ -1,6 +1,7 @@
 package jcarbon.server;
 
 import static java.nio.file.Files.newOutputStream;
+import static java.util.stream.Collectors.toList;
 import static jcarbon.server.LoggerUtil.getLogger;
 
 import io.grpc.stub.StreamObserver;
@@ -12,6 +13,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.logging.Logger;
 import jcarbon.JCarbon;
+import jcarbon.JCarbonApplicationMonitor;
 import jcarbon.service.DumpRequest;
 import jcarbon.service.DumpResponse;
 import jcarbon.service.JCarbonServiceGrpc;
@@ -23,6 +25,7 @@ import jcarbon.service.StartRequest;
 import jcarbon.service.StartResponse;
 import jcarbon.service.StopRequest;
 import jcarbon.service.StopResponse;
+import jcarbon.signal.Component;
 import jcarbon.signal.Report;
 
 final class JCarbonServerImpl extends JCarbonServiceGrpc.JCarbonServiceImplBase {
@@ -49,16 +52,18 @@ final class JCarbonServerImpl extends JCarbonServiceGrpc.JCarbonServiceImplBase 
     Long processId = Long.valueOf(request.getProcessId());
     if (!jcarbons.containsKey(processId)) {
       logger.info(String.format("creating jcarbon for %d", processId));
-      JCarbon jcarbon = new JCarbon(request.getPeriodMillis(), processId);
+      JCarbon jcarbon = new JCarbonApplicationMonitor(request.getPeriodMillis(), processId);
       jcarbon.start();
       jcarbons.put(processId, jcarbon);
       nvmlClient.ifPresent(client -> client.start(request));
+      resultObserver.onNext(StartResponse.getDefaultInstance());
     } else {
-      logger.info(
+      String message =
           String.format(
-              "ignoring request to create jcarbon for %d since it already exists", processId));
+              "ignoring request to create jcarbon for %d since it already exists", processId);
+      logger.info(message);
+      resultObserver.onNext(StartResponse.newBuilder().setResponse(message).build());
     }
-    resultObserver.onNext(StartResponse.getDefaultInstance());
     resultObserver.onCompleted();
   }
 
@@ -72,36 +77,34 @@ final class JCarbonServerImpl extends JCarbonServiceGrpc.JCarbonServiceImplBase 
       nvmlClient.ifPresent(client -> client.stop(request));
       Report.Builder reportBuilder = jcarbon.stop().get().toBuilder();
 
-      // if (nvmlClient.isPresent()) {
-      //   Report nvmlReport =
-      //       nvmlClient
-      //           .map(client -> client.read(ReadRequest.getDefaultInstance()))
-      //           .get()
-      //           .getReport();
-      //   reportBuilder.addAllSignal(nvmlReport.getSignalList());
-      //   logger.info(
-      //       String.format(
-      //           "adding signal classes %s to report for %d",
-      //           nvmlReport.getSignalList().stream().map(s ->
-      // s.getSignalName()).collect(toList()),
-      //           processId));
-      //   for (JCarbonSignal.Builder jcarbonSignal : reportBuilder.getSignalBuilderList()) {
-      //     if (!jcarbonSignal.getSignalName().equals(Emissions.class.getName())) {
-      //       continue;
-      //     }
-      //     jcarbonSignal.addAllSignal(
-      //         nvmlReport.getSignalList().stream()
-      //             .flatMap(JCarbonServerImpl::convertNvmlSignals)
-      //             .collect(toList()));
-      //   }
-      // }
+      if (nvmlClient.isPresent()) {
+        Report nvmlReport =
+            nvmlClient
+                .map(client -> client.read(ReadRequest.getDefaultInstance()))
+                .get()
+                .getReport();
+        for (Component component : nvmlReport.getComponentList()) {
+          Component.Builder componentBuilder = component.toBuilder();
+          componentBuilder.addAllSignal(
+              componentBuilder.getSignalList().stream()
+                  .map(jcarbon::convertToEmissions)
+                  .collect(toList()));
+          logger.info(
+              String.format(
+                  "adding component %s:%s to report for %d",
+                  component.getComponentType(), component.getComponentId(), processId));
+          reportBuilder.addComponent(componentBuilder);
+        }
+      }
       // TODO: need to be able to combine/delete reports
       logger.info(String.format("storing jcarbon report for %d", processId));
       data.put(processId, reportBuilder.build());
     } else {
-      logger.info(
+      String message =
           String.format(
-              "ignoring request to stop jcarbon for %d since it does not exist", processId));
+              "ignoring request to stop jcarbon for %d since it does not exist", processId);
+      logger.info(message);
+      resultObserver.onNext(StopResponse.newBuilder().setResponse(message).build());
     }
     resultObserver.onNext(StopResponse.getDefaultInstance());
     resultObserver.onCompleted();
@@ -111,24 +114,19 @@ final class JCarbonServerImpl extends JCarbonServiceGrpc.JCarbonServiceImplBase 
   public void dump(DumpRequest request, StreamObserver<DumpResponse> resultObserver) {
     Long processId = Long.valueOf(request.getProcessId());
     if (data.containsKey(processId)) {
-      JCarbonReport report =
-          JCarbonReport.newBuilder()
-              .addAllSignal(
-                  data.get(processId).getSignalList().stream()
-                      .filter(signal -> request.getSignalsList().contains(signal.getSignalName()))
-                      .collect(toList()))
-              .build();
       String outputPath = request.getOutputPath();
       logger.info(String.format("dumping jcarbon report for %d at %s", processId, outputPath));
-      try (OutputStream writer = newOutputStream(Path.of(outputPath)); ) {
-        report.writeTo(writer);
+      try (OutputStream writer = newOutputStream(Path.of(outputPath))) {
+        data.get(processId).writeTo(writer);
       } catch (Exception e) {
         e.printStackTrace();
       }
     } else {
-      logger.info(
+      String message =
           String.format(
-              "ignoring request to dump jcarbon report for %d since it does not exist", processId));
+              "ignoring request to dump jcarbon report for %d since it does not exist", processId);
+      logger.info(message);
+      resultObserver.onNext(DumpResponse.newBuilder().setResponse(message).build());
     }
     resultObserver.onNext(DumpResponse.getDefaultInstance());
     resultObserver.onCompleted();
