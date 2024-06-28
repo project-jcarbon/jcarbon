@@ -17,6 +17,21 @@ DEFAULT_SIGNALS = [
     'jcarbon.nvml.NvmlTotalEnergy',
 ]
 
+UNITS = {
+    'GRAMS_OF_CO2': 'CO2',
+    'JOULES': 'J',
+    'ACTIVITY': '%',
+    'NANOSECONDS': 'ns',
+    'JIFFIES': '',
+    'WATTS': 'W',
+}
+
+
+def add_jcarbon_log(df, logs):
+    for (component_type, component_id, unit, source), df in df.groupby(['component_type', 'component_id', 'unit', 'source']):
+        # TODO: this should really not ignore negatives
+        logs[f'{component_type}-{component_id}-{UNITS[unit]}'] = df[df > 0].sum()
+
 
 class JCarbonEpochCallback(Callback):
     def __init__(self, addr='localhost:8980', period_ms=DEFAULT_PERIOD_MS, signals=DEFAULT_SIGNALS):
@@ -76,28 +91,34 @@ class JCarbonChunkingCallback(Callback):
 
     def on_epoch_begin(self, epoch, logs=None):
         self.time = time.time()
-        self.chunks = []
+        self._last_report = None
         self.client.start(self.pid, self.period_ms)
 
     def on_train_batch_end(self, epoch, logs=None):
         curr = time.time()
         if (curr - self.time > self.chunking_period_sec):
             self.client.stop(self.pid)
-            self.chunks.append(to_dataframe(
-                self.client.read(self.pid, self.signals)))
+            report = self.client.read(self.pid, self.signals)
+            if self._last_report is None:
+                self._last_report = to_dataframe(report)
+            self._last_report = pd.concat([
+                self._last_report,
+                to_dataframe(report)
+            ])
+            if logs is not None:
+                add_jcarbon_log(self._last_report, logs)
             self.client.start(self.pid, self.period_ms)
             self.time = curr
-            if logs is not None:
-                for (signal, component, unit), df in self.chunks[-1].groupby(['signal', 'component', 'unit']):
-                    # TODO: this should really not ignore negatives
-                    logs[f'jcarbon-epoch-{signal}-{component}-{unit}'] = df[df > 0].sum()
 
     def on_epoch_end(self, epoch, logs=None):
         self.client.stop(self.pid)
-        self.chunks.append(to_dataframe(
-            self.client.read(self.pid, self.signals)))
-        self.reports.append(pd.concat(self.chunks))
+        report = self.client.read(self.pid, self.signals)
+        if self._last_report is None:
+            self._last_report = to_dataframe(report)
+        self._last_report = pd.concat([
+            self._last_report,
+            to_dataframe(report)
+        ])
         if logs is not None:
-            for (signal, component, unit), df in self.reports[-1].groupby(['signal', 'component', 'unit']):
-                # TODO: this should really not ignore negatives
-                logs[f'jcarbon-epoch-{signal}-{component}-{unit}'] = df[df > 0].sum()
+            add_jcarbon_log(self._last_report, logs)
+        self.reports.append(self._last_report)

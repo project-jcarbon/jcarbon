@@ -14,6 +14,7 @@ java_library(
 
 java_binary(
     name = "server",
+    visibility = ["//service:__pkg__"],
     srcs = ["JCarbonServer.java"],
     main_class = "jcarbon.server.JCarbonServer",
     runtime_deps = ["@io_grpc_grpc_java//netty"],

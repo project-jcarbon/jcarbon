@@ -3,7 +3,7 @@ import os
 
 import pandas as pd
 
-from signal_pb2 import Report
+from jcarbon.signal_pb2 import Report, Signal
 
 
 def normalize_timestamps(timestamps, bucket_size_ms):
@@ -13,95 +13,35 @@ def normalize_timestamps(timestamps, bucket_size_ms):
     # TODO: taken from vesta's source. need to determine how to merge
     return bucket_size_ms * (timestamps // 10**6 // bucket_size_ms)
 
-def to_dataframe(report, signals=None):
-    signals_df = []
-    monotonic_time = None
-    for jcarbon_signal in report.signal:
-        if jcarbon_signal.signal_name == 'jcarbon.server.MonotonicTimestamp':
-            # TODO: for now, i'm always grabbing the monotonic time.
-            monotonic_time = {}
-            for signal in jcarbon_signal.signal:
-                start = 1000000000 * signal.start.secs + signal.start.nanos
-                for data in signal.data:
-                    monotonic_time[start] = data.value
-            monotonic_time = pd.Series(monotonic_time)
-            monotonic_time.index.name = 'timestamp'
-            monotonic_time.name = 'ts'
-        elif signals is None or jcarbon_signal.signal_name in signals:
-            df = []
-            for signal in jcarbon_signal.signal:
-                start = 1000000000 * signal.start.secs + signal.start.nanos
-                end = 1000000000 * signal.end.secs + signal.end.nanos
-                for data in signal.data:
-                    df.append([
-                        jcarbon_signal.signal_name,
-                        start,
-                        end,
-                        signal.component.replace(',', ':'),
-                        signal.unit,
-                        data.component.replace(',', ':'),
-                        data.value,
-                    ])
-            signals_df.append(pd.DataFrame(data=df, columns=[
-                              'signal', 'start', 'end', 'component', 'unit', 'subcomponent', 'value']))
-
-    signals_df = pd.concat(signals_df)
-    diff = (signals_df.end - signals_df.start).min() // 1000
-    signals_df['start_norm'] = normalize_timestamps(signals_df.start, diff)
-    if monotonic_time is not None:
-        monotonic_time.index = normalize_timestamps(monotonic_time.index, diff)
-        signals_df['ts'] = signals_df.start_norm.map(monotonic_time.to_dict())
-    else:
-        signals_df['ts'] = 0
-    signals_df['start'] = pd.to_datetime(signals_df.start, unit='ns')
-    signals_df['end'] = pd.to_datetime(signals_df.end, unit='ns')
-
-    return signals_df.set_index(['signal', 'start', 'end', 'ts', 'component', 'unit', 'subcomponent']).value.sort_index()
 
 def to_dataframe(report, signals=None):
-    signals_df = []
+    signals = []
     monotonic_time = None
-    for jcarbon_signal in report.signal:
-        if jcarbon_signal.signal_name == 'jcarbon.server.MonotonicTimestamp':
-            # TODO: for now, i'm always grabbing the monotonic time.
-            monotonic_time = {}
-            for signal in jcarbon_signal.signal:
-                start = 1000000000 * signal.start.secs + signal.start.nanos
-                for data in signal.data:
-                    monotonic_time[start] = data.value
-            monotonic_time = pd.Series(monotonic_time)
-            monotonic_time.index.name = 'timestamp'
-            monotonic_time.name = 'ts'
-        elif signals is None or jcarbon_signal.signal_name in signals:
-            df = []
-            for signal in jcarbon_signal.signal:
-                start = 1000000000 * signal.start.secs + signal.start.nanos
-                end = 1000000000 * signal.end.secs + signal.end.nanos
-                for data in signal.data:
-                    df.append([
-                        jcarbon_signal.signal_name,
-                        start,
-                        end,
-                        signal.component.replace(',', ':'),
-                        signal.unit,
-                        data.component.replace(',', ':'),
-                        data.value,
-                    ])
-            signals_df.append(pd.DataFrame(data=df, columns=[
-                              'signal', 'start', 'end', 'component', 'unit', 'subcomponent', 'value']))
+    for component in report.component:
+        for signal in component.signal:
+            for interval in signal.interval:
+                l = []
+                start = 1000000000 * interval.start.secs + interval.start.nanos
+                end = 1000000000 * interval.end.secs + interval.end.nanos
+                for data in interval.data:
+                    l.append([component.component_type, component.component_id,
+                              Signal.Unit.DESCRIPTOR.values_by_number[signal.unit].name,
+                              ';'.join(list(signal.source)),
+                              start,
+                              end,
+                              ';'.join(
+                                  [f'{metadata.name}={metadata.value}' for metadata in data.metadata]),
+                              data.value,
+                              ])
+                signals.append(pd.DataFrame(data=l, columns=[
+                    'component_type', 'component_id', 'unit', 'source', 'start', 'end', 'metadata', 'value'
+                ]))
 
-    signals_df = pd.concat(signals_df)
-    diff = (signals_df.end - signals_df.start).min() // 1000
-    signals_df['start_norm'] = normalize_timestamps(signals_df.start, diff)
-    if monotonic_time is not None:
-        monotonic_time.index = normalize_timestamps(monotonic_time.index, diff)
-        signals_df['ts'] = signals_df.start_norm.map(monotonic_time.to_dict())
-    else:
-        signals_df['ts'] = 0
-    signals_df['start'] = pd.to_datetime(signals_df.start, unit='ns')
-    signals_df['end'] = pd.to_datetime(signals_df.end, unit='ns')
+    signals = pd.concat(signals)
+    signals['start'] = pd.to_datetime(signals.start, unit='ns')
+    signals['end'] = pd.to_datetime(signals.end, unit='ns')
 
-    return signals_df.set_index(['signal', 'start', 'end', 'ts', 'component', 'unit', 'subcomponent']).value.sort_index()
+    return signals.set_index(['component_type', 'component_id', 'unit', 'source', 'start', 'end', 'metadata']).value.sort_index()
 
 
 def parse_args():
