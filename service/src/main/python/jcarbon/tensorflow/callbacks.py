@@ -64,23 +64,25 @@ class JCarbonCallback(Callback):
 class JCarbonEpochCallback(JCarbonCallback):
     def __init__(self, addr='localhost:8980', period_ms=DEFAULT_PERIOD_MS, signals=DEFAULT_SIGNALS):
         super(addr, period_ms, signals)
+        self.reports = {}
 
     def on_epoch_begin(self, epoch, logs=None):
         self.start_jcarbon()
 
     def on_epoch_end(self, epoch, logs=None):
-        self.reports.append(self._log_report(logs))
+        self.reports[epoch] = self.log_report(logs)
 
 
 class JCarbonBatchCallback(JCarbonCallback):
     def __init__(self, addr='localhost:8980', period_ms=DEFAULT_PERIOD_MS, signals=DEFAULT_SIGNALS):
         super(addr, period_ms, signals)
+        self.reports = {}
 
     def on_train_batch_begin(self, epoch, logs=None):
         self.start_jcarbon()
 
     def on_train_batch_end(self, epoch, logs=None):
-        self.reports.append(self._log_report(logs))
+        self.reports[epoch] = self.log_report(logs)
 
 
 class JCarbonChunkingCallback(JCarbonCallback):
@@ -91,28 +93,24 @@ class JCarbonChunkingCallback(JCarbonCallback):
             signals=DEFAULT_SIGNALS,
             chunking_period_sec=DEFAULT_PERIOD_SECS):
         super(addr, period_ms, signals)
+        self.reports = {}
         self.chunking_period_sec = chunking_period_sec
 
     def on_epoch_begin(self, epoch, logs=None):
         self.time = time.time()
-        self.last_report = None
+        self.last_report = []
         self.start_jcarbon()
 
     def on_train_batch_end(self, epoch, logs=None):
         curr = time.time()
         if (curr - self.time > self.chunking_period_sec):
-            self.last_report.append(self._log_report())
-            add_jcarbon_log(self.last_report, logs)
+            self.last_report.append(self.log_report())
+            add_jcarbon_log(pd.concat(self.last_report), logs)
             self.time = curr
             self.start_jcarbon()
 
     def on_epoch_end(self, epoch, logs=None):
-        self.last_report.append(self._log_report())
+        self.last_report.append(self.log_report())
+        self.last_report = pd.concat(self.last_report)
         add_jcarbon_log(self.last_report, logs)
-        self.reports.append(self.last_report)
-
-    def add_to_report(self, report=None):
-        if report is None:
-            return report
-        else:
-            return pd.concat([self.last_report, report])
+        self.reports[epoch] = self.last_report
