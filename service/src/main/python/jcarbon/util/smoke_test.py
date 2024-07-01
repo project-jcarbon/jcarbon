@@ -4,13 +4,7 @@ from os import getpid
 from pprint import pprint
 
 from jcarbon.client import JCarbonClient
-
-
-def fib(n):
-    if n == 0 or n == 1:
-        return 1
-    else:
-        return fib(n - 1) + fib(n - 2)
+from jcarbon.util import fib
 
 
 def parse_args():

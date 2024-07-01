@@ -10,13 +10,6 @@ from psutil import pid_exists
 from jcarbon.client import JCarbonClient
 
 
-def fib(n):
-    if n == 0 or n == 1:
-        return 1
-    else:
-        return fib(n - 1) + fib(n - 2)
-
-
 def parse_args():
     """ Parses client-side arguments. """
     parser = ArgumentParser()
