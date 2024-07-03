@@ -46,7 +46,7 @@ DATA_DIR="${PWD}/glue-test-data"
 EPOCHS=1
 BATCH_SIZE=32
 MODEL="small_bert/bert_en_uncased_L-2_H-128_A-2"
-GLUE_TASK="wnli"
+GLUE_TASK="cola"
 
 output_path="${DATA_DIR}/${MODEL//\//@}/${GLUE_TASK}/report.csv"
 python3 ${PWD}/bert_glue_finetune.py \

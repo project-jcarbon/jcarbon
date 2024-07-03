@@ -1,3 +1,5 @@
+import logging
+
 from concurrent import futures
 from multiprocessing import Pipe
 from time import sleep, time
@@ -10,6 +12,13 @@ from jcarbon.nvml.sampler import create_report, NvmlSampler
 
 
 PARENT_PIPE, CHILD_PIPE = Pipe()
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(
+    format="jcarbon-nvml-server (%(asctime)s) [%(name)s]: %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S %p %Z",
+    level=logging.DEBUG,
+)
 
 
 def run_sampler(period):
@@ -32,26 +41,32 @@ class JCarbonNvmlService(JCarbonService):
 
     def Start(self, request, context):
         if not self.is_running:
-            print('starting sampling')
+            logger.info('starting sampling')
             self.is_running = True
             self.sampling_future = self.executor.submit(
                 run_sampler,
                 request.period_millis / 1000.0
             )
+        else:
+            logger.info(
+                'ignoring start sampling request when already sampling')
         return StartResponse()
 
     def Stop(self, request, context):
         if self.is_running:
-            print('stopping sampling')
+            logger.info('stop sampling')
             PARENT_PIPE.send(1)
             self.report = create_report(self.sampling_future.result())
             CHILD_PIPE.recv()
             self.sampling_future = None
             self.is_running = False
+        else:
+            logger.info('ignoring stop sampling request when not sampling')
         return StopResponse()
 
     def Read(self, request, context):
-        print('reading report')
+        logger.info('returning last report')
+        # TODO: ignoring filtering because this should typically be small
         return ReadResponse(report=self.report)
 
 
@@ -59,9 +74,10 @@ def serve():
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     add_JCarbonServiceServicer_to_server(JCarbonNvmlService(), server)
     server.add_insecure_port("localhost:8981")
-    print('starting jcarbon nvml server at localhost:8981')
+    logger.info('starting jcarbon nvml server at localhost:8981')
     server.start()
     server.wait_for_termination()
+    logger.info('terminating...')
 
 
 if __name__ == '__main__':

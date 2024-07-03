@@ -50,7 +50,7 @@ GLUE_TASKS=(
 for model in ${MODELS[@]}; do
     for task in ${GLUE_TASKS[@]}; do
         for i in `seq 0 1 1`; do
-            output_path="${DATA_DIR}/${model//\//@}/${task}/report_${i}.csv"
+            output_path="${DATA_DIR}/${model//\//@}/${task}/report-${i}.csv"
             python3 ${PWD}/bert_glue_finetune.py \
                 --model "${model}" \
                 --task "${task}" \

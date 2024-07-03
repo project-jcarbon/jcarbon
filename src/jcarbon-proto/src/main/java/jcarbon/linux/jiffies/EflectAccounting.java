@@ -36,7 +36,7 @@ public final class EflectAccounting {
     double[] totalActivity = new double[readings.size()];
     // Set this up for the conversation to sockets.
     for (SignalData activity : process.getDataList()) {
-      int cpu = Integer.parseInt(activity.getMetadata(0).getValue());
+      int cpu = Integer.parseInt(activity.getMetadata(1).getValue());
       totalActivity[SOCKETS_MAP[cpu]] += activity.getValue();
     }
     for (SignalData activity : process.getDataList()) {
@@ -45,7 +45,7 @@ public final class EflectAccounting {
         continue;
       }
 
-      int cpu = Integer.parseInt(activity.getMetadata(0).getValue());
+      int cpu = Integer.parseInt(activity.getMetadata(1).getValue());
       int socket = SOCKETS_MAP[cpu];
       // Don't bother if there is no energy.
       if (readings.get(socket).getValue() == 0) {

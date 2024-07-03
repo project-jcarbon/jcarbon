@@ -8,10 +8,12 @@ import tensorflow_datasets as tfds
 import tensorflow_text as text  # A dependency of the preprocessing model
 
 from official.nlp import optimization
-from jcarbon.tensorflow.callbacks import JCarbonChunkingCallback
 
 import pandas as pd
 import tensorflow_addons as tfa
+
+from jcarbon.report import to_dataframe
+from jcarbon.tensorflow.callbacks import JCarbonChunkingCallback, JCarbonChunkingCallback2
 
 bert_model_name = 'small_bert/bert_en_uncased_L-2_H-128_A-2'
 
@@ -287,7 +289,7 @@ def parse_args():
     )
     parser.add_argument(
         '--output_path',
-        default=f'/tmp/report_{os.getpid()}'
+        default=f'/tmp/jcarbon-{os.getpid()}.csv'
     )
     parser.add_argument(
         '--sampling_period_millis',
@@ -297,7 +299,7 @@ def parse_args():
     parser.add_argument(
         '--collection_period_secs',
         type=int,
-        default=5,
+        default=2,
     )
     return parser.parse_args()
 
@@ -412,16 +414,9 @@ def main():
 
     # do the actual training
     print(f'Training model with {tfhub_handle_encoder}')
-    jcarb = JCarbonChunkingCallback(
+    jcarb = JCarbonChunkingCallback2(
         period_ms=args.sampling_period_millis,
         chunking_period_sec=args.collection_period_secs,
-        signals=[
-            'jcarbon.cpu.eflect.ProcessEnergy',
-            'jcarbon.cpu.eflect.ProcessActivity',
-            'jcarbon.emissions.Emissions',
-            'jcarbon.server.MonotonicTimestamp',
-            'jcarbon.nvml.NvmlEstimatedEnergy',
-        ]
     )
 
     classifier_model.fit(
@@ -433,20 +428,10 @@ def main():
         callbacks=jcarb
     )
 
-    reports = []
-    for i, report in enumerate(jcarb.reports):
-        df = report.reset_index()
-        df['epoch'] = i
-        df['signal'] = df.signal.str.split(r'.').str[-1]
-        df['start'] = df.start.astype(int) // 10**6
-        df['end'] = df.end.astype(int) // 10**6
-
-        reports.append(df.set_index(['epoch', 'start', 'end', 'component', 'unit']).value)
-    reports = pd.concat(reports)
-
     if not os.path.exists(os.path.dirname(output_path)):
         os.makedirs(os.path.dirname(output_path))
-    reports.to_csv(output_path)
+    print(f'writing jcarbon report to {output_path}')
+    pd.concat(list(jcarb.reports.values())).to_csv(output_path)
 
 
 if __name__ == '__main__':

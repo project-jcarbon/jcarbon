@@ -8,10 +8,12 @@ import io.grpc.stub.StreamObserver;
 import java.io.OutputStream;
 import java.nio.file.Path;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.logging.Logger;
+import java.util.logging.Level;
 import jcarbon.JCarbon;
 import jcarbon.JCarbonApplicationMonitor;
 import jcarbon.service.DumpRequest;
@@ -27,6 +29,7 @@ import jcarbon.service.StopRequest;
 import jcarbon.service.StopResponse;
 import jcarbon.signal.Component;
 import jcarbon.signal.Report;
+import jcarbon.signal.Signal;
 
 final class JCarbonServerImpl extends JCarbonServiceGrpc.JCarbonServiceImplBase {
   private static final Logger logger = getLogger();
@@ -77,6 +80,7 @@ final class JCarbonServerImpl extends JCarbonServiceGrpc.JCarbonServiceImplBase 
       nvmlClient.ifPresent(client -> client.stop(request));
       Report.Builder reportBuilder = jcarbon.stop().get().toBuilder();
 
+      // TODO: we need the streaming response rpc for this
       if (nvmlClient.isPresent()) {
         Report nvmlReport =
             nvmlClient
@@ -117,11 +121,14 @@ final class JCarbonServerImpl extends JCarbonServiceGrpc.JCarbonServiceImplBase 
     String outputPath = request.getOutputPath();
     logger.info(String.format("dumping jcarbon report for %d at %s", processId, outputPath));
     if (data.containsKey(processId)) {
-      // TODO: need to wire in signal filtering
+      Report report = getReportFromSignals(data.get(processId), request.getSignalsList());
       try (OutputStream writer = newOutputStream(Path.of(outputPath))) {
         data.get(processId).writeTo(writer);
-      } catch (Exception e) {
-        e.printStackTrace();
+      } catch (Exception error) {
+        logger.log(
+            Level.WARNING,
+            String.format("unable to dump jcarbon report for %d to %s", processId, outputPath),
+            error);
       }
       resultObserver.onNext(DumpResponse.getDefaultInstance());
     } else {
@@ -140,8 +147,10 @@ final class JCarbonServerImpl extends JCarbonServiceGrpc.JCarbonServiceImplBase 
     ReadResponse.Builder response = ReadResponse.newBuilder();
     logger.info(String.format("reading jcarbon report for %d", processId));
     if (data.containsKey(processId)) {
-      // TODO: need to wire in signal filtering
-      response.setReport(data.get(processId));
+      Report report = getReportFromSignals(data.get(processId), request.getSignalsList());
+      if (report.getComponentCount() > 0) {
+        response.setReport(report);
+      }
     } else {
       logger.info(
           String.format(
@@ -162,5 +171,32 @@ final class JCarbonServerImpl extends JCarbonServiceGrpc.JCarbonServiceImplBase 
 
     resultObserver.onNext(PurgeResponse.getDefaultInstance());
     resultObserver.onCompleted();
+  }
+
+  private Report getReportFromSignals(Report report, List<String> signals) {
+    if (signals.isEmpty()) {
+      logger.info("returning all components");
+      return report;
+    }
+    Report.Builder newReport = Report.newBuilder();
+    logger.info(String.format("signal query: %s", signals));
+    for (Component component : report.getComponentList()) {
+      Component.Builder comp = Component.newBuilder();
+      if (signals.contains(component.getComponentType())) {
+        for (Signal signal : component.getSignalList()) {
+          if (signals.contains(signal.getUnit().name())) {
+            logger.info(
+                String.format(
+                    "adding component %s's %s signal",
+                    component.getComponentType(), signal.getUnit().name()));
+            comp.addSignal(signal);
+          }
+        }
+      }
+      if (comp.getSignalCount() > 0) {
+        newReport.addComponent(component);
+      }
+    }
+    return newReport.build();
   }
 }

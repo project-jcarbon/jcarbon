@@ -26,7 +26,7 @@ public final class JiffiesAccounting {
     // Set this up to correct for kernel update.
     int[] totalJiffies = new int[sys.getDataCount()];
     for (SignalData task : proc.getDataList()) {
-      int cpu = Integer.parseInt(task.getMetadata(0).getValue());
+      int cpu = Integer.parseInt(task.getMetadata(1).getValue());
       totalJiffies[cpu] += task.getValue();
     }
     for (SignalData task : proc.getDataList()) {
@@ -36,7 +36,7 @@ public final class JiffiesAccounting {
       }
       // Correct for the kernel update by using total jiffies reported by tasks if the cpu
       // reported one is too small (this also catches zero jiffies reported by the cpu).
-      int cpu = Integer.parseInt(task.getMetadata(0).getValue());
+      int cpu = Integer.parseInt(task.getMetadata(1).getValue());
       double cpuJiffies = Math.max(sys.getData(cpu).getValue(), totalJiffies[cpu]);
       double taskActivity = Math.min(1.0, task.getValue() / cpuJiffies);
       tasks.add(task.toBuilder().setValue(taskActivity).build());

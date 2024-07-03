@@ -1,6 +1,7 @@
 import argparse
 import os
 
+import numpy as np
 import pandas as pd
 
 from jcarbon.signal_pb2 import Report, Signal
@@ -16,32 +17,30 @@ def normalize_timestamps(timestamps, bucket_size_ms):
 
 def to_dataframe(report, signals=None):
     signals = []
-    monotonic_time = None
     for component in report.component:
         for signal in component.signal:
             for interval in signal.interval:
-                l = []
                 start = 1000000000 * interval.start.secs + interval.start.nanos
                 end = 1000000000 * interval.end.secs + interval.end.nanos
                 for data in interval.data:
-                    l.append([component.component_type, component.component_id,
-                              Signal.Unit.DESCRIPTOR.values_by_number[signal.unit].name,
-                              ';'.join(list(signal.source)),
-                              start,
-                              end,
-                              ';'.join(
-                                  [f'{metadata.name}={metadata.value}' for metadata in data.metadata]),
-                              data.value,
-                              ])
-                signals.append(pd.DataFrame(data=l, columns=[
-                    'component_type', 'component_id', 'unit', 'source', 'start', 'end', 'metadata', 'value'
-                ]))
+                    signals.append([
+                        component.component_type,
+                        component.component_id,
+                        Signal.Unit.DESCRIPTOR.values_by_number[signal.unit].name,
+                        signal.source[0],
+                        start,
+                        end,
+                        ';'.join(
+                            [f'{metadata.name}={metadata.value}' for metadata in data.metadata]),
+                        data.value,
+                    ])
+    signals = pd.DataFrame(data=signals, columns=[
+                           'component_type', 'component_id', 'unit', 'source', 'start', 'end', 'metadata', 'value'])
+    # TODO: turning these off since it just makes the output bigger
+    # signals['start'] = pd.to_datetime(signals.start, unit='ns')
+    # signals['end'] = pd.to_datetime(signals.end, unit='ns')
 
-    signals = pd.concat(signals)
-    signals['start'] = pd.to_datetime(signals.start, unit='ns')
-    signals['end'] = pd.to_datetime(signals.end, unit='ns')
-
-    return signals.set_index(['component_type', 'component_id', 'unit', 'source', 'start', 'end', 'metadata']).value.sort_index()
+    return signals.set_index(['component_type', 'component_id', 'unit', 'source', 'start', 'metadata', 'end']).value.sort_index()
 
 
 def parse_args():

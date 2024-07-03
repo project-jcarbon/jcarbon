@@ -74,12 +74,12 @@ public final class ProcTask {
               SignalData.newBuilder()
                   .addMetadata(
                       SignalData.Metadata.newBuilder()
-                          .setName("cpu")
-                          .setValue(Integer.toString(task.cpu)))
-                  .addMetadata(
-                      SignalData.Metadata.newBuilder()
                           .setName("task")
                           .setValue(Long.toString(task.taskId)))
+                  .addMetadata(
+                      SignalData.Metadata.newBuilder()
+                          .setName("cpu")
+                          .setValue(Integer.toString(task.cpu)))
                   .setValue(
                       Math.max(0, other.userJiffies - task.userJiffies)
                           + Math.max(0, other.systemJiffies - task.systemJiffies))
