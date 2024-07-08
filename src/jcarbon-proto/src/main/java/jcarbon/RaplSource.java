@@ -20,9 +20,9 @@ final class RaplSource {
   private static final Logger logger = getLogger();
 
   private static final RaplSource RAPL =
-      new RaplSource("/sys/devices/virtual/powercap/intel-rapl", Rapl::sample);
+      new RaplSource("/dev/cpu/<socket>/msr", Rapl::sample);
   private static final RaplSource POWERCAP =
-      new RaplSource("/dev/cpu/<socket>/msr", Powercap::sample);
+      new RaplSource("/sys/devices/virtual/powercap/intel-rapl", Powercap::sample);
   private static final RaplSource FAKE = createFakeSource();
 
   /** Grab the first available energy source. Priority is rapl > powercap > fake */
