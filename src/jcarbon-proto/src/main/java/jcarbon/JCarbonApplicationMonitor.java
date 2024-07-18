@@ -34,18 +34,12 @@ public final class JCarbonApplicationMonitor implements JCarbon {
   private static final String OS_NAME = System.getProperty("os.name", "unknown");
   private static final String PROC_STAT = "/proc/stat";
 
-  private final ScheduledExecutorService executor =
-      Executors.newSingleThreadScheduledExecutor(
-          r -> {
-            Thread t = new Thread(r, "jcarbon-sampling-thread");
-            t.setDaemon(true);
-            return t;
-          });
   // TODO: do we need to wire this back in?
   private final RaplSource raplSource = RaplSource.getRaplSource();
   private final EmissionsConverter converter = LocaleEmissionsConverters.forDefaultLocale();
   private final int periodMillis;
   private final long processId;
+  private final ScheduledExecutorService executor;
 
   private boolean isRunning = false;
   private SamplingFuture<MonotonicTimeSample> monotonicTimeFuture;
@@ -53,9 +47,10 @@ public final class JCarbonApplicationMonitor implements JCarbon {
   private SamplingFuture<SystemSample> systemFuture;
   private SamplingFuture<Optional<?>> raplFuture;
 
-  public JCarbonApplicationMonitor(int periodMillis, long processId) {
+  public JCarbonApplicationMonitor(int periodMillis, long processId, ScheduledExecutorService executor) {
     this.periodMillis = periodMillis;
     this.processId = processId;
+    this.executor = executor;
   }
 
   /** Starts the sampling futures is we aren't already running. */

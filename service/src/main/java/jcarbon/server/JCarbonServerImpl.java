@@ -12,8 +12,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.logging.Logger;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 import jcarbon.JCarbon;
 import jcarbon.JCarbonApplicationMonitor;
 import jcarbon.service.DumpRequest;
@@ -41,7 +41,7 @@ final class JCarbonServerImpl extends JCarbonServiceGrpc.JCarbonServiceImplBase 
   private final ScheduledExecutorService executor =
       Executors.newSingleThreadScheduledExecutor(
           r -> {
-            Thread t = new Thread(r, "jcarbon-monotonic-time-sampling-thread");
+            Thread t = new Thread(r, "jcarbon-sampling-thread");
             t.setDaemon(true);
             return t;
           });
@@ -55,7 +55,8 @@ final class JCarbonServerImpl extends JCarbonServiceGrpc.JCarbonServiceImplBase 
     Long processId = Long.valueOf(request.getProcessId());
     if (!jcarbons.containsKey(processId)) {
       logger.info(String.format("creating jcarbon for %d", processId));
-      JCarbon jcarbon = new JCarbonApplicationMonitor(request.getPeriodMillis(), processId);
+      JCarbon jcarbon =
+          new JCarbonApplicationMonitor(request.getPeriodMillis(), processId, executor);
       jcarbon.start();
       jcarbons.put(processId, jcarbon);
       nvmlClient.ifPresent(client -> client.start(request));
