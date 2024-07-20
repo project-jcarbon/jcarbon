@@ -45,6 +45,7 @@ class JCarbonCallback(Callback):
         self.signals = signals
 
     def start_jcarbon(self):
+        self.client.purge()
         self.client.start(self.pid, self.period_ms)
 
     def stop_jcarbon(self):
