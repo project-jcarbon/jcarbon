@@ -13,7 +13,7 @@ import pandas as pd
 import tensorflow_addons as tfa
 
 from jcarbon.report import to_dataframe
-from jcarbon.tensorflow.callbacks import JCarbonChunkingCallback, JCarbonChunkingCallback2
+from jcarbon.tensorflow.callbacks import JCarbonChunkingCallback, JCarbonChunkingCallback2, JCarbonNvmlCallback, JCarbonChunkingCallback3
 
 bert_model_name = 'small_bert/bert_en_uncased_L-2_H-128_A-2'
 
@@ -414,7 +414,7 @@ def main():
 
     # do the actual training
     print(f'Training model with {tfhub_handle_encoder}')
-    jcarb = JCarbonChunkingCallback2(
+    jcarb = JCarbonChunkingCallback3(
         period_ms=args.sampling_period_millis,
         chunking_period_sec=args.collection_period_secs,
     )
@@ -433,6 +433,10 @@ def main():
     print(f'writing jcarbon report to {output_path}')
     pd.concat(list(jcarb.reports.values())).to_csv(output_path)
 
+    #this is a hack atm, need to fix
+    tokenize = output_path.split('report.csv')
+    timestamps_output = tokenize[0] + 'timestamps.csv'
+    pd.concat(list(jcarb.timestamps.values())).to_csv(timestamps_output, index = False)
 
 if __name__ == '__main__':
     main()
