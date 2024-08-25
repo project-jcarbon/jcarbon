@@ -35,7 +35,6 @@ def add_jcarbon_log(df, logs=None):
             if unit == 'JOULES':
                 logs[f'{component_type}-{UNITS[unit]}'] = df[df > 0].sum()
 
-
 class JCarbonCallback(Callback):
     def __init__(
             self,
@@ -56,63 +55,6 @@ class JCarbonCallback(Callback):
         # return to_dataframe(self.client.read(self.pid, self.signals))
         return self.client.read(self.pid, self.signals)
 
-
-# TODO: these two benchmarks exist for completeness; always use the chunking callback.
-# TODO: we need the streaming response rpc for this
-class JCarbonEpochCallback(JCarbonCallback):
-    def __init__(self, addr='localhost:8980', period_ms=DEFAULT_PERIOD_MS, signals=DEFAULT_SIGNALS):
-        super().__init__(addr, period_ms, signals)
-        self.reports = {}
-
-    def on_epoch_begin(self, epoch, logs=None):
-        self.start_jcarbon()
-
-    def on_epoch_end(self, epoch, logs=None):
-        self.reports[epoch] = to_dataframe(self.stop_jcarbon())
-        add_jcarbon_log(self.reports[epoch], logs)
-
-# TODO: this kills performance due to the GRPC layer
-class JCarbonBatchCallback(JCarbonCallback):
-    def __init__(self, addr='localhost:8980', period_ms=DEFAULT_PERIOD_MS, signals=DEFAULT_SIGNALS):
-        super().__init__(addr, period_ms, signals)
-        self.reports = {}
-
-    def on_train_batch_begin(self, epoch, logs=None):
-        self.start_jcarbon()
-        self.reports[epoch] = []
-
-    def on_train_batch_end(self, epoch, logs=None):
-        self.reports[epoch].append(to_dataframe(self.stop_jcarbon()))
-        add_jcarbon_log(self.reports[epoch], logs)
-
-class NvmlSampleCallback(Callback):
-    def __init__(
-            self,
-            addr='localhost:8980',
-            period_ms=DEFAULT_PERIOD_MS,
-            signals=DEFAULT_SIGNALS,
-            chunking_period_sec=DEFAULT_PERIOD_SECS):
-        self.reports = {}
-        self.sampler = NvmlSampler()
-    
-    def on_epoch_begin(self, epoch, logs = None):
-        self.last_report = None
-        self.sampler.sample()
-    
-    def on_epoch_end(self, epoch, logs = None):
-        self.sampler.sample()
-        if self.last_report is None:
-            self.last_report = [create_report(self.sampler.samples)]
-        else:
-            self.last_report.append(create_report(self.sampler.samples))
-        self.reports[epoch] = pd.concat(list(map(
-            to_dataframe,
-            self.last_report
-        ))).to_frame().assign(
-            epoch=epoch).set_index('epoch', append=True)
-
-
-
 class JCarbonChunkingCallback(JCarbonCallback):
     def __init__(
             self,
@@ -129,7 +71,7 @@ class JCarbonChunkingCallback(JCarbonCallback):
         self.last_report = None
         self.start_jcarbon()
 
-    def on_train_batch_end(self, epoch, logs=None):
+    def on_train_batch_end(self, batch, logs=None):
         curr = time.time()
         if (curr - self.time > self.chunking_period_sec):
             self.time = curr
@@ -194,6 +136,59 @@ class JCarbonExperimentCallback(JCarbonChunkingCallback):
         self.timestamps[epoch] = self.batch_timestamps.assign(
             epoch=epoch)
 
+class NvmlSampleCallback(Callback):
+    def __init__(
+            self,
+            addr='localhost:8980',
+            period_ms=DEFAULT_PERIOD_MS,
+            signals=DEFAULT_SIGNALS,
+            chunking_period_sec=DEFAULT_PERIOD_SECS):
+        self.reports = {}
+        self.sampler = NvmlSampler()
+    
+    def on_epoch_begin(self, epoch, logs = None):
+        self.last_report = None
+        self.sampler.sample()
+    
+    def on_epoch_end(self, epoch, logs = None):
+        self.sampler.sample()
+        if self.last_report is None:
+            self.last_report = [create_report(self.sampler.samples)]
+        else:
+            self.last_report.append(create_report(self.sampler.samples))
+        self.reports[epoch] = pd.concat(list(map(
+            to_dataframe,
+            self.last_report
+        ))).to_frame().assign(
+            epoch=epoch).set_index('epoch', append=True)
+
+# TODO: these two benchmarks exist for completeness; always use the chunking callback.
+# TODO: we need the streaming response rpc for this
+class JCarbonEpochCallback(JCarbonCallback):
+    def __init__(self, addr='localhost:8980', period_ms=DEFAULT_PERIOD_MS, signals=DEFAULT_SIGNALS):
+        super().__init__(addr, period_ms, signals)
+        self.reports = {}
+
+    def on_epoch_begin(self, epoch, logs=None):
+        self.start_jcarbon()
+
+    def on_epoch_end(self, epoch, logs=None):
+        self.reports[epoch] = to_dataframe(self.stop_jcarbon())
+        add_jcarbon_log(self.reports[epoch], logs)
+
+# TODO: this kills performance due to the GRPC layer
+class JCarbonBatchCallback(JCarbonCallback):
+    def __init__(self, addr='localhost:8980', period_ms=DEFAULT_PERIOD_MS, signals=DEFAULT_SIGNALS):
+        super().__init__(addr, period_ms, signals)
+        self.reports = {}
+
+    def on_train_batch_begin(self, epoch, logs=None):
+        self.start_jcarbon()
+        self.reports[epoch] = []
+
+    def on_train_batch_end(self, epoch, logs=None):
+        self.reports[epoch].append(to_dataframe(self.stop_jcarbon()))
+        add_jcarbon_log(self.reports[epoch], logs)
 
 class JCarbonChunkingCallback2(JCarbonCallback):
     def __init__(
@@ -211,7 +206,7 @@ class JCarbonChunkingCallback2(JCarbonCallback):
         self.last_report = None
         self.start_jcarbon()
 
-    def on_train_batch_end(self, epoch, logs=None):
+    def on_train_batch_end(self, batch, logs=None):
         curr = time.time()
         if (curr - self.time > self.chunking_period_sec):
             self.time = curr
@@ -231,7 +226,6 @@ class JCarbonChunkingCallback2(JCarbonCallback):
             self.last_report
         ))).to_frame().assign(
             epoch=epoch).set_index('epoch', append=True)
-
 
 # TODO: we need the streaming response rpc for this
 class JCarbonDumpingEpochCallback(JCarbonCallback):
