@@ -13,7 +13,7 @@ import pandas as pd
 import tensorflow_addons as tfa
 
 from jcarbon.report import to_dataframe
-from jcarbon.tensorflow.callbacks import JCarbonChunkingCallback, JCarbonChunkingCallback2, JCarbonNvmlCallback, JCarbonExperimentCallback
+from jcarbon.tensorflow.callbacks import JCarbonChunkingCallback, JCarbonChunkingCallback2, NvmlSampleCallback, JCarbonExperimentCallback
 
 bert_model_name = 'small_bert/bert_en_uncased_L-2_H-128_A-2'
 
