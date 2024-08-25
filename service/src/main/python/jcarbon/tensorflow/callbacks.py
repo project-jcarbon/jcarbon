@@ -71,7 +71,7 @@ class JCarbonChunkingCallback(JCarbonCallback):
         self.last_report = None
         self.start_jcarbon()
 
-    def on_train_batch_end(self, batch, logs=None):
+    def on_train_batch_end(self, epoch, logs=None):
         curr = time.time()
         if (curr - self.time > self.chunking_period_sec):
             self.time = curr
@@ -206,7 +206,7 @@ class JCarbonChunkingCallback2(JCarbonCallback):
         self.last_report = None
         self.start_jcarbon()
 
-    def on_train_batch_end(self, batch, logs=None):
+    def on_train_batch_end(self, epoch, logs=None):
         curr = time.time()
         if (curr - self.time > self.chunking_period_sec):
             self.time = curr
