@@ -128,6 +128,71 @@ class JCarbonChunkingCallback(JCarbonCallback):
         self.reports[epoch] = self.last_report.to_frame().assign(
             epoch=epoch).set_index('epoch', append=True)
 
+class JCarbonExperimentCallback(JCarbonCallback):
+    def __init__(
+            self,
+            addr='localhost:8980',
+            period_ms=DEFAULT_PERIOD_MS,
+            signals=DEFAULT_SIGNALS,
+            chunking_period_sec=DEFAULT_PERIOD_SECS):
+        super().__init__(addr, period_ms, signals)
+        self.reports = {}
+        self.timestamps = {}
+        self.batch_timestamps = None
+        self.batch_idx = None
+        self.epoch_idx = None
+        self.chunking_period_sec = chunking_period_sec
+
+    def on_epoch_begin(self, epoch, logs=None):
+        self.time = time.time()
+        self.last_report = None
+        self.curr_batch_timestamps = None
+        if self.epoch_idx is None:
+            self.epoch_idx = 1
+        else:
+            self.epoch_idx+=1
+        self.start_jcarbon()
+    
+    def on_train_batch_begin(self, epoch, logs=None):
+        self.batch_start = time.time()
+        if self.batch_idx is None:
+            self.batch_idx = 1
+        else:
+            self.batch_idx+=1
+        
+    def on_train_batch_end(self, epoch, logs=None):
+        curr = time.time()
+        if (curr - self.time > self.chunking_period_sec):
+            self.time = curr
+            if self.last_report is None:
+                self.last_report = [self.stop_jcarbon()]
+            else:
+                self.last_report.append(self.stop_jcarbon())
+            self.start_jcarbon()
+        self.batch_end = int((10**9 * curr))
+        self.batch_start = int((10**9 * self.batch_start))
+        if self.curr_batch_timestamps is None:
+            self.curr_batch_timestamps = [{'epoch': self.epoch_idx, 'batch': self.batch_idx, 'start': self.batch_start, 'end': self.batch_end}]
+        else:
+            self.curr_batch_timestamps.append({'epoch': self.epoch_idx, 'batch': self.batch_idx, 'start': self.batch_start, 'end': self.batch_end})
+
+    def on_epoch_end(self, epoch, logs=None):
+        if self.last_report is None:
+            self.last_report = [self.stop_jcarbon()]
+        else:
+            self.last_report.append(self.stop_jcarbon())
+        self.reports[epoch] = pd.concat(list(map(
+            to_dataframe,
+            self.last_report
+        ))).to_frame().assign(
+            epoch=epoch).set_index('epoch', append=True)
+        if self.batch_timestamps is None:
+            self.batch_timestamps = self.curr_batch_timestamps
+        else:
+            self.batch_timestamps.extend(self.curr_batch_timestamps)
+
+    def on_train_end(self, logs = None):
+        self.timestamps[self.epoch_idx] = pd.DataFrame.from_dict(self.batch_timestamps)
 
 class JCarbonChunkingCallback2(JCarbonCallback):
     def __init__(
@@ -208,11 +273,8 @@ class JCarbonNvmlCallback(JCarbonCallback):
         self.sampler.sample()
         if self.last_report is None:
             self.last_report = [create_report(self.sampler.samples)]
-            print('in none)')
-            print(self.last_report)
         else:
             self.last_report.append(create_report(self.sampler.samples))
-            print(self.last_report)
 
         self.reports[epoch] = pd.concat(list(map(
             to_dataframe,
@@ -220,68 +282,3 @@ class JCarbonNvmlCallback(JCarbonCallback):
         ))).to_frame().assign(
             epoch=epoch).set_index('epoch', append=True)
 
-class JCarbonChunkingCallback3(JCarbonCallback):
-    def __init__(
-            self,
-            addr='localhost:8980',
-            period_ms=DEFAULT_PERIOD_MS,
-            signals=DEFAULT_SIGNALS,
-            chunking_period_sec=DEFAULT_PERIOD_SECS):
-        super().__init__(addr, period_ms, signals)
-        self.reports = {}
-        self.timestamps = {}
-        self.batch_timestamps = None
-        self.batch_idx = None
-        self.epoch_idx = None
-        self.chunking_period_sec = chunking_period_sec
-
-    def on_epoch_begin(self, epoch, logs=None):
-        self.time = time.time()
-        self.last_report = None
-        self.curr_batch_timestamps = None
-        if self.epoch_idx is None:
-            self.epoch_idx = 1
-        else:
-            self.epoch_idx+=1
-        self.start_jcarbon()
-    
-    def on_train_batch_begin(self, epoch, logs=None):
-        self.batch_start = time.time()
-        if self.batch_idx is None:
-            self.batch_idx = 1
-        else:
-            self.batch_idx+=1
-        
-    def on_train_batch_end(self, epoch, logs=None):
-        curr = time.time()
-        if (curr - self.time > self.chunking_period_sec):
-            self.time = curr
-            if self.last_report is None:
-                self.last_report = [self.stop_jcarbon()]
-            else:
-                self.last_report.append(self.stop_jcarbon())
-            self.start_jcarbon()
-        self.batch_end = int((10**9 * curr))
-        self.batch_start = int((10**9 * self.batch_start))
-        if self.curr_batch_timestamps is None:
-            self.curr_batch_timestamps = [{'epoch': self.epoch_idx, 'batch': self.batch_idx, 'start': self.batch_start, 'end': self.batch_end}]
-        else:
-            self.curr_batch_timestamps.append({'epoch': self.epoch_idx, 'batch': self.batch_idx, 'start': self.batch_start, 'end': self.batch_end})
-
-    def on_epoch_end(self, epoch, logs=None):
-        if self.last_report is None:
-            self.last_report = [self.stop_jcarbon()]
-        else:
-            self.last_report.append(self.stop_jcarbon())
-        self.reports[epoch] = pd.concat(list(map(
-            to_dataframe,
-            self.last_report
-        ))).to_frame().assign(
-            epoch=epoch).set_index('epoch', append=True)
-        if self.batch_timestamps is None:
-            self.batch_timestamps = self.curr_batch_timestamps
-        else:
-            self.batch_timestamps.extend(self.curr_batch_timestamps)
-
-    def on_train_end(self, logs = None):
-        self.timestamps[self.epoch_idx] = pd.DataFrame.from_dict(self.batch_timestamps)
