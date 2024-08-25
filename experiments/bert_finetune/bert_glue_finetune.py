@@ -13,7 +13,7 @@ import pandas as pd
 import tensorflow_addons as tfa
 
 from jcarbon.report import to_dataframe
-from jcarbon.tensorflow.callbacks import JCarbonChunkingCallback, JCarbonChunkingCallback2, JCarbonNvmlCallback, JCarbonChunkingCallback3
+from jcarbon.tensorflow.callbacks import JCarbonChunkingCallback, JCarbonChunkingCallback2, JCarbonNvmlCallback, JCarbonExperimentCallback
 
 bert_model_name = 'small_bert/bert_en_uncased_L-2_H-128_A-2'
 
@@ -414,7 +414,7 @@ def main():
 
     # do the actual training
     print(f'Training model with {tfhub_handle_encoder}')
-    jcarb = JCarbonChunkingCallback3(
+    jcarb = JCarbonExperimentCallback(
         period_ms=args.sampling_period_millis,
         chunking_period_sec=args.collection_period_secs,
     )

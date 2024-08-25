@@ -159,8 +159,6 @@ class JCarbonExperimentCallback(JCarbonChunkingCallback):
 
     def on_epoch_end(self, epoch, logs=None):
         super().on_epoch_end(epoch)
-        print('epoch is at epoch end')
-        print(epoch)
         if self.batch_timestamps is None:
             self.batch_timestamps = pd.DataFrame.from_dict(self.curr_batch_timestamps)
         else:
