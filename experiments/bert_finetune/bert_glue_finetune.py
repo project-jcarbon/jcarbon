@@ -433,9 +433,8 @@ def main():
     print(f'writing jcarbon report to {output_path}')
     pd.concat(list(jcarb.reports.values())).to_csv(output_path)
 
-    #this is a hack atm, need to fix
-    tokenize = output_path.split('report.csv')
-    timestamps_output = tokenize[0] + 'timestamps.csv'
+    timestamps_output = os.path.join(os.path.dirname(output_path), 'timestamps.csv')
+    print(f'writing jcarbon batch timestamps report to {timestamps_output}')
     pd.concat(list(jcarb.timestamps.values())).to_csv(timestamps_output, index = False)
 
 if __name__ == '__main__':

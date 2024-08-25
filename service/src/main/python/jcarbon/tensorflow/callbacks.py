@@ -167,17 +167,17 @@ class JCarbonExperimentCallback(JCarbonChunkingCallback):
         self.batch_timestamps = None
 
     def on_epoch_begin(self, epoch, logs=None):
-        super().on_epoch_begin(epoch)
+        super().on_epoch_begin(epoch, logs)
         self.curr_batch_timestamps = None
     
     def on_train_batch_begin(self, batch, logs=None):
         self.batch_start = time.time()
-        super().on_train_batch_begin(batch)
+        super().on_train_batch_begin(batch, logs)
         
         
     def on_train_batch_end(self, batch, logs=None):
         curr = time.time()
-        super().on_train_batch_end(batch)
+        super().on_train_batch_end(batch, logs)
         self.batch_end = int((10**9 * curr))
         self.batch_start = int((10**9 * self.batch_start))
         if self.curr_batch_timestamps is None:
@@ -186,7 +186,7 @@ class JCarbonExperimentCallback(JCarbonChunkingCallback):
             self.curr_batch_timestamps.append({'batch': batch, 'start': self.batch_start, 'end': self.batch_end})
 
     def on_epoch_end(self, epoch, logs=None):
-        super().on_epoch_end(epoch)
+        super().on_epoch_end(epoch, logs)
         if self.batch_timestamps is None:
             self.batch_timestamps = pd.DataFrame.from_dict(self.curr_batch_timestamps)
         else:
