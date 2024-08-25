@@ -1,7 +1,6 @@
 import os
 import time
 import pandas as pd
-import json
 
 from tensorflow.keras.callbacks import Callback
 
@@ -148,7 +147,7 @@ class JCarbonExperimentCallback(JCarbonCallback):
         self.last_report = None
         self.curr_batch_timestamps = None
         if self.epoch_idx is None:
-            self.epoch_idx = 1
+            self.epoch_idx = 0
         else:
             self.epoch_idx+=1
         self.start_jcarbon()
@@ -156,7 +155,7 @@ class JCarbonExperimentCallback(JCarbonCallback):
     def on_train_batch_begin(self, epoch, logs=None):
         self.batch_start = time.time()
         if self.batch_idx is None:
-            self.batch_idx = 1
+            self.batch_idx = 0
         else:
             self.batch_idx+=1
         
@@ -190,6 +189,7 @@ class JCarbonExperimentCallback(JCarbonCallback):
             self.batch_timestamps = self.curr_batch_timestamps
         else:
             self.batch_timestamps.extend(self.curr_batch_timestamps)
+        self.batch_idx = 0
 
     def on_train_end(self, logs = None):
         self.timestamps[self.epoch_idx] = pd.DataFrame.from_dict(self.batch_timestamps)
