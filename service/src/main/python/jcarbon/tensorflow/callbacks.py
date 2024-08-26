@@ -107,7 +107,6 @@ class JCarbonExperimentCallback(JCarbonChunkingCallback):
         super().__init__(addr, period_ms, signals, chunking_period_sec)
         self.timestamps = {}
 
-
     def on_epoch_begin(self, epoch, logs=None):
         super().on_epoch_begin(epoch, logs)
         self.batch_timestamps = []
@@ -115,7 +114,6 @@ class JCarbonExperimentCallback(JCarbonChunkingCallback):
     def on_train_batch_begin(self, batch, logs=None):
         self.batch_start = time.time()
         super().on_train_batch_begin(batch, logs)
-        
         
     def on_train_batch_end(self, batch, logs=None):
         curr = time.time()
@@ -132,21 +130,17 @@ class JCarbonExperimentCallback(JCarbonChunkingCallback):
 class NvmlSamplerCallback(Callback):
     def __init__(self):
         self.reports = {}
-        self.sampler = NvmlSampler()
-    
+        
     def on_epoch_begin(self, epoch, logs = None):
+        self.sampler = NvmlSampler()
         self.sampler.sample()
     
     def on_epoch_end(self, epoch, logs = None):
         self.sampler.sample()
-        # self.reports[epoch] = create_report(self.sampler.samples)
-        # if self.last_report is None:
-        #     self.last_report = [create_report(self.sampler.samples)]
-        # else:
-        #     self.last_report.append(create_report(self.sampler.samples))
+        
         self.reports[epoch] = pd.concat(list(map(
             to_dataframe,
-            create_report(self.sampler.samples)
+            [create_report(self.sampler.samples)]
         ))).to_frame().assign(
             epoch=epoch).set_index('epoch', append=True)
 
