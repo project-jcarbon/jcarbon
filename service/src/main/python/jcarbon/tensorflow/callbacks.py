@@ -104,14 +104,14 @@ class JCarbonExperimentCallback(JCarbonChunkingCallback):
             period_ms=DEFAULT_PERIOD_MS,
             signals=DEFAULT_SIGNALS,
             chunking_period_sec=DEFAULT_PERIOD_SECS):
-        super().__init__(addr, period_ms, signals)
+        super().__init__(addr, period_ms, signals, chunking_period_sec)
         self.timestamps = {}
-        self.batch_timestamps = None
+
 
     def on_epoch_begin(self, epoch, logs=None):
         super().on_epoch_begin(epoch, logs)
-        self.curr_batch_timestamps = None
-    
+        self.batch_timestamps = []
+
     def on_train_batch_begin(self, batch, logs=None):
         self.batch_start = time.time()
         super().on_train_batch_begin(batch, logs)
@@ -120,45 +120,33 @@ class JCarbonExperimentCallback(JCarbonChunkingCallback):
     def on_train_batch_end(self, batch, logs=None):
         curr = time.time()
         super().on_train_batch_end(batch, logs)
-        self.batch_end = int((10**9 * curr))
+        curr = int((10**9 * curr))
         self.batch_start = int((10**9 * self.batch_start))
-        if self.curr_batch_timestamps is None:
-            self.curr_batch_timestamps = [{'batch': batch, 'start': self.batch_start, 'end': self.batch_end}]
-        else:
-            self.curr_batch_timestamps.append({'batch': batch, 'start': self.batch_start, 'end': self.batch_end})
+        self.batch_timestamps.append({'batch': batch, 'start': self.batch_start, 'end': curr})
 
     def on_epoch_end(self, epoch, logs=None):
         super().on_epoch_end(epoch, logs)
-        if self.batch_timestamps is None:
-            self.batch_timestamps = pd.DataFrame.from_dict(self.curr_batch_timestamps)
-        else:
-            self.batch_timestamps = pd.concat([pd.DataFrame.from_dict(self.curr_batch_timestamps)])
-        self.timestamps[epoch] = self.batch_timestamps.assign(
+        self.timestamps[epoch] = pd.DataFrame(data = self.batch_timestamps).assign(
             epoch=epoch)
 
-class NvmlSampleCallback(Callback):
-    def __init__(
-            self,
-            addr='localhost:8980',
-            period_ms=DEFAULT_PERIOD_MS,
-            signals=DEFAULT_SIGNALS,
-            chunking_period_sec=DEFAULT_PERIOD_SECS):
+class NvmlSamplerCallback(Callback):
+    def __init__(self):
         self.reports = {}
         self.sampler = NvmlSampler()
     
     def on_epoch_begin(self, epoch, logs = None):
-        self.last_report = None
         self.sampler.sample()
     
     def on_epoch_end(self, epoch, logs = None):
         self.sampler.sample()
-        if self.last_report is None:
-            self.last_report = [create_report(self.sampler.samples)]
-        else:
-            self.last_report.append(create_report(self.sampler.samples))
+        # self.reports[epoch] = create_report(self.sampler.samples)
+        # if self.last_report is None:
+        #     self.last_report = [create_report(self.sampler.samples)]
+        # else:
+        #     self.last_report.append(create_report(self.sampler.samples))
         self.reports[epoch] = pd.concat(list(map(
             to_dataframe,
-            self.last_report
+            create_report(self.sampler.samples)
         ))).to_frame().assign(
             epoch=epoch).set_index('epoch', append=True)
 
