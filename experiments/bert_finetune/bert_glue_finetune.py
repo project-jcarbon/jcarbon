@@ -414,7 +414,7 @@ def main():
 
     # do the actual training
     print(f'Training model with {tfhub_handle_encoder}')
-    jcarb = NvmlSamplerCallback(
+    jcarb = JCarbonExperimentCallback(
         period_ms=args.sampling_period_millis,
         chunking_period_sec=args.collection_period_secs,
     )

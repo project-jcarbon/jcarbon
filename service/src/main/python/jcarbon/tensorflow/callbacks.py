@@ -14,7 +14,6 @@ DEFAULT_PERIOD_SECS = 2
 DEFAULT_SIGNALS = [
     'nvml',
     'linux_process',
-    'linux_system',
     'JOULES',
     'GRAMS_OF_CO2',
 ]
@@ -118,9 +117,8 @@ class JCarbonExperimentCallback(JCarbonChunkingCallback):
     def on_train_batch_end(self, batch, logs=None):
         curr = time.time()
         super().on_train_batch_end(batch, logs)
-        curr = int((10**9 * curr))
         self.batch_start = int((10**9 * self.batch_start))
-        self.batch_timestamps.append({'batch': batch, 'start': self.batch_start, 'end': curr})
+        self.batch_timestamps.append({'batch': batch, 'start': self.batch_start, 'end': int((10**9 * curr))})
 
     def on_epoch_end(self, epoch, logs=None):
         super().on_epoch_end(epoch, logs)
