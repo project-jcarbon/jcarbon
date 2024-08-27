@@ -129,20 +129,13 @@ class JCarbonExperimentCallback(JCarbonChunkingCallback):
 
 class NvmlSamplerCallback(Callback):
     def __init__(self):
-        self.reports = {}
-        
-    def on_epoch_begin(self, epoch, logs = None):
         self.sampler = NvmlSampler()
+
+    def on_epoch_begin(self, epoch, logs = None):
         self.sampler.sample()
     
     def on_epoch_end(self, epoch, logs = None):
         self.sampler.sample()
-        
-        self.reports[epoch] = pd.concat(list(map(
-            to_dataframe,
-            [create_report(self.sampler.samples)]
-        ))).to_frame().assign(
-            epoch=epoch).set_index('epoch', append=True)
 
 # TODO: these two benchmarks exist for completeness; always use the chunking callback.
 # TODO: we need the streaming response rpc for this
