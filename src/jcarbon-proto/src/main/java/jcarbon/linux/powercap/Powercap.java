@@ -63,7 +63,7 @@ public final class Powercap {
             SignalData.Metadata.newBuilder()
                 .setName("socket")
                 .setValue(Integer.toString(first.socket)))
-        .setValue(diffWithWraparound(first.pkg, second.pkg, first.socket, 0) + diffWithWraparound(second.dram, first.dram, first.socket, 1))
+        .setValue(diffWithWraparound(first.pkg, second.pkg, first.socket, 0) + diffWithWraparound(first.dram, second.dram, first.socket, 1))
         .build();
   }
 
