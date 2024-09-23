@@ -89,6 +89,7 @@ public final class Timestamps {
   // Native methods
   private static final boolean HAS_NATIVE;
 
+  /** Returns a JCarbon proto {@link Timestamp} of the current unixtime with microsecond precision. */
   public static Timestamp now() {
     if (!HAS_NATIVE) {
       return fromInstant(Instant.now());
@@ -99,6 +100,7 @@ public final class Timestamps {
     return Timestamp.newBuilder().setSecs(secs).setNanos(1000 * micros).build();
   }
 
+  /** Returns a java {@link Instant} of the current unixtime with microsecond precision. */
   public static Instant nowAsInstant() {
     if (!HAS_NATIVE) {
       return Instant.now();
@@ -109,6 +111,7 @@ public final class Timestamps {
     return Instant.ofEpochSecond(secs, 1000 * micros);
   }
 
+  /** Returns a JCarbon proto {@link Timestamp} of the current monotonic clock time. */
   public static Timestamp monotonicTime() {
     if (!HAS_NATIVE) {
       return fromInstant(Instant.now());
@@ -119,8 +122,10 @@ public final class Timestamps {
     return Timestamp.newBuilder().setSecs(secs).setNanos(nanos).build();
   }
 
+  /** Returns the unixtime as microseconds. */
   private static native long epochTimeNative();
 
+  /** Returns the monotonic clock time as nanoseconds. */
   private static native long monotonicTimeNative();
 
   private static boolean loadLibrary() {
