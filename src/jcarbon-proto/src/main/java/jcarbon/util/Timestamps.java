@@ -95,8 +95,8 @@ public final class Timestamps {
     }
     long timestamp = epochTimeNative();
     long secs = timestamp / 1000000;
-    long nanos = timestamp - 1000000 * secs;
-    return Timestamp.newBuilder().setSecs(secs).setNanos(nanos).build();
+    long micros = timestamp - 1000000 * secs;
+    return Timestamp.newBuilder().setSecs(secs).setNanos(1000 * micros).build();
   }
 
   public static Instant nowAsInstant() {
@@ -105,8 +105,8 @@ public final class Timestamps {
     }
     long timestamp = epochTimeNative();
     long secs = timestamp / 1000000;
-    long nanos = timestamp - 1000000 * secs;
-    return Instant.ofEpochSecond(secs, nanos);
+    long micros = timestamp - 1000000 * secs;
+    return Instant.ofEpochSecond(secs, 1000 * micros);
   }
 
   public static Timestamp monotonicTime() {
