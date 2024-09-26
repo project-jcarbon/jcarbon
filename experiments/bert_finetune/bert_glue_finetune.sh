@@ -29,6 +29,7 @@ MODELS=(
 )
 
 GLUE_TASKS=(
+    "wnli"
     "cola"
     "sst2"
     "mrpc"

@@ -1,5 +1,7 @@
 #!/bin/bash
 
+EPOCHS=3
+
 DATA_DIR="${PWD}/data"
 
 MODELS=(
@@ -31,6 +33,7 @@ MODELS=(
 )
 
 GLUE_TASKS=(
+    "wnli"
     "cola"
     "sst2"
     "mrpc"
@@ -47,10 +50,11 @@ GLUE_TASKS=(
 for model in ${MODELS[@]}; do
     for task in ${GLUE_TASKS[@]}; do
         for i in `seq 0 1 4`; do
-            output_path="${DATA_DIR}/${model//\//@}/${task}/report-${i}.csv"
+            output_path="${DATA_DIR}/${model//\//@}/${task}/instance-${i}/report-${i}.csv"
             python3 ${PWD}/bert_glue_finetune.py \
                 --model "${model}" \
                 --task "${task}" \
+                --epochs "${EPOCHS}" \
                 --output_path "${output_path}"
         done
     done
