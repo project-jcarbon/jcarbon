@@ -34,6 +34,7 @@ def add_jcarbon_log(df, logs=None):
             if unit == 'JOULES':
                 logs[f'{component_type}-{UNITS[unit]}'] = df[df > 0].sum()
 
+# TODO(https://github.com/project-jcarbon/jcarbon/issues/35#issue-2551253967): Refactor so this can be reused easily
 class JCarbonCallback(Callback):
     def __init__(
             self,
@@ -125,7 +126,6 @@ class JCarbonExperimentCallback(JCarbonChunkingCallback):
         self.timestamps[epoch] = pd.DataFrame(data = self.batch_timestamps).assign(
             epoch=epoch)
             
-# Callback for collecting reports in inference stage. See issue #35: https://github.com/project-jcarbon/jcarbon/issues/35#issue-2551253967.
 class JCarbonPredictCallback(JCarbonCallback):
     def __init__(self, addr='localhost:8980', period_ms=DEFAULT_PERIOD_MS, signals=DEFAULT_SIGNALS,chunking_period_sec=DEFAULT_PERIOD_SECS):
         super().__init__(addr, period_ms, signals)
