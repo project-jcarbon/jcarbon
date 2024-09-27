@@ -43,16 +43,14 @@ GLUE_TASKS=(
     "ax"
 )
 
-DATA_DIR="${PWD}/glue-test-data"
-EPOCHS=2
+DATA_DIR="${PWD}/glue-inference-test-data"
 BATCH_SIZE=32
 MODEL="small_bert/bert_en_uncased_L-2_H-128_A-2"
 GLUE_TASK="wnli"
 
 output_path="${DATA_DIR}/${MODEL//\//@}/${GLUE_TASK}/report.csv"
-python3 ${PWD}/bert_glue_finetune.py \
+python3 ${PWD}/bert_glue_inference.py \
     --model "${MODEL}" \
     --task "${GLUE_TASK}" \
-    --epochs "${EPOCHS}" \
     --batch_size "${BATCH_SIZE}" \
     --output_path "${output_path}"

@@ -1,5 +1,9 @@
 #!/bin/bash
 
+BATCH_SIZE=32
+
+DATA_DIR="${PWD}/experiment-inference-test-data"
+
 MODELS=(
     # "bert_en_uncased_L-12_H-768_A-12"
     "small_bert/bert_en_uncased_L-2_H-128_A-2" # tiny
@@ -43,16 +47,15 @@ GLUE_TASKS=(
     "ax"
 )
 
-DATA_DIR="${PWD}/glue-test-data"
-EPOCHS=2
-BATCH_SIZE=32
-MODEL="small_bert/bert_en_uncased_L-2_H-128_A-2"
-GLUE_TASK="wnli"
-
-output_path="${DATA_DIR}/${MODEL//\//@}/${GLUE_TASK}/report.csv"
-python3 ${PWD}/bert_glue_finetune.py \
-    --model "${MODEL}" \
-    --task "${GLUE_TASK}" \
-    --epochs "${EPOCHS}" \
-    --batch_size "${BATCH_SIZE}" \
-    --output_path "${output_path}"
+for model in ${MODELS[@]}; do
+    for task in ${GLUE_TASKS[@]}; do
+        for i in `seq 0 1 1`; do
+            output_path="${DATA_DIR}/${model//\//@}/${task}/report-${i}.csv"
+            python3 ${PWD}/bert_glue_inference.py \
+                --model "${model}" \
+                --task "${task}" \
+                --batch_size "${BATCH_SIZE}" \
+                --output_path "${output_path}"
+        done
+    done
+done
