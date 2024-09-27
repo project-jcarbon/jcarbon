@@ -412,8 +412,8 @@ def main():
         metrics=metrics
     )
 
-    # do the actual training
-    print(f'Training model with {tfhub_handle_encoder}')
+    # do the actual inference
+    print(f'Running inference with {tfhub_handle_encoder}')
     jcarb = JCarbonPredictCallback(
         period_ms=args.sampling_period_millis,
         chunking_period_sec=args.collection_period_secs
