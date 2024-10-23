@@ -7,6 +7,8 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -23,6 +25,13 @@ public final class JCarbonUtil {
   private static final int DEFAULT_PERIOD_MS = 10;
   private static final String OUTPUT_PATH = System.getProperty("jcarbon.benchmarks.output", "/tmp");
   private static final AtomicInteger counter = new AtomicInteger(0);
+  private static final ScheduledExecutorService executor =
+      Executors.newSingleThreadScheduledExecutor(
+          r -> {
+            Thread t = new Thread(r, "jcarbon-sampling-thread");
+            t.setDaemon(true);
+            return t;
+          });
 
   public static JCarbon createJCarbon() {
     String period = System.getProperty("jcarbon.benchmarks.period", "10");
@@ -31,14 +40,16 @@ public final class JCarbonUtil {
       periodMillis = Integer.parseInt(period);
     } catch (Exception e) {
       logger.log(Level.INFO, String.format("ignoring bad period (%s) for new JCarbon", period), e);
-      return new JCarbonApplicationMonitor(DEFAULT_PERIOD_MS, ProcessHandle.current().pid());
+      return new JCarbonApplicationMonitor(
+          DEFAULT_PERIOD_MS, ProcessHandle.current().pid(), executor);
     }
     if (periodMillis < 0) {
       logger.info(String.format("rejecting negative period (%d) for new JCarbon", periodMillis));
-      return new JCarbonApplicationMonitor(DEFAULT_PERIOD_MS, ProcessHandle.current().pid());
+      return new JCarbonApplicationMonitor(
+          DEFAULT_PERIOD_MS, ProcessHandle.current().pid(), executor);
     }
     logger.info(String.format("creating JCarbon with period of %d milliseconds", periodMillis));
-    return new JCarbonApplicationMonitor(periodMillis, ProcessHandle.current().pid());
+    return new JCarbonApplicationMonitor(periodMillis, ProcessHandle.current().pid(), executor);
   }
 
   public static Path outputPath() {
