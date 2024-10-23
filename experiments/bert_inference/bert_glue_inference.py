@@ -13,7 +13,7 @@ import pandas as pd
 import tensorflow_addons as tfa
 
 from jcarbon.report import to_dataframe
-from jcarbon.tensorflow.callbacks import JCarbonExperimentCallback
+from jcarbon.tensorflow.callbacks import JCarbonPredictCallback
 
 bert_model_name = 'small_bert/bert_en_uncased_L-2_H-128_A-2'
 
@@ -225,7 +225,7 @@ def load_dataset_from_tfds(
     dataset = dataset.cache().prefetch(buffer_size=autotune)
     if is_training:
         dataset = dataset.shuffle(num_examples)
-        dataset = dataset.repeat()
+        # dataset = dataset.repeat()
     dataset = dataset.batch(batch_size)
     dataset = dataset.map(lambda ex: (bert_preprocess_model(ex), ex['label']))
 
@@ -412,19 +412,16 @@ def main():
         metrics=metrics
     )
 
-    # do the actual training
-    print(f'Training model with {tfhub_handle_encoder}')
-    jcarb = JCarbonExperimentCallback(
+    # do the actual inference
+    print(f'Running inference with {tfhub_handle_encoder}')
+    jcarb = JCarbonPredictCallback(
         period_ms=args.sampling_period_millis,
-        chunking_period_sec=args.collection_period_secs,
+        chunking_period_sec=args.collection_period_secs
     )
 
-    classifier_model.fit(
+    classifier_model.predict(
         x=train_ds,
-        validation_data=val_ds,
-        epochs=epochs,
-        steps_per_epoch=steps_per_epoch,
-        validation_steps=val_ds_size,
+        batch_size=batch_size,
         callbacks=jcarb
     )
 
@@ -433,9 +430,6 @@ def main():
     print(f'writing jcarbon report to {output_path}')
     pd.concat(list(jcarb.reports.values())).to_csv(output_path)
 
-    timestamps_output = os.path.join(os.path.dirname(output_path), 'timestamps.csv')
-    print(f'writing jcarbon batch timestamps report to {timestamps_output}')
-    pd.concat(list(jcarb.timestamps.values())).to_csv(timestamps_output, index = False)
 
 if __name__ == '__main__':
     main()
