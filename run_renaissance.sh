@@ -1,3 +1,5 @@
+# Script to reproduce the energy accounting experiments with renaissance
+
 DATA_DIR=data
 mkdir -p "${DATA_DIR}"
 
@@ -10,7 +12,7 @@ run_benchmark() {
     java \
         -Djcarbon.benchmarks.output="${data_dir}" \
         -Djcarbon.emissions.locale="${LOCALE}" \
-        -jar bazel-bin/benchmarks/dacapo_deploy.jar \
+        -jar bazel-bin/benchmarks/src/main/java/jcarbon/benchmarks/renaissance_deploy.jar \
         -r ${ITERATIONS} \
         --plugin "!jcarbon.benchmark.JCarbonPlugin" \
         ${BENCHMARK}

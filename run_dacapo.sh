@@ -1,3 +1,5 @@
+# Script to reproduce the energy accounting experiments with dacapo
+
 DATA_DIR=data
 mkdir -p "${DATA_DIR}"
 
@@ -10,7 +12,7 @@ run_benchmark() {
     java \
         -Djcarbon.benchmarks.output="${data_dir}" \
         -Djcarbon.emissions.locale="${LOCALE}" \
-        -jar bazel-bin/benchmarks/dacapo_deploy.jar \
+        -jar bazel-bin/benchmarks/src/main/java/jcarbon/benchmarks/dacapo_deploy.jar \
         -n ${ITERATIONS} --no-validation \
         -c jcarbon.benchmarks.JCarbonCallback \
         ${BENCHMARK} -s ${SIZE}
@@ -44,7 +46,8 @@ BENCHMARKS=(
     avrora
     batik
     eclipse
-    graphchi
+    # TODO: need to update and setup the new dacapo with the big data
+    # graphchi
     h2
     pmd
     sunflow
