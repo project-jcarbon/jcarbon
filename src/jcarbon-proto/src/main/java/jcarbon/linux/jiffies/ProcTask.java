@@ -3,6 +3,7 @@ package jcarbon.linux.jiffies;
 import static java.util.stream.Collectors.toMap;
 import static jcarbon.util.Timestamps.fromInstant;
 import static jcarbon.util.Timestamps.nowAsInstant;
+import static jcarbon.linux.CpuInfo.getCpuSocketMapping;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -20,6 +21,7 @@ import jcarbon.signal.SignalInterval.SignalData;
  */
 public final class ProcTask {
   private static final long PID = ProcessHandle.current().pid();
+  private static final int[] SOCKETS_MAP = getCpuSocketMapping();
   // task stat indicies
   private static final int STAT_LENGTH = 52;
 
@@ -80,6 +82,10 @@ public final class ProcTask {
                       SignalData.Metadata.newBuilder()
                           .setName("cpu")
                           .setValue(Integer.toString(task.cpu)))
+                  .addMetadata(
+                      SignalData.Metadata.newBuilder()
+                          .setName("socket")
+                          .setValue(Integer.toString(SOCKETS_MAP[task.cpu])))
                   .setValue(
                       Math.max(0, other.userJiffies - task.userJiffies)
                           + Math.max(0, other.systemJiffies - task.systemJiffies))
