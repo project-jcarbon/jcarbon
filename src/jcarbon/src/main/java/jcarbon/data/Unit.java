@@ -6,5 +6,6 @@ public enum Unit {
   JOULES,
   JIFFIES,
   MEGAHERTZ,
-  NANOSECONDS;
+  NANOSECONDS,
+  CELSIUS;
 }

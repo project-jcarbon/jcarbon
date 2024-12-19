@@ -49,6 +49,7 @@ class Signal(_message.Message):
         MEGAHERTZ: _ClassVar[Signal.Unit]
         NANOSECONDS: _ClassVar[Signal.Unit]
         WATTS: _ClassVar[Signal.Unit]
+        CELSIUS: _ClassVar[Signal.Unit]
     UNKNOWN: Signal.Unit
     ACTIVITY: Signal.Unit
     GRAMS_OF_CO2: Signal.Unit
@@ -57,6 +58,7 @@ class Signal(_message.Message):
     MEGAHERTZ: Signal.Unit
     NANOSECONDS: Signal.Unit
     WATTS: Signal.Unit
+    CELSIUS: Signal.Unit
     UNIT_FIELD_NUMBER: _ClassVar[int]
     SOURCE_FIELD_NUMBER: _ClassVar[int]
     INTERVAL_FIELD_NUMBER: _ClassVar[int]
