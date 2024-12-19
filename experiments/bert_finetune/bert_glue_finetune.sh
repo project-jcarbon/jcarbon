@@ -44,7 +44,7 @@ GLUE_TASKS=(
 )
 
 DATA_DIR="${PWD}/glue-test-data"
-EPOCHS=2
+EPOCHS=1
 BATCH_SIZE=32
 MODEL="small_bert/bert_en_uncased_L-2_H-128_A-2"
 GLUE_TASK="wnli"

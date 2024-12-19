@@ -2,9 +2,8 @@ from time import time
 
 from pynvml import nvmlInit, nvmlDeviceGetCount
 from pynvml import nvmlDeviceGetHandleByIndex, nvmlDeviceGetName
-from pynvml import nvmlDeviceGetTotalEnergyConsumption, nvmlDeviceGetPowerUsage
-from pynvml import nvmlDeviceGetTemperature
-from pynvml import NVML_TEMPERATURE_GPU
+from pynvml import nvmlDeviceGetTotalEnergyConsumption, nvmlDeviceGetPowerUsage, nvmlDeviceGetTemperature
+
 
 
 from jcarbon.signal_pb2 import Report, Component, Signal, SignalInterval
