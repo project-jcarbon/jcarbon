@@ -1,8 +1,8 @@
 from time import time
 
 from pynvml import nvmlInit, nvmlDeviceGetCount
-from pynvml import nvmlDeviceGetHandleByIndex, nvmlDeviceGetName
-from pynvml import nvmlDeviceGetTotalEnergyConsumption, nvmlDeviceGetPowerUsage, nvmlDeviceGetTemperature
+from pynvml import nvmlDeviceGetHandleByIndex, nvmlDeviceGetName, NVML_TEMPERATURE_GPU, NVML_TEMPERATURE_COUNT
+from pynvml import nvmlDeviceGetTotalEnergyConsumption, nvmlDeviceGetPowerUsage, nvmlDeviceGetTemperature, nvmlDeviceGetTemperatureThreshold
 
 
 
@@ -19,7 +19,7 @@ def get_timestamp():
 DEFAULT_SIGNALS = [
     'nvmlDeviceGetTotalEnergyConsumption',
     'nvmlDeviceGetPowerUsage',
-    'nvmlDeviceGetTemperature'
+    'nvmlDeviceGetTemperature',
 ]
 
 class NvmlSampler:
@@ -58,12 +58,12 @@ class NvmlSampler:
                         'metadata': {'device': i},
                         'value': nvmlDeviceGetTotalEnergyConsumption(handle) / 1000.0,
                     })
-                elif 'nvmlDeviceGetPowerUsage':
+                elif 'nvmlDeviceGetPowerUsage' in signal:
                     sample['data'].append({
                         'metadata': {'device': i},
                         'value': nvmlDeviceGetPowerUsage(handle) / 1000.0,
                     })
-                elif 'nvmlDeviceGetTemperature':
+                elif 'nvmlDeviceGetTemperature' in signal:
                     sample['data'].append({
                         'metadata': {'device': i},
                         'value': nvmlDeviceGetTemperature(handle, NVML_TEMPERATURE_GPU),
