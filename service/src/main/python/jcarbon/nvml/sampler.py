@@ -1,8 +1,8 @@
 from time import time
 
 from pynvml import nvmlInit, nvmlDeviceGetCount
-from pynvml import nvmlDeviceGetHandleByIndex, nvmlDeviceGetName, NVML_TEMPERATURE_GPU, NVML_TEMPERATURE_COUNT
-from pynvml import nvmlDeviceGetTotalEnergyConsumption, nvmlDeviceGetPowerUsage, nvmlDeviceGetTemperature, nvmlDeviceGetTemperatureThreshold
+from pynvml import nvmlDeviceGetHandleByIndex, nvmlDeviceGetName, NVML_TEMPERATURE_GPU
+from pynvml import nvmlDeviceGetTotalEnergyConsumption, nvmlDeviceGetPowerUsage, nvmlDeviceGetTemperature
 
 
 
