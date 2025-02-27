@@ -27,6 +27,11 @@ import jcarbon.util.LoggerUtil;
 import jcarbon.util.SamplingFuture;
 import jcarbon.util.Timestamps;
 
+
+import jcarbon.linux.temp.Temperature;
+import jcarbon.linux.temp.ThermalZone;
+import jcarbon.linux.temp.ThermalZonesSample;
+
 /** A class to collect and provide jcarbon signals. */
 public final class JCarbonApplicationMonitor implements JCarbon {
   private static final Logger logger = LoggerUtil.getLogger();
@@ -46,6 +51,8 @@ public final class JCarbonApplicationMonitor implements JCarbon {
   private SamplingFuture<ProcessSample> processFuture;
   private SamplingFuture<SystemSample> systemFuture;
   private SamplingFuture<Optional<?>> raplFuture;
+
+  private SamplingFuture<ThermalZonesSample> systemTemperatureFuture;
 
   public JCarbonApplicationMonitor(int periodMillis, long processId, ScheduledExecutorService executor) {
     this.periodMillis = periodMillis;
@@ -70,6 +77,8 @@ public final class JCarbonApplicationMonitor implements JCarbon {
             SamplingFuture.fixedPeriodMillis(ProcStat::sampleCpus, periodMillis, executor);
         raplFuture =
             SamplingFuture.fixedPeriodMillis(raplSource.source::get, periodMillis, executor);
+        systemTemperatureFuture =
+            SamplingFuture.fixedPeriodMillis(Temperature::sampleTemps, periodMillis, executor);
         isRunning = true;
       }
     }
@@ -132,7 +141,16 @@ public final class JCarbonApplicationMonitor implements JCarbon {
                 Signal.Unit.JIFFIES,
                 PROC_STAT);
         systemJiffies.ifPresent(systemComponent::addSignal);
+
+        logger.info("creating cpu temperature signal");
+        createPhysicalSignal(
+                forwardApply(
+                    systemTemperatureFuture.get(), ThermalZonesSample::thermalZoneDifference),
+                Signal.Unit.CELSIUS,
+                "/sys/class/thermal")
+            .ifPresent(systemComponent::addSignal);
         monotonicTimeFuture = null;
+        systemTemperatureFuture = null;
         processFuture = null;
         systemFuture = null;
         raplFuture = null;

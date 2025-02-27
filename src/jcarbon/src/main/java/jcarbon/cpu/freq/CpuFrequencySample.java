@@ -1,4 +1,4 @@
-package jcarbon.cpu.freq;
+package jcarbon.linux.freq;
 
 import java.time.Instant;
 import java.util.ArrayList;

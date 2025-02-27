@@ -75,7 +75,7 @@ public final class Dvfs {
       int observedFrequency = getObservedFrequency(cpu);
       readings[cpu] = new CpuFrequency(cpu, governor, observedFrequency, getFrequency(cpu));
     }
-    return new CpuFrequencySample(timestamp, readings);
+    return new CpuFrequencySample(timestamp, Arrays.asList(readings));
   }
 
   /** Sets the expected frequency of a cpu in KHz. */

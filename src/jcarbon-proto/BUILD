@@ -22,6 +22,24 @@ java_binary(
     runtime_deps = [":jcarbon"],
 )
 
+java_binary(
+    name = "cputemp_monitor",
+    main_class = "jcarbon.linux.temp.TemperatureMonitor",
+    runtime_deps = [":jcarbon"],
+)
+
+java_binary(
+    name = "cpu_temp",
+    main_class = "jcarbon.linux.temp.Temperature",
+    runtime_deps = [":jcarbon"],
+)
+
+java_binary(
+    name = "test",
+    main_class = "jcarbon.linux.jiffies.SystemSample",
+    runtime_deps = [":jcarbon"],
+)
+
 alias(
     name = "emissions_data",
     actual = "//src/main/resources/emissions/WorldIntensity.csv",
