@@ -1,8 +1,9 @@
 from time import time
 
 from pynvml import nvmlInit, nvmlDeviceGetCount
-from pynvml import nvmlDeviceGetHandleByIndex, nvmlDeviceGetName
-from pynvml import nvmlDeviceGetTotalEnergyConsumption, nvmlDeviceGetPowerUsage
+from pynvml import nvmlDeviceGetHandleByIndex, nvmlDeviceGetName, NVML_TEMPERATURE_GPU
+from pynvml import nvmlDeviceGetTotalEnergyConsumption, nvmlDeviceGetPowerUsage, nvmlDeviceGetTemperature
+
 
 
 from jcarbon.signal_pb2 import Report, Component, Signal, SignalInterval
@@ -17,9 +18,9 @@ def get_timestamp():
 
 DEFAULT_SIGNALS = [
     'nvmlDeviceGetTotalEnergyConsumption',
-    'nvmlDeviceGetPowerUsage'
+    'nvmlDeviceGetPowerUsage',
+    'nvmlDeviceGetTemperature',
 ]
-
 
 class NvmlSampler:
     def __init__(self, signals=DEFAULT_SIGNALS):
@@ -57,10 +58,15 @@ class NvmlSampler:
                         'metadata': {'device': i},
                         'value': nvmlDeviceGetTotalEnergyConsumption(handle) / 1000.0,
                     })
-                elif 'nvmlDeviceGetPowerUsage':
+                elif 'nvmlDeviceGetPowerUsage' in signal:
                     sample['data'].append({
                         'metadata': {'device': i},
                         'value': nvmlDeviceGetPowerUsage(handle) / 1000.0,
+                    })
+                elif 'nvmlDeviceGetTemperature' in signal:
+                    sample['data'].append({
+                        'metadata': {'device': i},
+                        'value': nvmlDeviceGetTemperature(handle, NVML_TEMPERATURE_GPU),
                     })
             self.samples[signal].append(sample)
 
@@ -77,6 +83,22 @@ def create_report(samples):
                 signal.interval.append(sample_difference(first, second))
         elif 'nvmlDeviceGetPowerUsage' in signal_name:
             signal.unit = Signal.Unit.WATTS
+            for first, second in zip(samples[signal_name], samples[signal_name][1:]):
+                interval = create_interval_with_timestamp(first, second)
+
+                for d in first['data']:
+                    data = SignalInterval.SignalData()
+                    for meta in d['metadata']:
+                        metadata = SignalInterval.SignalData.Metadata()
+                        metadata.name = meta
+                        metadata.value = str(d['metadata'][meta])
+                        data.metadata.append(metadata)
+                    data.value = d['value']
+                    interval.data.append(data)
+
+                signal.interval.append(interval)
+        elif 'nvmlDeviceGetTemperature' in signal_name:
+            signal.unit = Signal.Unit.CELSIUS
             for first, second in zip(samples[signal_name], samples[signal_name][1:]):
                 interval = create_interval_with_timestamp(first, second)
 
@@ -126,3 +148,4 @@ def create_interval_with_timestamp(first, second):
     interval.end.nanos = second['timestamp']['nanos']
 
     return interval
+

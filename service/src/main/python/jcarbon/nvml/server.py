@@ -6,7 +6,7 @@ from time import sleep, time
 
 import grpc
 
-from jcarbon.jcarbon_service_pb2 import ReadResponse, StartResponse, StopResponse
+from jcarbon.jcarbon_service_pb2 import ReadResponse, StartResponse, StopResponse, PurgeResponse
 from jcarbon.jcarbon_service_pb2_grpc import JCarbonService, add_JCarbonServiceServicer_to_server
 from jcarbon.nvml.sampler import create_report, NvmlSampler
 
@@ -68,6 +68,10 @@ class JCarbonNvmlService(JCarbonService):
         logger.info('returning last report')
         # TODO: ignoring filtering because this should typically be small
         return ReadResponse(report=self.report)
+
+    def Purge(self, request, context):
+        logger.info('purging previous data')
+        return PurgeResponse()
 
 
 def serve():
