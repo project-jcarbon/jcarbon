@@ -1,6 +1,6 @@
-package jcarbon.linux.freq;
+package jcarbon.cpu.freq;
 
-import jcarbon.linux.LinuxComponents;
+import jcarbon.cpu.LinuxComponents;
 import jcarbon.data.Data;
 
 /** A reading from a rapl energy system. */

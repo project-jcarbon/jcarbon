@@ -2,11 +2,13 @@ package jcarbon.linux.temp;
 
 import static jcarbon.util.LoggerUtil.getLogger;
 import static java.util.stream.Collectors.toMap;
+import static jcarbon.util.Timestamps.fromInstant;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.ArrayList;
 import java.time.Instant;
 import java.util.Optional;
@@ -15,11 +17,15 @@ import java.util.stream.Collectors;
 
 import java.util.logging.Logger;
 
+import jcarbon.signal.SignalInterval;
+import jcarbon.signal.SignalInterval.SignalData;
+import jcarbon.signal.SignalInterval.Timestamp;
+
 /**
  * A simple (unsafe) wrapper for reading the thermal sysfs system. Consult
  * https://www.kernel.org/doc/Documentation/thermal/sysfs-api.txt for more details.
  */
-public final class Temperature {
+public final class SysThermal {
     private static final Logger logger = getLogger();
 
     private static final Path SYS_THERMAL = 
@@ -43,7 +49,7 @@ public final class Temperature {
       }
     }
 
-    public static Map<Integer, String> getZones(){
+    private static Map<Integer, String> getZones(){
       if (!Files.exists(SYS_THERMAL)) {
         logger.warning("couldn't check the thermal zones; thermal sysfs likely not available");
         return Map.of();
@@ -58,7 +64,8 @@ public final class Temperature {
                   try{
                     return Files.readString(p.resolve("type")).toString().trim();
                   } catch(IOException e){
-                    throw new IllegalStateException(String.format("Unable to read %s", p), e);
+                    logger.warning("couldn't read from /sys/class/thermal; thermal sysfs likely not available");
+                    return "";
                   }
               } 
             ));
@@ -111,6 +118,39 @@ public final class Temperature {
             new ThermalZone(zone, ZONES.get(zone), getTemperature(zone)));
       }
       return new ThermalZonesSample(timestamp, readings);
-  }
+    }
 
+    public static SignalInterval thermalZoneDifference(
+        ThermalZonesSample first, ThermalZonesSample second) {
+      return SignalInterval.newBuilder()
+          .setStart(fromInstant(first.timestamp()))
+          .setEnd(fromInstant(second.timestamp()))
+          .addAllData(difference(first.data(), second.data()))
+          .build();
+    }
+
+    public static List<SignalData> difference(List<ThermalZone> first, List<ThermalZone> second) {
+      Map<Integer, ThermalZone> secondMap = second.stream().collect(toMap(r -> r.zone, r -> r));
+      ArrayList<SignalData> temperatures = new ArrayList<>();
+      for (ThermalZone task : first) {
+        if (secondMap.containsKey(task.zone)) {
+          ThermalZone other = secondMap.get(task.zone);
+          temperatures.add(
+              SignalData.newBuilder()
+                  .addMetadata(
+                      SignalData.Metadata.newBuilder()
+                          .setName("zone")
+                          .setValue(Integer.toString(task.zone)))
+                  .addMetadata(
+                      SignalData.Metadata.newBuilder()
+                          .setName("type")
+                          .setValue(task.type))
+                  .setValue(other.temperature / 1000)
+                  .build());
+        }
+      }
+      return temperatures;
+    }
+    
+    private SysThermal(){}
 }

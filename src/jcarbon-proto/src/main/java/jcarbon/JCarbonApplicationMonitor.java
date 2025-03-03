@@ -17,6 +17,8 @@ import jcarbon.linux.jiffies.ProcStat;
 import jcarbon.linux.jiffies.ProcTask;
 import jcarbon.linux.jiffies.ProcessSample;
 import jcarbon.linux.jiffies.SystemSample;
+import jcarbon.linux.temp.SysThermal;
+import jcarbon.linux.temp.ThermalZonesSample;
 import jcarbon.signal.Component;
 import jcarbon.signal.Report;
 import jcarbon.signal.Signal;
@@ -26,11 +28,6 @@ import jcarbon.signal.SignalInterval.Timestamp;
 import jcarbon.util.LoggerUtil;
 import jcarbon.util.SamplingFuture;
 import jcarbon.util.Timestamps;
-
-
-import jcarbon.linux.temp.Temperature;
-import jcarbon.linux.temp.ThermalZone;
-import jcarbon.linux.temp.ThermalZonesSample;
 
 /** A class to collect and provide jcarbon signals. */
 public final class JCarbonApplicationMonitor implements JCarbon {
@@ -78,7 +75,7 @@ public final class JCarbonApplicationMonitor implements JCarbon {
         raplFuture =
             SamplingFuture.fixedPeriodMillis(raplSource.source::get, periodMillis, executor);
         systemTemperatureFuture =
-            SamplingFuture.fixedPeriodMillis(Temperature::sampleTemps, periodMillis, executor);
+            SamplingFuture.fixedPeriodMillis(SysThermal::sampleTemps, periodMillis, executor);
         isRunning = true;
       }
     }
@@ -145,7 +142,7 @@ public final class JCarbonApplicationMonitor implements JCarbon {
         logger.info("creating cpu temperature signal");
         createPhysicalSignal(
                 forwardApply(
-                    systemTemperatureFuture.get(), ThermalZonesSample::thermalZoneDifference),
+                    systemTemperatureFuture.get(), SysThermal::thermalZoneDifference),
                 Signal.Unit.CELSIUS,
                 "/sys/class/thermal")
             .ifPresent(systemComponent::addSignal);

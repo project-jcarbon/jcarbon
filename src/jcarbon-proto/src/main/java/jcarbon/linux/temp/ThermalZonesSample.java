@@ -1,9 +1,5 @@
 package jcarbon.linux.temp;
 
-import static java.util.stream.Collectors.toMap;
-import static jcarbon.util.Timestamps.fromInstant;
-import static jcarbon.util.Timestamps.nowAsInstant;
-
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -11,11 +7,6 @@ import java.util.Map;
 import jcarbon.cpu.LinuxComponents;
 import jcarbon.data.Sample;
 import jcarbon.data.Unit;
-
-import jcarbon.signal.SignalInterval;
-import jcarbon.signal.SignalInterval.SignalData;
-import jcarbon.signal.SignalInterval.Timestamp;
-
 
 /** A sample from the thermal sysfs system that represents the current temperatures ordered by zone id. */
 public final class ThermalZonesSample
@@ -58,35 +49,4 @@ public final class ThermalZonesSample
     return timestamp().compareTo(other.timestamp());
   }
 
-  public static SignalInterval thermalZoneDifference(
-      ThermalZonesSample first, ThermalZonesSample second) {
-    return SignalInterval.newBuilder()
-        .setStart(fromInstant(first.timestamp()))
-        .setEnd(fromInstant(second.timestamp()))
-        .addAllData(difference(first.data(), second.data()))
-        .build();
-  }
-
-  public static List<SignalData> difference(List<ThermalZone> first, List<ThermalZone> second) {
-    Map<Integer, ThermalZone> secondMap = second.stream().collect(toMap(r -> r.zone, r -> r));
-    ArrayList<SignalData> temperatures = new ArrayList<>();
-    for (ThermalZone task : first) {
-      if (secondMap.containsKey(task.zone)) {
-        ThermalZone other = secondMap.get(task.zone);
-        temperatures.add(
-            SignalData.newBuilder()
-                .addMetadata(
-                    SignalData.Metadata.newBuilder()
-                        .setName("zone")
-                        .setValue(Integer.toString(task.zone)))
-                .addMetadata(
-                    SignalData.Metadata.newBuilder()
-                        .setName("type")
-                        .setValue(task.type))
-                .setValue(other.temperature / 1000)
-                .build());
-      }
-    }
-    return temperatures;
-  }
 }

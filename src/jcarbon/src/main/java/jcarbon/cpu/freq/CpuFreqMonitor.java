@@ -1,4 +1,4 @@
-package jcarbon.linux.freq;
+package jcarbon.cpu.freq;
 
 import static jcarbon.util.LoggerUtil.getLogger;
 

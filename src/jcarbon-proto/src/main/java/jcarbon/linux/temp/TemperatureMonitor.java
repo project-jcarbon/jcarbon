@@ -11,7 +11,7 @@ final class TemperatureMonitor {
   public static void main(String[] args) throws Exception {
     while (true) {
       Thread.sleep(10);
-      logger.info(String.format("%s", Temperature.sample().get()));
+      logger.info(String.format("%s", SysThermal.sample().get()));
     }
   }
 }

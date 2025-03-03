@@ -1,4 +1,4 @@
-package jcarbon.linux.freq;
+package jcarbon.cpu.freq;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
