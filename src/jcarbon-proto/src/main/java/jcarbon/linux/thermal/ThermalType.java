@@ -1,4 +1,4 @@
-package jcarbon.linux.temp;
+package jcarbon.linux.thermal;
 
 public enum ThermalType{
     PCH,

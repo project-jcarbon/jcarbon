@@ -1,4 +1,4 @@
-package jcarbon.linux.temp;
+package jcarbon.linux.thermal;
 
 // import jcarbon.cpu.LinuxComponents;
 import jcarbon.data.Data;

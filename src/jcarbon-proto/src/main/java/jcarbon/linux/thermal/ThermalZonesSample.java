@@ -1,4 +1,4 @@
-package jcarbon.linux.temp;
+package jcarbon.linux.thermal;
 
 import java.time.Instant;
 import java.util.ArrayList;

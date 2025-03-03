@@ -17,8 +17,8 @@ import jcarbon.linux.jiffies.ProcStat;
 import jcarbon.linux.jiffies.ProcTask;
 import jcarbon.linux.jiffies.ProcessSample;
 import jcarbon.linux.jiffies.SystemSample;
-import jcarbon.linux.temp.SysThermal;
-import jcarbon.linux.temp.ThermalZonesSample;
+import jcarbon.linux.thermal.SysThermal;
+import jcarbon.linux.thermal.ThermalZonesSample;
 import jcarbon.signal.Component;
 import jcarbon.signal.Report;
 import jcarbon.signal.Signal;
@@ -48,7 +48,6 @@ public final class JCarbonApplicationMonitor implements JCarbon {
   private SamplingFuture<ProcessSample> processFuture;
   private SamplingFuture<SystemSample> systemFuture;
   private SamplingFuture<Optional<?>> raplFuture;
-
   private SamplingFuture<ThermalZonesSample> systemTemperatureFuture;
 
   public JCarbonApplicationMonitor(int periodMillis, long processId, ScheduledExecutorService executor) {

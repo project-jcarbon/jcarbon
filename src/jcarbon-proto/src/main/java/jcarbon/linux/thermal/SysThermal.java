@@ -1,4 +1,4 @@
-package jcarbon.linux.temp;
+package jcarbon.linux.thermal;
 
 import static jcarbon.util.LoggerUtil.getLogger;
 import static java.util.stream.Collectors.toMap;
@@ -151,6 +151,6 @@ public final class SysThermal {
       }
       return temperatures;
     }
-    
+
     private SysThermal(){}
 }

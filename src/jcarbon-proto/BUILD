@@ -23,20 +23,8 @@ java_binary(
 )
 
 java_binary(
-    name = "cputemp_monitor",
-    main_class = "jcarbon.linux.temp.TemperatureMonitor",
-    runtime_deps = [":jcarbon"],
-)
-
-java_binary(
-    name = "cpu_temp",
-    main_class = "jcarbon.linux.temp.Temperature",
-    runtime_deps = [":jcarbon"],
-)
-
-java_binary(
-    name = "test",
-    main_class = "jcarbon.linux.jiffies.SystemSample",
+    name = "systemp_monitor",
+    main_class = "jcarbon.linux.thermal.TemperatureMonitor",
     runtime_deps = [":jcarbon"],
 )
 

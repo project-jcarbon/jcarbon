@@ -1,5 +1,5 @@
 java_library(
-    name = "temp",
+    name = "thermal",
     visibility = ["//visibility:public"],
     srcs = glob(["*.java"]),
     deps = [
