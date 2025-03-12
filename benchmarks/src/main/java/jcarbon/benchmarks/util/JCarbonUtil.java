@@ -56,7 +56,7 @@ public final class JCarbonUtil {
     return Path.of(
         OUTPUT_PATH,
         String.format(
-            "jcarbon-%d-%d.json", ProcessHandle.current().pid(), counter.getAndIncrement()));
+            "jcarbon-%d-%d.pb", ProcessHandle.current().pid(), counter.getAndIncrement()));
   }
 
   public static void summary(Report report) {

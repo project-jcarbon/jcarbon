@@ -22,6 +22,12 @@ java_binary(
     runtime_deps = [":jcarbon"],
 )
 
+java_binary(
+    name = "systemp_monitor",
+    main_class = "jcarbon.linux.thermal.TemperatureMonitor",
+    runtime_deps = [":jcarbon"],
+)
+
 alias(
     name = "emissions_data",
     actual = "//src/main/resources/emissions/WorldIntensity.csv",
