@@ -82,7 +82,7 @@ public final class SysThermal {
                       SignalData.Metadata.newBuilder()
                           .setName("type")
                           .setValue(task.type))
-                  .setValue(other.temperature / 1000)
+                  .setValue(other.temperature)
                   .build());
         }
       }
@@ -138,7 +138,7 @@ public final class SysThermal {
       if (counter.isBlank()) {
         return 0;
       }
-      return Integer.parseInt(counter);
+      return Integer.parseInt(counter) / 1000;
     }
 
     private static synchronized String readFromComponent(int cpu, String component) {
