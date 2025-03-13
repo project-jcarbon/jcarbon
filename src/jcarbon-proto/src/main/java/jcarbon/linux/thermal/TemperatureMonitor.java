@@ -4,7 +4,7 @@ import static jcarbon.util.LoggerUtil.getLogger;
 
 import java.util.logging.Logger;
 
-/** Very simple energy monitor that reports energy consumption over 10 millisecond intervals. */
+/** Very simple temperature monitor that reports system temperature over 10 millisecond intervals. */
 final class TemperatureMonitor {
   private static final Logger logger = getLogger();
 
