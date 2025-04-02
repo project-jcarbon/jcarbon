@@ -68,7 +68,7 @@ final class RaplSource {
   }
 
   private static SignalInterval readingDifference(FakeRaplReading first, FakeRaplReading second) {
-    if (Timestamps.isAfter(first.timestamp, second.timestamp)) {
+    if (!Timestamps.isBefore(first.timestamp, second.timestamp)) {
       throw new IllegalArgumentException(
           String.format(
               "first sample is not before second sample (%s !< %s)",
@@ -77,7 +77,10 @@ final class RaplSource {
     return SignalInterval.newBuilder()
         .setStart(first.timestamp)
         .setEnd(second.timestamp)
-        .addData(SignalData.newBuilder().setValue(second.value - first.value))
+        .addData(
+            SignalData.newBuilder()
+                .addMetadata(SignalData.Metadata.newBuilder().setName("socket").setValue("0"))
+                .setValue(second.value - first.value))
         .build();
   }
 
