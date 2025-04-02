@@ -6,11 +6,12 @@ import static jcarbon.util.DataOperations.forwardPartialAlign;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.logging.Logger;
 import jcarbon.emissions.EmissionsConverter;
 import jcarbon.emissions.LocaleEmissionsConverters;
+import jcarbon.linux.freq.CpuFreq;
+import jcarbon.linux.freq.CpuFrequencySample;
 import jcarbon.linux.jiffies.EflectAccounting;
 import jcarbon.linux.jiffies.JiffiesAccounting;
 import jcarbon.linux.jiffies.ProcStat;
@@ -49,8 +50,10 @@ public final class JCarbonApplicationMonitor implements JCarbon {
   private SamplingFuture<SystemSample> systemFuture;
   private SamplingFuture<Optional<?>> raplFuture;
   private SamplingFuture<ThermalZonesSample> systemTemperatureFuture;
+  private SamplingFuture<CpuFrequencySample> frequencyFuture;
 
-  public JCarbonApplicationMonitor(int periodMillis, long processId, ScheduledExecutorService executor) {
+  public JCarbonApplicationMonitor(
+      int periodMillis, long processId, ScheduledExecutorService executor) {
     this.periodMillis = periodMillis;
     this.processId = processId;
     this.executor = executor;
@@ -74,7 +77,8 @@ public final class JCarbonApplicationMonitor implements JCarbon {
         raplFuture =
             SamplingFuture.fixedPeriodMillis(raplSource.source::get, periodMillis, executor);
         systemTemperatureFuture =
-            SamplingFuture.fixedPeriodMillis(SysThermal::sampleTemps, periodMillis, executor);
+            SamplingFuture.fixedPeriodMillis(SysThermal::sample, periodMillis, executor);
+        frequencyFuture = SamplingFuture.fixedPeriodMillis(CpuFreq::sample, periodMillis, executor);
         isRunning = true;
       }
     }
@@ -140,16 +144,23 @@ public final class JCarbonApplicationMonitor implements JCarbon {
 
         logger.info("creating cpu temperature signal");
         createPhysicalSignal(
-                forwardApply(
-                    systemTemperatureFuture.get(), SysThermal::thermalZoneDifference),
+                forwardApply(systemTemperatureFuture.get(), SysThermal::difference),
                 Signal.Unit.CELSIUS,
                 "/sys/class/thermal")
+            .ifPresent(systemComponent::addSignal);
+
+        logger.info("creating cpu frequency signal");
+        createPhysicalSignal(
+                forwardApply(frequencyFuture.get(), CpuFreq::difference),
+                Signal.Unit.HERTZ,
+                "/sys/devices/system/cpu/cpu/freq")
             .ifPresent(systemComponent::addSignal);
         monotonicTimeFuture = null;
         systemTemperatureFuture = null;
         processFuture = null;
         systemFuture = null;
         raplFuture = null;
+        frequencyFuture = null;
 
         // virtual signals
         if (raplEnergy.isEmpty()) {

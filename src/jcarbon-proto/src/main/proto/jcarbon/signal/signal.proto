@@ -41,7 +41,7 @@ message Signal {
     GRAMS_OF_CO2 = 2;
     JOULES = 3;
     JIFFIES = 4;
-    MEGAHERTZ = 5;
+    HERTZ = 5;
     NANOSECONDS = 6;
     WATTS = 7;
     CELSIUS = 8;

@@ -53,12 +53,25 @@ public final class EflectAccounting {
       }
 
       // Attribute a fraction of the total energy to the task based on its activity on the socket.
-      double taskEnergy =
-          readings.get(socket).getValue()
-              * intervalFraction
-              * activity.getValue()
-              / totalActivity[socket];
-      tasks.add(activity.toBuilder().setValue(taskEnergy).build());
+      tasks.add(
+          activity.toBuilder()
+              .addMetadata(
+                  SignalData.Metadata.newBuilder().setName("component").setValue("package"))
+              .setValue(
+                  readings.get(2 * socket).getValue()
+                      * intervalFraction
+                      * activity.getValue()
+                      / totalActivity[socket])
+              .build());
+      tasks.add(
+          activity.toBuilder()
+              .addMetadata(SignalData.Metadata.newBuilder().setName("component").setValue("dram"))
+              .setValue(
+                  readings.get(2 * socket + 1).getValue()
+                      * intervalFraction
+                      * activity.getValue()
+                      / totalActivity[socket])
+              .build());
     }
     if (!tasks.isEmpty()) {
       return Optional.of(

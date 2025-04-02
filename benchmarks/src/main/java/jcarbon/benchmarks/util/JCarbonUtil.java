@@ -62,7 +62,7 @@ public final class JCarbonUtil {
   public static void summary(Report report) {
     logger.info("JCarbon report summary:");
     for (Component component : report.getComponentList()) {
-      if (component.getComponentType() == "linux_process") {
+      if (component.getComponentType().equals("linux_process")) {
         for (Signal signal : component.getSignalList()) {
           switch (signal.getUnit()) {
             case GRAMS_OF_CO2:

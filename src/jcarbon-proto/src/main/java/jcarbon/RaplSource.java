@@ -19,8 +19,7 @@ import jcarbon.util.Timestamps;
 final class RaplSource {
   private static final Logger logger = getLogger();
 
-  private static final RaplSource RAPL =
-      new RaplSource("/dev/cpu/<socket>/msr", Rapl::sample);
+  private static final RaplSource RAPL = new RaplSource("/dev/cpu/<socket>/msr", Rapl::sample);
   private static final RaplSource POWERCAP =
       new RaplSource("/sys/devices/virtual/powercap/intel-rapl", Powercap::sample);
   private static final RaplSource FAKE = createFakeSource();

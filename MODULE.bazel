@@ -1,0 +1,20 @@
+bazel_dep(name = "bazel_skylib", version = "1.7.1")
+bazel_dep(name = "protobuf", version = "29.2")
+bazel_dep(name = "rules_java", version = "8.9.0")
+bazel_dep(name = "grpc", version = "1.71.0")
+bazel_dep(name = "grpc-java", version = "1.69.0")
+
+http_archive = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+http_archive(
+    name = "dacapo",
+    urls = ["https://clerk-deps.s3.amazonaws.com/dacapo.zip"],
+)
+http_jar = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_jar")
+# http_jar(
+#     name = "dacapo",
+#     urls = ["https://download.dacapobench.org/chopin/dacapo-23.11-MR2-chopin.zip"],
+# )
+http_jar(
+    name = "renaissance",
+    urls = ["https://github.com/renaissance-benchmarks/renaissance/releases/download/v0.15.0/renaissance-gpl-0.15.0.jar"],
+)
