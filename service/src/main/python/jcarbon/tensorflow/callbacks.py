@@ -14,8 +14,12 @@ DEFAULT_PERIOD_SECS = 2
 DEFAULT_SIGNALS = [
     'nvml',
     'linux_process',
+    'linux_system',
     'JOULES',
     'GRAMS_OF_CO2',
+    'WATTS',
+    'CELSIUS',
+    'HERTZ',
 ]
 UNITS = {
     'GRAMS_OF_CO2': 'CO2',
@@ -24,6 +28,8 @@ UNITS = {
     'NANOSECONDS': 'ns',
     'JIFFIES': '',
     'WATTS': 'W',
+    'CELSIUS': 'C',
+    'HERTZ': 'Hz'
 }
 
 

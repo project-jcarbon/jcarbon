@@ -1,12 +1,14 @@
 from time import time
 
 from pynvml import nvmlInit, nvmlDeviceGetCount
-from pynvml import nvmlDeviceGetHandleByIndex, nvmlDeviceGetName, NVML_TEMPERATURE_GPU
-from pynvml import nvmlDeviceGetTotalEnergyConsumption, nvmlDeviceGetPowerUsage, nvmlDeviceGetTemperature
+from pynvml import nvmlDeviceGetHandleByIndex, nvmlDeviceGetName
+from pynvml import nvmlDeviceGetTotalEnergyConsumption, nvmlDeviceGetPowerUsage, nvmlDeviceGetTemperature, nvmlDeviceGetClock
+from pynvml import NVML_TEMPERATURE_GPU, NVML_CLOCK_GRAPHICS, NVML_CLOCK_MEM, NVML_CLOCK_ID_CURRENT, NVML_CLOCK_ID_APP_CLOCK_TARGET
 
 
 
 from jcarbon.signal_pb2 import Report, Component, Signal, SignalInterval
+from google.protobuf.json_format import ParseDict
 
 
 def get_timestamp():
@@ -20,6 +22,8 @@ DEFAULT_SIGNALS = [
     'nvmlDeviceGetTotalEnergyConsumption',
     'nvmlDeviceGetPowerUsage',
     'nvmlDeviceGetTemperature',
+    'nvmlDeviceGetGraphicsClock',
+    'nvmlDeviceGetMemoryClock'
 ]
 
 class NvmlSampler:
@@ -68,6 +72,24 @@ class NvmlSampler:
                         'metadata': {'device': i},
                         'value': nvmlDeviceGetTemperature(handle, NVML_TEMPERATURE_GPU),
                     })
+                elif 'nvmlDeviceGetGraphicsClock' == signal:
+                    sample['data'].append({
+                        'metadata': {'device': i, 'clockType': "NVML_CLOCK_GRAPHICS", 'clockId': "NVML_CLOCK_ID_APP_CLOCK_TARGET"},
+                        'value': nvmlDeviceGetClock(handle, NVML_CLOCK_GRAPHICS, NVML_CLOCK_ID_APP_CLOCK_TARGET) * 10**6,
+                    })
+                    sample['data'].append({
+                        'metadata': {'device': i, 'clockType': "NVML_CLOCK_GRAPHICS", 'clockId': "NVML_CLOCK_ID_CURRENT"},
+                        'value': nvmlDeviceGetClock(handle, NVML_CLOCK_GRAPHICS, NVML_CLOCK_ID_CURRENT) * 10**6,
+                    })
+                elif 'nvmlDeviceGetMemoryClock' == signal:
+                    sample['data'].append({
+                        'metadata': {'device': i, 'clockType': "NVML_CLOCK_MEM", 'clockId': "NVML_CLOCK_ID_APP_CLOCK_TARGET"},
+                        'value': nvmlDeviceGetClock(handle, NVML_CLOCK_MEM, NVML_CLOCK_ID_APP_CLOCK_TARGET) * 10**6,
+                    })
+                    sample['data'].append({
+                        'metadata': {'device': i, 'clockType': "NVML_CLOCK_MEM", 'clockId': "NVML_CLOCK_ID_CURRENT"},
+                        'value': nvmlDeviceGetClock(handle, NVML_CLOCK_MEM, NVML_CLOCK_ID_CURRENT) * 10**6,
+                    })
             self.samples[signal].append(sample)
 
 
@@ -77,38 +99,54 @@ def create_report(samples):
     nvml_component.component_id = ''
     for signal_name in samples:
         signal = Signal()
-        if 'nvmlDeviceGetTotalEnergyConsumption' in signal_name:
+        if 'nvmlDeviceGetTotalEnergyConsumption' == signal_name:
             signal.unit = Signal.Unit.JOULES
             for first, second in zip(samples[signal_name], samples[signal_name][1:]):
                 signal.interval.append(sample_difference(first, second))
-        elif 'nvmlDeviceGetPowerUsage' in signal_name:
+        elif 'nvmlDeviceGetPowerUsage' == signal_name:
             signal.unit = Signal.Unit.WATTS
             for first, second in zip(samples[signal_name], samples[signal_name][1:]):
                 interval = create_interval_with_timestamp(first, second)
 
                 for d in first['data']:
-                    data = SignalInterval.SignalData()
-                    for meta in d['metadata']:
-                        metadata = SignalInterval.SignalData.Metadata()
-                        metadata.name = meta
-                        metadata.value = str(d['metadata'][meta])
-                        data.metadata.append(metadata)
+                    d['metadata'] = [{'name': str(k), 'value': str(v)} for k, v in d['metadata'].items()]
+                    data = ParseDict(d, SignalInterval.SignalData())
                     data.value = d['value']
                     interval.data.append(data)
 
                 signal.interval.append(interval)
-        elif 'nvmlDeviceGetTemperature' in signal_name:
+        elif 'nvmlDeviceGetTemperature' == signal_name:
             signal.unit = Signal.Unit.CELSIUS
             for first, second in zip(samples[signal_name], samples[signal_name][1:]):
                 interval = create_interval_with_timestamp(first, second)
 
                 for d in first['data']:
-                    data = SignalInterval.SignalData()
-                    for meta in d['metadata']:
-                        metadata = SignalInterval.SignalData.Metadata()
-                        metadata.name = meta
-                        metadata.value = str(d['metadata'][meta])
-                        data.metadata.append(metadata)
+                    d['metadata'] = [{'name': str(k), 'value': str(v)} for k, v in d['metadata'].items()]
+                    data = ParseDict(d, SignalInterval.SignalData())
+                    data.value = d['value']
+                    interval.data.append(data)
+
+                signal.interval.append(interval)
+        elif 'nvmlDeviceGetGraphicsClock' == signal_name:
+            signal.unit = Signal.Unit.HERTZ
+            for first, second in zip(samples[signal_name], samples[signal_name][1:]):
+                interval = create_interval_with_timestamp(first, second)
+
+                for d in first['data']:
+                    d['metadata'] = [{'name': str(k), 'value': str(v)} for k, v in d['metadata'].items()]
+                    data = ParseDict(d, SignalInterval.SignalData())
+                    data.value = d['value']
+                    interval.data.append(data)
+
+                signal.interval.append(interval)
+        elif 'nvmlDeviceGetMemoryClock' == signal_name:
+            signal.unit = Signal.Unit.HERTZ
+            for first, second in zip(samples[signal_name], samples[signal_name][1:]):
+                interval = create_interval_with_timestamp(first, second)
+
+                for d in first['data']:   
+                    d['metadata'] = [{'name': str(k), 'value': str(v)} for k, v in d['metadata'].items()]
+                    data = ParseDict(d, SignalInterval.SignalData())
                     data.value = d['value']
                     interval.data.append(data)
 
