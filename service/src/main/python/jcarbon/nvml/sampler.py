@@ -57,17 +57,17 @@ class NvmlSampler:
                 'timestamp': timestamp,
                 'data': []}
             for i, handle in enumerate(self.devices_handles):
-                if 'nvmlDeviceGetTotalEnergyConsumption' in signal:
+                if 'nvmlDeviceGetTotalEnergyConsumption' == signal:
                     sample['data'].append({
                         'metadata': {'device': i},
                         'value': nvmlDeviceGetTotalEnergyConsumption(handle) / 1000.0,
                     })
-                elif 'nvmlDeviceGetPowerUsage' in signal:
+                elif 'nvmlDeviceGetPowerUsage' == signal:
                     sample['data'].append({
                         'metadata': {'device': i},
                         'value': nvmlDeviceGetPowerUsage(handle) / 1000.0,
                     })
-                elif 'nvmlDeviceGetTemperature' in signal:
+                elif 'nvmlDeviceGetTemperature' == signal:
                     sample['data'].append({
                         'metadata': {'device': i},
                         'value': nvmlDeviceGetTemperature(handle, NVML_TEMPERATURE_GPU),
