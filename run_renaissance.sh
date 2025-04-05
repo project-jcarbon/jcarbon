@@ -14,7 +14,7 @@ run_benchmark() {
         -Djcarbon.emissions.locale="${LOCALE}" \
         -jar bazel-bin/benchmarks/src/main/java/jcarbon/benchmarks/renaissance_deploy.jar \
         -r ${ITERATIONS} \
-        --plugin "!jcarbon.benchmark.JCarbonPlugin" \
+        --plugin "!jcarbon.benchmarks.JCarbonPlugin" \
         ${BENCHMARK}
 }
 
