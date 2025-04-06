@@ -1,5 +1,6 @@
 from time import time
 
+from google.protobuf.json_format import ParseDict
 from pynvml import nvmlInit, nvmlDeviceGetCount
 from pynvml import nvmlDeviceGetHandleByIndex, nvmlDeviceGetName
 from pynvml import nvmlDeviceGetTotalEnergyConsumption, nvmlDeviceGetPowerUsage, nvmlDeviceGetTemperature, nvmlDeviceGetClock
@@ -8,7 +9,6 @@ from pynvml import NVML_TEMPERATURE_GPU, NVML_CLOCK_GRAPHICS, NVML_CLOCK_MEM, NV
 
 
 from jcarbon.signal_pb2 import Report, Component, Signal, SignalInterval
-from google.protobuf.json_format import ParseDict
 
 
 def get_timestamp():
