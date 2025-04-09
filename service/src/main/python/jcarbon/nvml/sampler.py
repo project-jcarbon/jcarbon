@@ -1,8 +1,10 @@
 from time import time
 
+from google.protobuf.json_format import ParseDict
 from pynvml import nvmlInit, nvmlDeviceGetCount
-from pynvml import nvmlDeviceGetHandleByIndex, nvmlDeviceGetName, NVML_TEMPERATURE_GPU
-from pynvml import nvmlDeviceGetTotalEnergyConsumption, nvmlDeviceGetPowerUsage, nvmlDeviceGetTemperature
+from pynvml import nvmlDeviceGetHandleByIndex, nvmlDeviceGetName
+from pynvml import nvmlDeviceGetTotalEnergyConsumption, nvmlDeviceGetPowerUsage, nvmlDeviceGetTemperature, nvmlDeviceGetClock
+from pynvml import NVML_TEMPERATURE_GPU, NVML_CLOCK_GRAPHICS, NVML_CLOCK_MEM, NVML_CLOCK_ID_CURRENT, NVML_CLOCK_ID_APP_CLOCK_TARGET
 
 
 
@@ -20,6 +22,7 @@ DEFAULT_SIGNALS = [
     'nvmlDeviceGetTotalEnergyConsumption',
     'nvmlDeviceGetPowerUsage',
     'nvmlDeviceGetTemperature',
+    'nvmlDeviceGetClock',
 ]
 
 class NvmlSampler:
@@ -53,21 +56,55 @@ class NvmlSampler:
                 'timestamp': timestamp,
                 'data': []}
             for i, handle in enumerate(self.devices_handles):
-                if 'nvmlDeviceGetTotalEnergyConsumption' in signal:
+                if 'nvmlDeviceGetTotalEnergyConsumption' == signal:
                     sample['data'].append({
-                        'metadata': {'device': i},
+                        'metadata': [{'name': 'device', 'value': str(i)}],
                         'value': nvmlDeviceGetTotalEnergyConsumption(handle) / 1000.0,
                     })
-                elif 'nvmlDeviceGetPowerUsage' in signal:
+                elif 'nvmlDeviceGetPowerUsage' == signal:
                     sample['data'].append({
-                        'metadata': {'device': i},
+                        'metadata': [{'name': 'device', 'value': str(i)}],
                         'value': nvmlDeviceGetPowerUsage(handle) / 1000.0,
                     })
-                elif 'nvmlDeviceGetTemperature' in signal:
+                elif 'nvmlDeviceGetTemperature' == signal:
                     sample['data'].append({
-                        'metadata': {'device': i},
+                        'metadata': [{'name': 'device', 'value': str(i)}],
                         'value': nvmlDeviceGetTemperature(handle, NVML_TEMPERATURE_GPU),
                     })
+                elif 'nvmlDeviceGetClock' == signal:
+                    sample['data'].append({
+                        'metadata': [
+                            {'name': 'device', 'value': str(i)},
+                            {'name': 'clockType', 'value': "NVML_CLOCK_GRAPHICS"},
+                            {'name': 'clockId', 'value': "NVML_CLOCK_ID_APP_CLOCK_TARGET"},
+                        ],
+                        'value': nvmlDeviceGetClock(handle, NVML_CLOCK_GRAPHICS, NVML_CLOCK_ID_APP_CLOCK_TARGET) * 10**6,
+                    })
+                    sample['data'].append({
+                        'metadata': [
+                            {'name': 'device', 'value': str(i)},
+                            {'name': 'clockType', 'value': "NVML_CLOCK_GRAPHICS"},
+                            {'name': 'clockId', 'value': "NVML_CLOCK_ID_CURRENT"},
+                        ],
+                        'value': nvmlDeviceGetClock(handle, NVML_CLOCK_GRAPHICS, NVML_CLOCK_ID_CURRENT) * 10**6,
+                    })
+                    # TODO: don't need memory frequency yet
+                    # sample['data'].append({
+                    #     'metadata': [
+                    #         {'name': 'device', 'value': i},
+                    #         {'name': 'clockType', 'value': "NVML_CLOCK_MEM"},
+                    #         {'name': 'clockId', 'value': "NVML_CLOCK_ID_APP_CLOCK_TARGET"},
+                    #     ],
+                    #     'value': nvmlDeviceGetClock(handle, NVML_CLOCK_MEM, NVML_CLOCK_ID_APP_CLOCK_TARGET) * 10**6,
+                    # })
+                    # sample['data'].append({
+                    #     'metadata': [
+                    #         {'name': 'device', 'value': i},
+                    #         {'name': 'clockType', 'value': "NVML_CLOCK_MEM"},
+                    #         {'name': 'clockId', 'value': "NVML_CLOCK_ID_CURRENT"},
+                    #     ],
+                    #     'value': nvmlDeviceGetClock(handle, NVML_CLOCK_MEM, NVML_CLOCK_ID_CURRENT) * 10**6,
+                    # })
             self.samples[signal].append(sample)
 
 
@@ -77,40 +114,29 @@ def create_report(samples):
     nvml_component.component_id = ''
     for signal_name in samples:
         signal = Signal()
-        if 'nvmlDeviceGetTotalEnergyConsumption' in signal_name:
+        if 'nvmlDeviceGetTotalEnergyConsumption' == signal_name:
             signal.unit = Signal.Unit.JOULES
             for first, second in zip(samples[signal_name], samples[signal_name][1:]):
                 signal.interval.append(sample_difference(first, second))
-        elif 'nvmlDeviceGetPowerUsage' in signal_name:
+        elif 'nvmlDeviceGetPowerUsage' == signal_name:
             signal.unit = Signal.Unit.WATTS
             for first, second in zip(samples[signal_name], samples[signal_name][1:]):
-                interval = create_interval_with_timestamp(first, second)
-
-                for d in first['data']:
-                    data = SignalInterval.SignalData()
-                    for meta in d['metadata']:
-                        metadata = SignalInterval.SignalData.Metadata()
-                        metadata.name = meta
-                        metadata.value = str(d['metadata'][meta])
-                        data.metadata.append(metadata)
-                    data.value = d['value']
-                    interval.data.append(data)
+                interval_dict = create_interval_dict(first, second)
+                interval = ParseDict(interval_dict, SignalInterval())
 
                 signal.interval.append(interval)
-        elif 'nvmlDeviceGetTemperature' in signal_name:
+        elif 'nvmlDeviceGetTemperature' == signal_name:
             signal.unit = Signal.Unit.CELSIUS
             for first, second in zip(samples[signal_name], samples[signal_name][1:]):
-                interval = create_interval_with_timestamp(first, second)
+                interval_dict = create_interval_dict(first, second)
+                interval = ParseDict(interval_dict, SignalInterval())
 
-                for d in first['data']:
-                    data = SignalInterval.SignalData()
-                    for meta in d['metadata']:
-                        metadata = SignalInterval.SignalData.Metadata()
-                        metadata.name = meta
-                        metadata.value = str(d['metadata'][meta])
-                        data.metadata.append(metadata)
-                    data.value = d['value']
-                    interval.data.append(data)
+                signal.interval.append(interval)
+        elif 'nvmlDeviceGetClock' == signal_name:
+            signal.unit = Signal.Unit.HERTZ
+            for first, second in zip(samples[signal_name], samples[signal_name][1:]):
+                interval_dict = create_interval_dict(first, second)
+                interval = ParseDict(interval_dict, SignalInterval())
 
                 signal.interval.append(interval)
         else:
@@ -130,14 +156,13 @@ def sample_difference(first_samples, second_samples):
         data = SignalInterval.SignalData()
         for meta in first['metadata']:
             metadata = SignalInterval.SignalData.Metadata()
-            metadata.name = meta
-            metadata.value = str(first['metadata'][meta])
+            metadata.name = meta['name']
+            metadata.value = str(meta['value'])
             data.metadata.append(metadata)
         data.value = second['value'] - first['value']
         interval.data.append(data)
 
     return interval
-
 
 def create_interval_with_timestamp(first, second):
     interval = SignalInterval()
@@ -149,3 +174,11 @@ def create_interval_with_timestamp(first, second):
 
     return interval
 
+def create_interval_dict(first, second):
+    interval_dict = {
+        'start': first['timestamp'],
+        'end': second['timestamp'],
+        'data': first['data'],
+    }
+    
+    return interval_dict
