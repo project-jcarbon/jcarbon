@@ -3,7 +3,7 @@
 DATA_DIR=data
 mkdir -p "${DATA_DIR}"
 
-ITERATIONS=20
+ITERATIONS=128
 LOCALE=USA
 
 run_benchmark() {
