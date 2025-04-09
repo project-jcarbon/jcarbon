@@ -90,6 +90,7 @@ def main():
     print(f'monitoring process {args.pid}')
 
     client = JCarbonClient(args.addr)
+    client.purge()
     i = 0
     try:
         # The psutil stuff is a hack for working with pyperformance
@@ -102,6 +103,7 @@ def main():
             ).assign(benchmark=child_name)
             df.to_csv(os.path.join(args.output, f'jcarbon-{args.pid}-{i}.csv'))
             i += 1
+            client.purge()
         print(f'pid {args.pid} terminated')
     except KeyboardInterrupt:
         print(f'monitoring of pid {args.pid} ended by user')
