@@ -16,6 +16,7 @@ run_benchmark() {
         -n ${ITERATIONS} --no-validation \
         -c jcarbon.benchmarks.JCarbonCallback \
         ${BENCHMARK} -s ${SIZE}
+    java -jar bazel-bin/src/jcarbon-proto/sys_thermal_cooldown_deploy.jar -period 10000 -temperature 35
 }
 
 # default size dacapo benchmarks

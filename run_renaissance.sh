@@ -16,6 +16,7 @@ run_benchmark() {
         -r ${ITERATIONS} \
         --plugin "!jcarbon.benchmarks.JCarbonPlugin" \
         ${BENCHMARK}
+        java -jar bazel-bin/src/jcarbon-proto/sys_thermal_cooldown_deploy.jar -period 10000 -temperature 35
 }
 
 BENCHMARKS=(
