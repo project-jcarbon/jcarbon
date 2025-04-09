@@ -23,6 +23,12 @@ java_binary(
 )
 
 java_binary(
+    name = "sys_thermal_cooldown",
+    main_class = "jcarbon.linux.thermal.SysThermalCooldown",
+    runtime_deps = [":jcarbon"],
+)
+
+java_binary(
     name = "systemp_monitor",
     main_class = "jcarbon.linux.thermal.TemperatureMonitor",
     runtime_deps = [":jcarbon"],

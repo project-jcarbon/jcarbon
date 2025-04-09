@@ -1,8 +1,17 @@
 bazel_dep(name = "bazel_skylib", version = "1.7.1")
 bazel_dep(name = "protobuf", version = "29.2")
 bazel_dep(name = "rules_java", version = "8.9.0")
+bazel_dep(name = "rules_jvm_external", version = "6.7")
 bazel_dep(name = "grpc", version = "1.71.0")
 bazel_dep(name = "grpc-java", version = "1.69.0")
+
+maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven")
+maven.artifact(
+    artifact = "commons-cli",
+    group = "commons-cli",
+    version = "1.9.0"
+)
+use_repo(maven, "maven")
 
 http_archive = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 http_archive(
