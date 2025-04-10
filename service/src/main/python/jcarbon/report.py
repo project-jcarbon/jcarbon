@@ -1,10 +1,6 @@
-import argparse
-import os
-
-import numpy as np
 import pandas as pd
 
-from jcarbon.signal_pb2 import Report, Signal
+from jcarbon.signal_pb2 import Signal
 
 
 def normalize_timestamps(timestamps, bucket_size_ms):
@@ -41,32 +37,3 @@ def to_dataframe(report, signals=None):
     # signals['end'] = pd.to_datetime(signals.end, unit='ns')
 
     return signals.set_index(['component_type', 'component_id', 'unit', 'source', 'start', 'metadata', 'end']).value.sort_index()
-
-
-def parse_args():
-    parser = argparse.ArgumentParser(description='vesta probe monitor')
-    parser.add_argument(
-        nargs='*',
-        type=str,
-        help='jcarbon report protos',
-        dest='files',
-    )
-
-    return parser.parse_args()
-
-
-def main():
-    args = parse_args()
-    for file in args.files:
-        print(f'converting {file}')
-        report = Report()
-        with open(file, 'rb') as f:
-            report.ParseFromString(f.read())
-        signals = to_dataframe(report)
-        signal_file = f'{os.path.splitext(file)[0]}.csv'
-        print(f'writing to {signal_file}')
-        signals.to_csv(signal_file)
-
-
-if __name__ == '__main__':
-    main()
