@@ -52,19 +52,29 @@ public final class Powercap {
   }
 
   /** Computes the difference of two {@link PowercapReadings}. */
-  public static SignalData difference(PowercapReading first, PowercapReading second) {
+  public static List<SignalData> between(PowercapReading first, PowercapReading second) {
     if (first.socket != second.socket) {
       throw new IllegalArgumentException(
           String.format(
               "readings are not from the same domain (%d != %d)", first.socket, second.socket));
     }
-    return SignalData.newBuilder()
-        .addMetadata(
-            SignalData.Metadata.newBuilder()
-                .setName("socket")
-                .setValue(Integer.toString(first.socket)))
-        .setValue(diffWithWraparound(first.pkg, second.pkg, first.socket, 0) + diffWithWraparound(first.dram, second.dram, first.socket, 1))
-        .build();
+    return List.of(
+        SignalData.newBuilder()
+            .addMetadata(
+                SignalData.Metadata.newBuilder()
+                    .setName("socket")
+                    .setValue(Integer.toString(first.socket)))
+            .addMetadata(SignalData.Metadata.newBuilder().setName("component").setValue("package"))
+            .setValue(diffWithWraparound(first.pkg, second.pkg, first.socket, 0))
+            .build(),
+        SignalData.newBuilder()
+            .addMetadata(
+                SignalData.Metadata.newBuilder()
+                    .setName("socket")
+                    .setValue(Integer.toString(first.socket)))
+            .addMetadata(SignalData.Metadata.newBuilder().setName("component").setValue("dram"))
+            .setValue(diffWithWraparound(first.dram, second.dram, first.socket, 1))
+            .build());
   }
 
   /** Computes the difference of two {@link PowercapReadings}, applying the wraparound. */
@@ -82,7 +92,8 @@ public final class Powercap {
         .setEnd(fromInstant(second.timestamp()))
         .addAllData(
             IntStream.range(0, SOCKETS)
-                .mapToObj(socket -> difference(firstData.get(socket), secondData.get(socket)))
+                .mapToObj(i -> Integer.valueOf(i))
+                .flatMap(socket -> between(firstData.get(socket), secondData.get(socket)).stream())
                 .collect(toList()))
         .build();
   }

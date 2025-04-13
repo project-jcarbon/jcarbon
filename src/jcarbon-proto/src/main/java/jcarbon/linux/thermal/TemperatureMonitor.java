@@ -4,7 +4,9 @@ import static jcarbon.util.LoggerUtil.getLogger;
 
 import java.util.logging.Logger;
 
-/** Very simple temperature monitor that reports system temperature over 10 millisecond intervals. */
+/**
+ * Very simple temperature monitor that reports system temperature over 10 millisecond intervals.
+ */
 final class TemperatureMonitor {
   private static final Logger logger = getLogger();
 
@@ -19,7 +21,7 @@ final class TemperatureMonitor {
       logger.info(String.format("Temperature for thermal zone %s is at %s", zone, sample_temp));
       Thread.sleep(10);
     }
-    
+
     long currentTime = System.currentTimeMillis();
     double elapsed = (currentTime - previousTime) / 1000.0;
     logger.info(String.format("Cooling down to %s Celsius took %s seconds", temperature, elapsed));

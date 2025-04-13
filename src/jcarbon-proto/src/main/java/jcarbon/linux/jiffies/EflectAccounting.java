@@ -3,6 +3,7 @@ package jcarbon.linux.jiffies;
 import static jcarbon.linux.CpuInfo.getCpuSocketMapping;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 import jcarbon.signal.SignalInterval;
@@ -20,7 +21,12 @@ public final class EflectAccounting {
    */
   public static Optional<SignalInterval> computeTaskEnergy(
       SignalInterval process, SignalInterval energy) {
-    List<SignalData> readings = energy.getDataList();
+    HashMap<Integer, List<SignalData>> readings = new HashMap<>();
+    for (SignalData data : energy.getDataList()) {
+      int socket = Integer.parseInt(data.getMetadata(0).getValue());
+      readings.computeIfAbsent(socket, s -> new ArrayList<>());
+      readings.get(socket).add(data);
+    }
     if (readings.size() == 0) {
       return Optional.empty();
     }
@@ -48,17 +54,32 @@ public final class EflectAccounting {
       int cpu = Integer.parseInt(activity.getMetadata(1).getValue());
       int socket = SOCKETS_MAP[cpu];
       // Don't bother if there is no energy.
-      if (readings.get(socket).getValue() == 0) {
+      if (!readings.containsKey(socket)) {
         continue;
       }
 
       // Attribute a fraction of the total energy to the task based on its activity on the socket.
-      double taskEnergy =
-          readings.get(socket).getValue()
-              * intervalFraction
-              * activity.getValue()
-              / totalActivity[socket];
-      tasks.add(activity.toBuilder().setValue(taskEnergy).build());
+      tasks.add(
+          activity.toBuilder()
+              .addMetadata(
+                  SignalData.Metadata.newBuilder().setName("component").setValue("package"))
+              .setValue(
+                  readings.get(socket).get(0).getValue()
+                      * intervalFraction
+                      * activity.getValue()
+                      / totalActivity[socket])
+              .build());
+      if (readings.get(socket).size() > 1) {
+        tasks.add(
+            activity.toBuilder()
+                .addMetadata(SignalData.Metadata.newBuilder().setName("component").setValue("dram"))
+                .setValue(
+                    readings.get(socket).get(1).getValue()
+                        * intervalFraction
+                        * activity.getValue()
+                        / totalActivity[socket])
+                .build());
+      }
     }
     if (!tasks.isEmpty()) {
       return Optional.of(

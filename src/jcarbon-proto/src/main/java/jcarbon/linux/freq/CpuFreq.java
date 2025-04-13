@@ -1,11 +1,17 @@
-package jcarbon.cpu.freq;
+package jcarbon.linux.freq;
+
+import static java.util.stream.Collectors.toMap;
+import static jcarbon.util.Timestamps.fromInstant;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Optional;
+import java.util.List;
+import java.util.Map;
+import jcarbon.signal.SignalInterval;
+import jcarbon.signal.SignalInterval.SignalData;
 
 /**
  * A simple (unsafe) wrapper for reading the dvfs system. Consult
@@ -20,9 +26,9 @@ public final class CpuFreq {
     return readCounter(cpu, "cpuinfo_cur_freq");
   }
 
-  /** Returns the observed frequency in KHz of a cpu. */
+  /** Returns the observed frequency in Hz of a cpu. */
   public static int getObservedFrequency(int cpu) {
-    return readCounter(cpu, "scaling_cur_freq");
+    return 1000 * readCounter(cpu, "scaling_cur_freq");
   }
 
   /** Returns the current governor of a cpu. */
@@ -30,14 +36,49 @@ public final class CpuFreq {
     return readFromComponent(cpu, "scaling_governor");
   }
 
-  public static Optional<CpuFrequencySample> sample() {
+  public static CpuFrequencySample sample() {
     Instant timestamp = Instant.now();
     ArrayList<CpuFrequency> readings = new ArrayList<>();
     for (int cpu = 0; cpu < CPU_COUNT; cpu++) {
       readings.add(
           new CpuFrequency(cpu, getGovernor(cpu), getObservedFrequency(cpu), getFrequency(cpu)));
     }
-    return Optional.of(new CpuFrequencySample(timestamp, readings));
+    return new CpuFrequencySample(timestamp, readings);
+  }
+
+  public static List<SignalData> between(List<CpuFrequency> first, List<CpuFrequency> second) {
+    Map<Integer, CpuFrequency> secondMap = second.stream().collect(toMap(r -> r.cpu, r -> r));
+    ArrayList<SignalData> frequencies = new ArrayList<>();
+    for (CpuFrequency reading : first) {
+      if (secondMap.containsKey(reading.cpu)) {
+        CpuFrequency other = secondMap.get(reading.cpu);
+        frequencies.add(
+            SignalData.newBuilder()
+                .addMetadata(
+                    SignalData.Metadata.newBuilder()
+                        .setName("cpu")
+                        .setValue(Integer.toString(reading.cpu)))
+                .setValue(reading.frequency)
+                .build());
+        frequencies.add(
+            SignalData.newBuilder()
+                .addMetadata(
+                    SignalData.Metadata.newBuilder()
+                        .setName("cpu")
+                        .setValue(Integer.toString(reading.cpu)))
+                .setValue(reading.setFrequency)
+                .build());
+      }
+    }
+    return frequencies;
+  }
+
+  public static SignalInterval difference(CpuFrequencySample first, CpuFrequencySample second) {
+    return SignalInterval.newBuilder()
+        .setStart(fromInstant(first.timestamp()))
+        .setEnd(fromInstant(second.timestamp()))
+        .addAllData(between(first.data(), second.data()))
+        .build();
   }
 
   private static int readCounter(int cpu, String component) {

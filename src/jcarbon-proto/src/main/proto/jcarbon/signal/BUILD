@@ -1,4 +1,4 @@
-load("@rules_proto_grpc//java:defs.bzl", "java_proto_library")
+load("@protobuf//bazel:java_proto_library.bzl", "java_proto_library")
 
 proto_library(
     name = "signal_protos",
@@ -9,5 +9,5 @@ proto_library(
 java_proto_library(
     name = "signal_java_protos",
     visibility = ["//visibility:public"],
-    protos = [":signal_protos"],
+    deps = [":signal_protos"],
 )

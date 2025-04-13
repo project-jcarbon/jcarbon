@@ -3,7 +3,7 @@
 DATA_DIR=data
 mkdir -p "${DATA_DIR}"
 
-ITERATIONS=20
+ITERATIONS=128
 LOCALE=USA
 
 run_benchmark() {
@@ -14,8 +14,9 @@ run_benchmark() {
         -Djcarbon.emissions.locale="${LOCALE}" \
         -jar bazel-bin/benchmarks/src/main/java/jcarbon/benchmarks/renaissance_deploy.jar \
         -r ${ITERATIONS} \
-        --plugin "!jcarbon.benchmark.JCarbonPlugin" \
+        --plugin "!jcarbon.benchmarks.JCarbonPlugin" \
         ${BENCHMARK}
+        java -jar bazel-bin/src/jcarbon-proto/sys_thermal_cooldown_deploy.jar -period 10000 -temperature 35
 }
 
 BENCHMARKS=(

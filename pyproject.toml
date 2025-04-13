@@ -5,7 +5,15 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "jcarbon"
 version = "0.1.0"
-dependencies = ["psutil", "grpcio", "protobuf", "pynvml", "tqdm"]
+dependencies = [
+    "psutil",
+    "grpcio",
+    "protobuf",
+    "pynvml",
+    "tqdm",
+    "pandas",
+    "pyperformance",
+]
 
 [tool.setuptools.packages.find]
 where = ["service/src/main/python"]
