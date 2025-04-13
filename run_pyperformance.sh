@@ -13,7 +13,7 @@ run_benchmark() {
     java -jar bazel-bin/src/jcarbon-proto/sys_thermal_cooldown_deploy.jar -period 10000 -temperature 35
 }
 
-# default size dacapo benchmarks
+# pyperfomance benchmarks
 BENCHMARKS=(
     2to3
     async_generators

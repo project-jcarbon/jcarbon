@@ -153,7 +153,7 @@ public final class JCarbonApplicationMonitor implements JCarbon {
         createPhysicalSignal(
                 forwardApply(frequencyFuture.get(), CpuFreq::difference),
                 Signal.Unit.HERTZ,
-                "/sys/devices/system/cpu/cpu/freq")
+                "/sys/devices/system/cpu/cpu_i/cpufreq")
             .ifPresent(systemComponent::addSignal);
         monotonicTimeFuture = null;
         systemTemperatureFuture = null;
