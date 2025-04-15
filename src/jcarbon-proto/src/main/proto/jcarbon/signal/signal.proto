@@ -45,7 +45,6 @@ message Signal {
     NANOSECONDS = 6;
     WATTS = 7;
     CELSIUS = 8;
-    HERTZ = 9;
   }
 }
 
