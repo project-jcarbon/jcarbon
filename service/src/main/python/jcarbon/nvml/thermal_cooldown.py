@@ -59,7 +59,7 @@ def cooldown(period, temperature):
 
         message = f'zone status ({sample_count}/{k}): {status}'
         max_len = max(max_len, len(message))
-        print('\r{}{}'.format(message, ' ' * (max_len - len(message))), end='', flush=True)
+        print('\r{message: <{fill}}'.format(message=message, fill=max_len), end='', flush=True)
         if all(met.values()):
             break
         sleep(period)
