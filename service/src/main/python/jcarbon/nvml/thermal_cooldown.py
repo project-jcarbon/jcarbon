@@ -34,6 +34,7 @@ def cooldown(period, temperature):
     gpu_count = nvmlDeviceGetCount()
 
     samples = {i: [] for i in range(gpu_count)}
+    max_len = 0
 
     start = time()
     while(True):
@@ -58,14 +59,14 @@ def cooldown(period, temperature):
         status = ",".join(zone_status)
 
         message = f"zone status ({sample_count}/{k}): {status}"
-        print(f"{message}{' ' * 50}", end="", flush=True)
-        print("\b" * (len(message) + 50), end="", flush=True)
+        max_len = max(max_len, len(message))
+        print('\r{}{}'.format(message, ' ' * (max_len - len(message))), end='', flush=True)
         if all(met.values()):
             break
         sleep(period)
 
     elapsed = time() - start
-    print(f"cooled down to {temperature} C in {elapsed}{' ' * 50}")
+    print(f"cooled down to {temperature} C in {elapsed}")
 
 def main():
     args = parse_args()
