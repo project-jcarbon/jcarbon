@@ -33,7 +33,7 @@ def cooldown(period, temperature):
     nvmlInit()
     gpu_count = nvmlDeviceGetCount()
 
-    samples = {i: deque([], maxlen = k) for i in range(gpu_count)}
+    samples = {i: [] for i in range(gpu_count)}
 
     start = time()
     while(True):
@@ -46,6 +46,9 @@ def cooldown(period, temperature):
 
             s = samples[i]
             s.append(temp)
+            if(len(s) > k):
+                s.pop(0)
+            
             sample_count = len(s)
 
             temps[i] = sum(s) / len(s)
