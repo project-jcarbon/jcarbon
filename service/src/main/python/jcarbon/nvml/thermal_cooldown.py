@@ -1,5 +1,4 @@
 from argparse import ArgumentParser
-from collections import deque
 from time import sleep, time
     
 from pynvml import nvmlInit, nvmlDeviceGetCount
