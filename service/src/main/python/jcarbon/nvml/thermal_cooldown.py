@@ -55,10 +55,10 @@ def cooldown(period, temperature):
             temps[i] = sum(s) / len(s)
             met[i] = len(s) == k and sum(temp < temperature for temp in s) >= p
 
-        zone_status = [f"{i}->{temps[i]} C ({met[i]})" for i in range(gpu_count)]
-        status = ",".join(zone_status)
+        zone_status = [f'{i}->{temps[i]} C ({met[i]})' for i in range(gpu_count)]
+        status = ','.join(zone_status)
 
-        message = f"zone status ({sample_count}/{k}): {status}"
+        message = f'zone status ({sample_count}/{k}): {status}'
         max_len = max(max_len, len(message))
         print('\r{}{}'.format(message, ' ' * (max_len - len(message))), end='', flush=True)
         if all(met.values()):
@@ -66,7 +66,7 @@ def cooldown(period, temperature):
         sleep(period)
 
     elapsed = time() - start
-    print(f"cooled down to {temperature} C in {elapsed}")
+    print(f'cooled down to {temperature} C in {elapsed}')
 
 def main():
     args = parse_args()
