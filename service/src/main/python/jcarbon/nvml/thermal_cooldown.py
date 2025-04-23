@@ -5,8 +5,6 @@ from time import sleep, time
 from pynvml import nvmlInit, nvmlDeviceGetCount
 from pynvml import nvmlDeviceGetHandleByIndex, nvmlDeviceGetTemperature, NVML_TEMPERATURE_GPU
 
-from jcarbon.nvml.sampler import NvmlSampler, create_report
-
 def parse_args():
     """ Parses client-side arguments. """
     parser = ArgumentParser()
