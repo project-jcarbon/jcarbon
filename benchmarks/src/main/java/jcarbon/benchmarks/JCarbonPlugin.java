@@ -2,8 +2,8 @@ package jcarbon.benchmarks;
 
 import java.util.ArrayList;
 import jcarbon.JCarbon;
-import jcarbon.JCarbonReport;
 import jcarbon.benchmarks.util.JCarbonUtil;
+import jcarbon.signal.Report;
 import org.renaissance.Plugin;
 
 public final class JCarbonPlugin
@@ -11,7 +11,7 @@ public final class JCarbonPlugin
         Plugin.AfterOperationSetUpListener,
         Plugin.BeforeOperationTearDownListener {
   private final JCarbon jcarbon = JCarbonUtil.createJCarbon();
-  private final ArrayList<JCarbonReport> reports = new ArrayList<>();
+  private final ArrayList<Report> reports = new ArrayList<>();
 
   @Override
   public void afterOperationSetUp(String benchmark, int opIndex, boolean isLastOp) {
@@ -26,7 +26,7 @@ public final class JCarbonPlugin
 
   @Override
   public void beforeBenchmarkTearDown(String benchmark) {
-    JCarbonUtil.dump(reports);
+    JCarbonUtil.writeReports(reports);
     reports.clear();
   }
 }
