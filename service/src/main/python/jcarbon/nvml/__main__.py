@@ -3,7 +3,8 @@ from time import sleep, time
 
 from psutil import pid_exists
 
-from jcarbon.nvml.sampler import NvmlSampler, create_report
+from jcarbon.report import to_dataframe
+from jcarbon.nvml.sampler import NvmlSampler
 
 
 def parse_args():
@@ -57,14 +58,8 @@ def main():
                 sleep(args.period - elapsed)
     except KeyboardInterrupt:
         print('monitoring ended by user')
-    report = create_report(sampler.samples)
-    energy = {}
-    for component in report.component:
-        for signal in component.signal:
-            energy[','.join(signal.source)] = sum(
-                data.value for interval in signal.interval for data in interval.data
-            )
-    print(energy)
+    report = to_dataframe(sampler.create_report())
+    print(report)
 
 
 if __name__ == '__main__':

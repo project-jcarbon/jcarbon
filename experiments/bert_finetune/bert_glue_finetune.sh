@@ -49,8 +49,8 @@ BATCH_SIZE=32
 MODEL="small_bert/bert_en_uncased_L-2_H-128_A-2"
 GLUE_TASK="wnli"
 
-output_path="${DATA_DIR}/${MODEL//\//@}/${GLUE_TASK}/report.csv"
-python3 ${PWD}/bert_glue_finetune.py \
+output_path="${DATA_DIR}/${GLUE_TASK}/${MODEL//\//@}/report.csv"
+python3 $(dirname "${0}")/bert_glue_finetune.py \
     --model "${MODEL}" \
     --task "${GLUE_TASK}" \
     --epochs "${EPOCHS}" \
