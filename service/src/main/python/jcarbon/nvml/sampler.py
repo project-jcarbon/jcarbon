@@ -6,7 +6,7 @@ from pynvml import nvmlDeviceGetTotalEnergyConsumption, nvmlDeviceGetPowerUsage,
 from pynvml import NVML_TEMPERATURE_GPU, NVML_CLOCK_GRAPHICS, NVML_CLOCK_MEM, NVML_CLOCK_ID_CURRENT, NVML_CLOCK_ID_APP_CLOCK_TARGET
 
 
-from jcarbon.signal import JCarbonSignal, sample_beginning, sample_difference
+from jcarbon.signal import YucaSignal, sample_beginning, sample_difference
 from jcarbon.signal_pb2 import Report, Component, Signal
 
 
@@ -23,7 +23,7 @@ def sample_from(timestamp, device_handles, source):
     }
 
 
-class NvmlSignal(JCarbonSignal):
+class NvmlSignal(YucaSignal):
     def __init__(self, device_handles):
         self.samples = []
         self.device_handles = device_handles

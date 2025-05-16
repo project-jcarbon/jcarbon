@@ -33,14 +33,14 @@ def sample_difference(first_samples, second_samples):
     }, SignalInterval())
 
 
-class JCarbonSignal:
+class YucaSignal:
     @property
     def name(self):
-        raise NotImplementedError('JCarbon signals must have a name')
+        raise NotImplementedError('Yuca signals must have a name')
 
     @property
     def unit(self):
-        raise NotImplementedError('JCarbon signals must have a unit')
+        raise NotImplementedError('Yuca signals must have a unit')
 
     def data(self):
         signal = Signal()
@@ -52,8 +52,8 @@ class JCarbonSignal:
 
     def intervals(self):
         raise NotImplementedError(
-            'JCarbon signals must implement \'intervals()\'')
+            'Yuca signals must implement \'intervals()\'')
 
     def create_interval(self, first, second):
         raise NotImplementedError(
-            'JCarbon signals must implement \'create_interval()\'')
+            'Yuca signals must implement \'create_interval()\'')
