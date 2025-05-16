@@ -23,144 +23,127 @@ def sample_from(timestamp, device_handles, source):
     }
 
 
-def get_nvml_energy(handle):
-    return nvmlDeviceGetTotalEnergyConsumption(handle) / 1000.0
-
-
-class NvmlEnergySignal(JCarbonSignal):
+class NvmlSignal(JCarbonSignal):
     def __init__(self, device_handles):
-        super().__init__()
+        self.samples = []
         self.device_handles = device_handles
 
+    def sample(self, timestamp):
+        self.samples.append(sample_from(
+            timestamp,
+            self.device_handles,
+            self.sample_device,
+        ))
+
+    def sample_device(self, handle):
+        raise NotImplementedError(
+            'JCarbon NVML signals must implement \'sample_device()\'')
+
+    def intervals(self):
+        return zip(self.samples, self.samples[1:])
+
+    def create_interval(self, first, second):
+        raise NotImplementedError(
+            'JCarbon NVML signals must implement \'create_interval()\'')
+
+
+class NvmlEnergySignal(NvmlSignal):
     @property
     def name(self):
         return 'nvmlDeviceGetTotalEnergyConsumption'
 
-    def sample(self, timestamp):
-        self.samples.append(sample_from(
-            timestamp,
-            self.device_handles,
-            get_nvml_energy,
-        ))
+    @property
+    def unit(self):
+        return Signal.Unit.JOULES
 
-    def diff(self):
-        signal = Signal()
-        signal.unit = Signal.Unit.JOULES
-        for first, second in zip(self.samples, self.samples[1:]):
-            signal.interval.append(sample_difference(first, second))
-        signal.source.append(self.name)
-        return signal
+    def sample_device(self, handle):
+        return nvmlDeviceGetTotalEnergyConsumption(handle) / 1000.0
+
+    def create_interval(self, first, second):
+        return sample_difference(first, second)
 
 
-def get_nvml_power(handle):
-    return nvmlDeviceGetPowerUsage(handle) / 1000.0
-
-
-class NvmlPowerSignal(JCarbonSignal):
-    def __init__(self, device_handles):
-        super().__init__()
-        self.device_handles = device_handles
-
+class NvmlPowerSignal(NvmlSignal):
     @property
     def name(self):
         return 'nvmlDeviceGetPowerUsage'
 
-    def sample(self, timestamp):
-        self.samples.append(sample_from(
-            timestamp,
-            self.device_handles,
-            get_nvml_power,
-        ))
+    @property
+    def unit(self):
+        return Signal.Unit.WATTS
 
-    def diff(self):
-        signal = Signal()
-        signal.unit = Signal.Unit.WATTS
-        for first, second in zip(self.samples, self.samples[1:]):
-            signal.interval.append(sample_beginning(first, second))
-        signal.source.append(self.name)
-        return signal
+    def sample_device(self, handle):
+        return nvmlDeviceGetPowerUsage(handle) / 1000.0
+
+    def create_interval(self, first, second):
+        return sample_beginning(first, second)
 
 
-def get_nvml_temperature(handle):
-    return nvmlDeviceGetTemperature(handle, NVML_TEMPERATURE_GPU)
-
-
-class NvmlTemperatureSignal(JCarbonSignal):
-    def __init__(self, device_handles):
-        super().__init__()
-        self.device_handles = device_handles
-
+class NvmlTemperatureSignal(NvmlSignal):
     @property
     def name(self):
         return 'nvmlDeviceGetTemperature'
 
-    def sample(self, timestamp):
-        self.samples.append(sample_from(
-            timestamp,
-            self.device_handles,
-            get_nvml_temperature,
-        ))
+    @property
+    def unit(self):
+        return Signal.Unit.CELSIUS
 
-    def diff(self):
-        signal = Signal()
-        signal.unit = Signal.Unit.CELSIUS
-        for first, second in zip(self.samples, self.samples[1:]):
-            signal.interval.append(sample_beginning(first, second))
-        signal.source.append(self.name)
-        return signal
+    def sample_device(self, handle):
+        return nvmlDeviceGetTemperature(handle) / 1000.0
+
+    def create_interval(self, first, second):
+        return sample_beginning(first, second)
 
 
-def get_nvml_clock_app_target(handle):
-    return nvmlDeviceGetClock(handle, NVML_CLOCK_GRAPHICS, NVML_CLOCK_ID_APP_CLOCK_TARGET) * 10**6
-
-
-def get_nvml_clock_current(handle):
-    return nvmlDeviceGetClock(handle, NVML_CLOCK_GRAPHICS, NVML_CLOCK_ID_CURRENT) * 10**6,
-
-
-class NvmlClockSignal(JCarbonSignal):
-    def __init__(self, device_handles):
-        super().__init__()
-        self.device_handles = device_handles
-
+class NvmlClockSignal(NvmlSignal):
     @property
     def name(self):
         return 'nvmlDeviceGetClock'
 
-    def sample(self, timestamp):
-        sample = sample_from(
-            timestamp,
-            self.device_handles,
-            get_nvml_clock_app_target,
-        )
-        for data in sample['data']:
-            data['metadata'].append(
-                {'name': 'clockType', 'value': "NVML_CLOCK_GRAPHICS"},
-                {'name': 'clockId',
-                 'value': "NVML_CLOCK_ID_APP_CLOCK_TARGET"},
-            )
-        self.samples.append(sample)
+    @property
+    def unit(self):
+        return Signal.Unit.HERTZ
 
-        sample = sample_from(
-            timestamp,
-            self.device_handles,
-            get_nvml_clock_current,
-        )
-        for data in sample['data']:
-            data['metadata'].append(
-                {'name': 'clockType', 'value': "NVML_CLOCK_GRAPHICS"},
-                {'name': 'clockId',
-                 'value': "NVML_CLOCK_ID_CURRENT"},
-            )
-        self.samples.append(sample)
+    def sample_device(self, handle):
+        return nvmlDeviceGetClock(handle, NVML_CLOCK_GRAPHICS, NVML_CLOCK_ID_APP_CLOCK_TARGET) * 10**6
 
-    def diff(self):
-        signal = Signal()
-        signal.unit = Signal.Unit.HERTZ
-        for first, second in zip(self.samples, self.samples[1:]):
-            signal.interval.append(sample_beginning(first, second))
-        signal.source.append(self.name)
-        return signal
+    def create_interval(self, first, second):
+        return sample_beginning(first, second)
+
+    # def sample(self, timestamp):
+    #     sample = sample_from(
+    #         timestamp,
+    #         self.device_handles,
+    #         get_nvml_clock_app_target,
+    #     )
+    #     for data in sample['data']:
+    #         data['metadata'].append(
+    #             {'name': 'clockType', 'value': "NVML_CLOCK_GRAPHICS"},
+    #             {'name': 'clockId',
+    #              'value': "NVML_CLOCK_ID_APP_CLOCK_TARGET"},
+    #         )
+    #     self.samples.append(sample)
+
+    #     sample = sample_from(
+    #         timestamp,
+    #         self.device_handles,
+    #         get_nvml_clock_current,
+    #     )
+    #     for data in sample['data']:
+    #         data['metadata'].append(
+    #             {'name': 'clockType', 'value': "NVML_CLOCK_GRAPHICS"},
+    #             {'name': 'clockId',
+    #              'value': "NVML_CLOCK_ID_CURRENT"},
+    #         )
+    #     self.samples.append(sample)
+
+    # def data(self):
+    #     signal = Signal()
+    #     signal.unit = Signal.Unit.HERTZ
+    #     for first, second in zip(self.samples, self.samples[1:]):
+    #         signal.interval.append(sample_beginning(first, second))
+    #     signal.source.append(self.name)
+    #     return signal
 
 
 SIGNALS = {
@@ -178,26 +161,31 @@ def get_timestamp():
     return {'secs': secs, 'nanos': nanos}
 
 
+def get_devices_handles():
+    devices_handles = []
+    # self.device_metadata = []
+    try:
+        nvmlInit()
+        for i in range(nvmlDeviceGetCount()):
+            devices_handles.append(nvmlDeviceGetHandleByIndex(i))
+            # TODO: this appears to fail on some systems
+            # self.device_metadata.append(
+            #     {
+            #         'device': i,
+            #         'name': nvmlDeviceGetName(self.devices_handles[i])
+            #     }
+            # )
+    except:
+        # TODO: silently fail for now
+        import traceback
+        traceback.print_exc()
+        pass
+    return devices_handles
+
+
 class NvmlSampler:
     def __init__(self):
-        devices_handles = []
-        # self.device_metadata = []
-        try:
-            nvmlInit()
-            for i in range(nvmlDeviceGetCount()):
-                devices_handles.append(nvmlDeviceGetHandleByIndex(i))
-                # TODO: this appears to fail on some systems
-                # self.device_metadata.append(
-                #     {
-                #         'device': i,
-                #         'name': nvmlDeviceGetName(self.devices_handles[i])
-                #     }
-                # )
-        except:
-            # TODO: silently fail for now
-            import traceback
-            traceback.print_exc()
-            pass
+        devices_handles = get_devices_handles()
         self.signals = [
             NvmlEnergySignal(devices_handles),
             NvmlPowerSignal(devices_handles),
@@ -219,7 +207,7 @@ class NvmlSampler:
         nvml_component.component_type = 'nvml'
         nvml_component.component_id = ''
         for signal in self.signals:
-            nvml_component.signal.append(signal.diff())
+            nvml_component.signal.append(signal.data())
         report = Report()
         report.component.append(nvml_component)
         return report

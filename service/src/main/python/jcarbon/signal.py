@@ -1,6 +1,6 @@
 from google.protobuf.json_format import ParseDict
 
-from jcarbon.signal_pb2 import SignalInterval
+from jcarbon.signal_pb2 import Signal, SignalInterval
 
 
 def sample_beginning(first_samples, second_samples):
@@ -34,16 +34,26 @@ def sample_difference(first_samples, second_samples):
 
 
 class JCarbonSignal:
-    def __init__(self):
-        self.samples = []
-
     @property
     def name(self):
         raise NotImplementedError('JCarbon signals must have a name')
 
-    def sample(self, timestamp):
-        raise NotImplementedError(
-            'JCarbon signals must implement \'sample()\'')
+    @property
+    def unit(self):
+        raise NotImplementedError('JCarbon signals must have a unit')
 
-    def diff(self):
-        raise NotImplementedError('JCarbon signals must implement \'diff()\'')
+    def data(self):
+        signal = Signal()
+        signal.unit = self.unit
+        for first, second in self.intervals():
+            signal.interval.append(self.create_interval(first, second))
+        signal.source.append(self.name)
+        return signal
+
+    def intervals(self):
+        raise NotImplementedError(
+            'JCarbon signals must implement \'intervals()\'')
+
+    def create_interval(self, first, second):
+        raise NotImplementedError(
+            'JCarbon signals must implement \'create_interval()\'')

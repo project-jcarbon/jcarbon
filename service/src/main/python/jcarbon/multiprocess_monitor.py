@@ -97,10 +97,7 @@ def main():
         while psutil.pid_exists(args.pid):
             child_pid, child_name = get_child_process(process)
             print(f'watching child {child_pid}: {child_name}')
-            df = monitor_process(
-                child_pid,
-                client
-            ).assign(benchmark=child_name)
+            df = monitor_process(child_pid, client)
             df.to_csv(os.path.join(args.output, f'jcarbon-{args.pid}-{i}.csv'))
             i += 1
             client.purge()
