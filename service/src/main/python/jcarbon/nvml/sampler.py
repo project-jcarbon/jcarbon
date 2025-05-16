@@ -89,7 +89,7 @@ class NvmlTemperatureSignal(NvmlSignal):
         return Signal.Unit.CELSIUS
 
     def sample_device(self, handle):
-        return nvmlDeviceGetTemperature(handle) / 1000.0
+        return nvmlDeviceGetTemperature(handle, NVML_TEMPERATURE_GPU) / 1000.0
 
     def create_interval(self, first, second):
         return sample_beginning(first, second)
