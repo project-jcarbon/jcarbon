@@ -37,14 +37,14 @@ class NvmlSignal(YucaSignal):
 
     def sample_device(self, handle):
         raise NotImplementedError(
-            'JCarbon NVML signals must implement \'sample_device()\'')
+            'Yuca NVML signals must implement \'sample_device()\'')
 
     def intervals(self):
         return zip(self.samples, self.samples[1:])
 
     def create_interval(self, first, second):
         raise NotImplementedError(
-            'JCarbon NVML signals must implement \'create_interval()\'')
+            'Yuca NVML signals must implement \'create_interval()\'')
 
 
 class NvmlEnergySignal(NvmlSignal):
