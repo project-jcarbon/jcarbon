@@ -5,10 +5,10 @@ public final class CpuFrequency {
   // TODO: immutable data structures are "safe" as public
   public final int cpu;
   public final String governor;
-  public final int frequency;
-  public final int setFrequency;
+  public final long frequency;
+  public final long setFrequency;
 
-  CpuFrequency(int cpu, String governor, int frequency, int setFrequency) {
+  CpuFrequency(int cpu, String governor, long frequency, long setFrequency) {
     this.cpu = cpu;
     this.governor = governor;
     this.frequency = frequency;
