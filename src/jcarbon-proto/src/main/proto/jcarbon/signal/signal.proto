@@ -1,0 +1,60 @@
+syntax = "proto3";
+
+package jcarbon.signal;
+
+option java_multiple_files = true;
+option java_package = "jcarbon.signal";
+
+message SignalInterval {
+  optional Timestamp start = 1;
+  optional Timestamp end = 2;
+  repeated SignalData data = 3;
+
+  message Timestamp {
+    optional uint64 secs = 1;
+    optional uint64 nanos = 2;
+  }
+
+  message SignalData {
+    // TODO: this metadata is a disaster waiting to happen
+    repeated Metadata metadata = 1;
+    optional double value = 2;
+
+    message Metadata {
+      optional string name = 1;
+      optional string value = 2;
+    }
+  }
+}
+
+message Signal {
+  optional Unit unit = 1;
+  // TODO: this probably needs to refer to either "raw" or another signal
+  repeated string source = 2;
+  repeated SignalInterval interval = 3;
+
+  // TODO: this needs to be maintained as we add new sources
+  // TODO: some of these are intermediate representations that a user wouldn't truly want
+  enum Unit {
+    UNKNOWN = 0;
+    ACTIVITY = 1;
+    GRAMS_OF_CO2 = 2;
+    JOULES = 3;
+    JIFFIES = 4;
+    HERTZ = 5;
+    NANOSECONDS = 6;
+    WATTS = 7;
+    CELSIUS = 8;
+  }
+}
+
+message Component {
+  // TODO: it would be nice to make this an enum but i think it'll be a mess
+  optional string component_type = 1;
+  optional string component_id = 2;
+  repeated Signal signal = 3;
+}
+
+message Report {
+  repeated Component component = 1;
+}
