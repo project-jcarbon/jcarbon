@@ -82,7 +82,7 @@ public final class CpuFreq {
   }
 
   private static int readCounter(int cpu, String component) {
-    String counter = readFromComponent(cpu, component);
+    String counter = readFromComponent(cpu, component).strip();
     if (counter.isBlank()) {
       return 0;
     }
