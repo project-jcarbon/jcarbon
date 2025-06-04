@@ -6,7 +6,6 @@ import static jcarbon.data.DataOperations.forwardApply;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import jcarbon.benchmarks.data.Uncertainty;
@@ -40,20 +39,20 @@ public class PowercapUpdateBenchmark {
     public void computeValues() {
       List<RaplEnergy> intervals =
           forwardApply(samples, Powercap::difference).stream()
-              .filter(
-                  interval -> Arrays.stream(interval.data()).mapToDouble(r -> r.total).sum() > 0)
+              .filter(interval -> interval.data().stream().mapToDouble(r -> r.energy).sum() > 0)
               .collect(toList());
       samples.clear();
 
       Uncertainty energy =
           Uncertainty.ofDoubles(
               intervals.stream()
-                  .mapToDouble(i -> Arrays.stream(i.data()).mapToDouble(e -> e.total).sum())
+                  .mapToDouble(
+                      interval -> interval.data().stream().mapToDouble(e -> e.energy).sum())
                   .toArray());
       Uncertainty time =
           Uncertainty.ofLongs(
               forwardApply(intervals, (i1, i2) -> Duration.between(i1.end(), i2.start())).stream()
-                  .mapToLong(d -> d.toMillis())
+                  .mapToLong(data -> data.toMillis())
                   .toArray());
       // System.out.println(String.format("energy update: %s, update time: %s", energy, time));
       values.get("energy").add(energy);

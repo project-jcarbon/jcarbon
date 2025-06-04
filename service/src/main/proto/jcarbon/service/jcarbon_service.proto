@@ -1,0 +1,60 @@
+syntax = "proto3";
+
+package jcarbon.service;
+
+import "src/jcarbon-proto/src/main/proto/jcarbon/signal/signal.proto";
+
+option java_multiple_files = true;
+option java_package = "jcarbon.service";
+
+service JCarbonService {
+  rpc Start (StartRequest) returns (StartResponse) {}
+
+  rpc Stop (StopRequest) returns (StopResponse) {}
+
+  rpc Dump (DumpRequest) returns (DumpResponse) {}
+
+  rpc Read (ReadRequest) returns (ReadResponse) {}
+
+  rpc Purge (PurgeRequest) returns (PurgeResponse) {}
+}
+
+message StartRequest {
+  optional uint64 process_id = 1;
+  optional uint32 period_millis = 2;
+}
+
+message StartResponse {
+  optional string response = 1;
+}
+
+message StopRequest {
+  optional uint64 process_id = 1;
+}
+
+message StopResponse {
+  optional string response = 1;
+}
+
+message ReadRequest {
+  optional uint64 process_id = 1;
+  repeated string signals = 2;
+}
+
+message ReadResponse {
+  optional signal.Report report = 1;
+}
+
+message DumpRequest {
+  optional uint64 process_id = 1;
+  optional string output_path = 2;
+  repeated string signals = 3;
+}
+
+message DumpResponse {
+  optional string response = 1;
+}
+
+message PurgeRequest {}
+
+message PurgeResponse {}
