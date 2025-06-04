@@ -21,9 +21,9 @@ public final class CpuFreq {
   private static final int CPU_COUNT = Runtime.getRuntime().availableProcessors();
   private static final Path SYS_CPU = Paths.get("/sys", "devices", "system", "cpu");
 
-  /** Returns the expected frequency in KHz of a cpu. */
+  /** Returns the expected frequency in Hz of a cpu. */
   public static long getFrequency(int cpu) {
-    return readCounter(cpu, "cpuinfo_cur_freq");
+    return 1000 * readCounter(cpu, "cpuinfo_cur_freq");
   }
 
   /** Returns the observed frequency in Hz of a cpu. */
