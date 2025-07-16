@@ -1,7 +1,9 @@
+# Script to reproduce the energy accounting experiments with dacapo
+
 DATA_DIR=data
 mkdir -p "${DATA_DIR}"
 
-ITERATIONS=20
+ITERATIONS=128
 LOCALE=USA
 
 run_benchmark() {
@@ -10,10 +12,11 @@ run_benchmark() {
     java \
         -Djcarbon.benchmarks.output="${data_dir}" \
         -Djcarbon.emissions.locale="${LOCALE}" \
-        -jar bazel-bin/benchmarks/dacapo_deploy.jar \
+        -jar bazel-bin/benchmarks/src/main/java/jcarbon/benchmarks/dacapo_deploy.jar \
         -n ${ITERATIONS} --no-validation \
         -c jcarbon.benchmarks.JCarbonCallback \
         ${BENCHMARK} -s ${SIZE}
+    java -jar bazel-bin/src/jcarbon-proto/sys_thermal_cooldown_deploy.jar -period 10000 -temperature 35
 }
 
 # default size dacapo benchmarks
@@ -44,6 +47,7 @@ BENCHMARKS=(
     avrora
     batik
     eclipse
+    # TODO: need to update and setup the new dacapo with the big data
     graphchi
     h2
     pmd
@@ -51,7 +55,8 @@ BENCHMARKS=(
     tomcat
 )
 
-SIZE=large
+# TODO: making everything default so my head doesn't break
+# SIZE=large
 
 for BENCHMARK in ${BENCHMARKS[@]}; do
     run_benchmark
