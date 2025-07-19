@@ -16,6 +16,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import jcarbon.JCarbon;
 import jcarbon.JCarbonApplicationMonitor;
+import jcarbon.JCarbonEndToEndMonitor;
 import jcarbon.service.DumpRequest;
 import jcarbon.service.DumpResponse;
 import jcarbon.service.JCarbonServiceGrpc;
@@ -55,8 +56,7 @@ final class JCarbonServerImpl extends JCarbonServiceGrpc.JCarbonServiceImplBase 
     Long processId = Long.valueOf(request.getProcessId());
     if (!jcarbons.containsKey(processId)) {
       logger.info(String.format("creating jcarbon for %d", processId));
-      JCarbon jcarbon =
-          new JCarbonApplicationMonitor(request.getPeriodMillis(), processId, executor);
+      JCarbon jcarbon = getJCarbon(request.getPeriodMillis(), processId);
       jcarbon.start();
       jcarbons.put(processId, jcarbon);
       nvmlClient.ifPresent(client -> client.start(request));
@@ -172,6 +172,15 @@ final class JCarbonServerImpl extends JCarbonServiceGrpc.JCarbonServiceImplBase 
 
     resultObserver.onNext(PurgeResponse.getDefaultInstance());
     resultObserver.onCompleted();
+  }
+
+  private JCarbon getJCarbon(int periodMillis, Long processId){
+    if (periodMillis == 0){
+      return new JCarbonEndToEndMonitor();
+    } else {
+      return new JCarbonApplicationMonitor(
+            periodMillis, processId, executor);
+    }
   }
 
   private Report getReportFromSignals(Report report, List<String> signals) {

@@ -1,7 +1,9 @@
 import argparse
 import os
 
+from re import search
 from time import time
+from time import sleep
 
 import psutil
 import pandas as pd
@@ -22,7 +24,7 @@ DEFAULT_SIGNALS = [
 
 def parse_args():
     parser = argparse.ArgumentParser(
-        description='multiprocessed jcarbon monitor for pyperformance')
+        description='single multiprocessed jcarbon monitor for pyperformance')
     parser.add_argument('-p', '--pid', type=int, help='pid to monitor')
     parser.add_argument(
         '--addr',
@@ -63,29 +65,19 @@ def get_child_process(process):
 
 
 def monitor_process(pid, client):
-    client.start(pid, 10)
-    chunks = []
-    last = time()
+    client.start(pid, 0)
     while psutil.pid_exists(pid):
-        if time() - last > 2:
-            client.stop(pid)
-            chunks.append(to_dataframe(client.read(
-                pid,
-                DEFAULT_SIGNALS
-            )).to_frame())
-            client.start(pid, 10)
-            last = time()
+        sleep(1)
     client.stop(pid)
-    chunks.append(to_dataframe(client.read(
+    return to_dataframe(client.read(
         pid,
         DEFAULT_SIGNALS
-    )).to_frame())
-    return pd.concat(chunks)
+    )).to_frame()
 
 
 def main():
     args = parse_args()
-
+    start = time()
     process = psutil.Process(pid=args.pid)  # Main process to track
     print(f'monitoring process {args.pid}')
 
