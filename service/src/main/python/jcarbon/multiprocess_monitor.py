@@ -1,6 +1,7 @@
 import argparse
 import os
 
+from re import search
 from time import time
 
 import psutil
