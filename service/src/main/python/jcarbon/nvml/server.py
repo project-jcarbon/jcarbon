@@ -10,7 +10,7 @@ from jcarbon.jcarbon_service_pb2 import ReadResponse, StartResponse, StopRespons
 from jcarbon.jcarbon_service_pb2_grpc import JCarbonService, add_JCarbonServiceServicer_to_server
 from jcarbon.nvml.sampler import create_report, NvmlSampler
 
-
+MAX_MESSAGE_LENGTH = 20 * 1024 * 1024
 PARENT_PIPE, CHILD_PIPE = Pipe()
 
 logger = logging.getLogger(__name__)
@@ -75,7 +75,13 @@ class JCarbonNvmlService(JCarbonService):
 
 
 def serve():
-    server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
+    server = grpc.server(
+        futures.ThreadPoolExecutor(max_workers=10),
+        options=[
+            ('grpc.max_send_message_length', MAX_MESSAGE_LENGTH),
+            ('grpc.max_receive_message_length', MAX_MESSAGE_LENGTH),
+        ],
+    )
     add_JCarbonServiceServicer_to_server(JCarbonNvmlService(), server)
     server.add_insecure_port("localhost:8981")
     logger.info('starting jcarbon nvml server at localhost:8981')
