@@ -3,24 +3,14 @@ BENCHMARK_SRCS = [
     "JCarbonPlugin.java",
 ]
 
-java_library(
-    name = "benchmarks",
-    srcs = glob(["*.java"], exclude = BENCHMARK_SRCS),
-    deps = [
-        "//benchmarks/src/main/java/jcarbon/benchmarks/util",
-        "//src/jcarbon/src/main/java/jcarbon",
-        "//src/jcarbon/src/main/java/jcarbon/cpu/eflect",
-        "//src/jcarbon/src/main/java/jcarbon/emissions",
-    ],
-)
-
 java_binary(
     name = "dacapo",
     main_class = "Harness",
+    visibility = ["//benchmarks:__pkg__"],
     srcs = ["JCarbonCallback.java"],
     deps = [
-        ":benchmarks",
-        "//src/jcarbon/src/main/java/jcarbon",
+        "//benchmarks/src/main/java/jcarbon/benchmarks/util",
+        "//src/jcarbon-proto:jcarbon",
         "@dacapo",
     ],
     args = [
@@ -32,10 +22,11 @@ java_binary(
 java_binary(
     name = "renaissance",
     main_class = "org.renaissance.core.Launcher",
+    visibility = ["//benchmarks:__pkg__"],
     srcs = ["JCarbonPlugin.java"],
     deps = [
-        ":benchmarks",
-        "//src/jcarbon/src/main/java/jcarbon",
+        "//benchmarks/src/main/java/jcarbon/benchmarks/util",
+        "//src/jcarbon-proto:jcarbon",
         "@renaissance//jar",
     ],
     args = [
