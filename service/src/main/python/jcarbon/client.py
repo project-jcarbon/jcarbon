@@ -4,10 +4,18 @@ import grpc
 from jcarbon.jcarbon_service_pb2 import DumpRequest, PurgeRequest, ReadRequest, StartRequest, StopRequest
 from jcarbon.jcarbon_service_pb2_grpc import JCarbonServiceStub
 
+MAX_MESSAGE_LENGTH = 20 * 1024 * 1024
 
 class JCarbonClient:
     def __init__(self, addr):
-        self.stub = JCarbonServiceStub(grpc.insecure_channel(addr))
+        channel = grpc.insecure_channel(
+            addr,
+            options=[
+                ('grpc.max_send_message_length', MAX_MESSAGE_LENGTH),
+                ('grpc.max_receive_message_length', MAX_MESSAGE_LENGTH),
+            ],
+        )
+        self.stub = JCarbonServiceStub(channel)
 
     def start(self, pid, period):
         self.stub.Start(StartRequest(process_id=pid, period_millis=period))
