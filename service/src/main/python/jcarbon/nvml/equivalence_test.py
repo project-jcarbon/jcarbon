@@ -27,22 +27,10 @@ def equivalence_test(sleep_time, period):
 
 DEFAULT_PERIODS = [
     0.0001,
-    # 0.0002,
-    # 0.0005,
     0.001,
-    # 0.002,
-    # 0.005,
     0.010,
-    # 0.020,
-    # 0.050,
     0.100,
-    # 0.200,
-    # 0.500,
     1.000,
-    # 2.000,
-    # 5.000,
-    # 10.00,
-    # 15.00,
 ]
 
 DEFAULT_WARMUP_ITERATIONS = 10
@@ -138,33 +126,12 @@ def main():
         for n, report in enumerate(reports):
             report = to_dataframe(report)
             energy = report[report.source == SIGNALS[Signal.Unit.JOULES]]
-            elapsed = energy.reset_index('start').groupby('metadata').start.agg(('min', 'max)'))
-            energy = energy.groupby('metadata').sum() / elapsed['max'] - elapsed['min']
+            elapsed = energy.reset_index('start').groupby(
+                'metadata').start.agg(('min', 'max)'))
+            energy = energy.groupby('metadata').sum() / \
+                elapsed['max'] - elapsed['min']
             print(energy)
-        #         signal_name = jcarbon_signal.signal_name
-        #         for signal in jcarbon_signal.signal:
-        #             for data in signal.data:
-        #                 if data.component not in energy:
-        #                     energy[data.component] = {}
-        #                 if signal_name not in energy[data.component]:
-        #                     energy[data.component][signal_name] = []
-        #                 if n == len(energy[data.component][signal_name]):
-        #                     energy[data.component][signal_name].append(0)
-        #                 energy[data.component][signal_name][-1] += data.value
-        # for component in energy:
-        #     for signal_name in energy[component]:
-        #         data = energy[component][signal_name]
-        #         count = len(data)
-        #         mean = sum(data) / count
-        #         std = sqrt(
-        #             sum((mean - value) ** 2 for value in data) / count)
-        #         energy[component][signal_name] = f'{mean:.3f}+/-{std}'
-        # tests[period] = energy
     pbar.close()
-
-    # pprint(tests)
-    # with open(args.output_path, 'w') as f:
-    #     json.dump(tests, f)
 
 
 if __name__ == '__main__':

@@ -110,41 +110,6 @@ class NvmlClockSignal(NvmlSignal):
     def create_interval(self, first, second):
         return sample_beginning(first, second)
 
-    # def sample(self, timestamp):
-    #     sample = sample_from(
-    #         timestamp,
-    #         self.device_handles,
-    #         get_nvml_clock_app_target,
-    #     )
-    #     for data in sample['data']:
-    #         data['metadata'].append(
-    #             {'name': 'clockType', 'value': "NVML_CLOCK_GRAPHICS"},
-    #             {'name': 'clockId',
-    #              'value': "NVML_CLOCK_ID_APP_CLOCK_TARGET"},
-    #         )
-    #     self.samples.append(sample)
-
-    #     sample = sample_from(
-    #         timestamp,
-    #         self.device_handles,
-    #         get_nvml_clock_current,
-    #     )
-    #     for data in sample['data']:
-    #         data['metadata'].append(
-    #             {'name': 'clockType', 'value': "NVML_CLOCK_GRAPHICS"},
-    #             {'name': 'clockId',
-    #              'value': "NVML_CLOCK_ID_CURRENT"},
-    #         )
-    #     self.samples.append(sample)
-
-    # def data(self):
-    #     signal = Signal()
-    #     signal.unit = Signal.Unit.HERTZ
-    #     for first, second in zip(self.samples, self.samples[1:]):
-    #         signal.interval.append(sample_beginning(first, second))
-    #     signal.source.append(self.name)
-    #     return signal
-
 
 SIGNALS = {
     Signal.Unit.JOULES: 'nvmlDeviceGetTotalEnergyConsumption',
