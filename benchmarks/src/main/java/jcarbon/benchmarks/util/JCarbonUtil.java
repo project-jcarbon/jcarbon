@@ -14,6 +14,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import jcarbon.JCarbon;
 import jcarbon.JCarbonApplicationMonitor;
+import jcarbon.JCarbonEndToEndMonitor;
 import jcarbon.signal.Component;
 import jcarbon.signal.Report;
 import jcarbon.signal.Signal;
@@ -47,6 +48,10 @@ public final class JCarbonUtil {
       logger.info(String.format("rejecting negative period (%d) for new JCarbon", periodMillis));
       return new JCarbonApplicationMonitor(
           DEFAULT_PERIOD_MS, ProcessHandle.current().pid(), executor);
+    }
+    if (periodMillis == 0){
+        logger.info(String.format("creating end to end JCarbon monitor with period of %d milliseconds", periodMillis));
+        return new JCarbonEndToEndMonitor();
     }
     logger.info(String.format("creating JCarbon with period of %d milliseconds", periodMillis));
     return new JCarbonApplicationMonitor(periodMillis, ProcessHandle.current().pid(), executor);

@@ -21,13 +21,13 @@ public final class CpuFreq {
   private static final int CPU_COUNT = Runtime.getRuntime().availableProcessors();
   private static final Path SYS_CPU = Paths.get("/sys", "devices", "system", "cpu");
 
-  /** Returns the expected frequency in KHz of a cpu. */
-  public static int getFrequency(int cpu) {
-    return readCounter(cpu, "cpuinfo_cur_freq");
+  /** Returns the expected frequency in Hz of a cpu. */
+  public static long getFrequency(int cpu) {
+    return 1000 * readCounter(cpu, "cpuinfo_cur_freq");
   }
 
   /** Returns the observed frequency in Hz of a cpu. */
-  public static int getObservedFrequency(int cpu) {
+  public static long getObservedFrequency(int cpu) {
     return 1000 * readCounter(cpu, "scaling_cur_freq");
   }
 
@@ -81,12 +81,12 @@ public final class CpuFreq {
         .build();
   }
 
-  private static int readCounter(int cpu, String component) {
-    String counter = readFromComponent(cpu, component);
+  private static long readCounter(int cpu, String component) {
+    String counter = readFromComponent(cpu, component).strip();
     if (counter.isBlank()) {
       return 0;
     }
-    return Integer.parseInt(counter);
+    return Long.parseLong(counter);
   }
 
   private static synchronized String readFromComponent(int cpu, String component) {

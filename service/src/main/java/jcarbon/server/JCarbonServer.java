@@ -24,6 +24,8 @@ final class JCarbonServer {
   private final int port;
   private final Server server;
 
+  private int MAX_MESSAGE_LENGTH = 20 * 1024 * 1024;
+
   private JCarbonServer(ServerArgs args) throws IOException {
     this.port = args.port;
     ServerBuilder serverBuilder =
@@ -32,7 +34,10 @@ final class JCarbonServer {
       try {
         JCarbonServiceGrpc.JCarbonServiceBlockingStub stub =
             JCarbonServiceGrpc.newBlockingStub(
-                ManagedChannelBuilder.forAddress("localhost", 8981).usePlaintext().build());
+                ManagedChannelBuilder.forAddress("localhost", 8981)
+                .usePlaintext()
+                .maxInboundMessageSize(MAX_MESSAGE_LENGTH)
+                .build());
         stub.stop(StopRequest.getDefaultInstance());
         serverBuilder.addService(new JCarbonServerImpl(Optional.of(stub))).build();
       } catch (Exception e) {
