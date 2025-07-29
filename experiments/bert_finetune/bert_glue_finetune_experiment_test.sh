@@ -51,8 +51,8 @@ GLUE_TASKS=(
 for model in ${MODELS[@]}; do
     for task in ${GLUE_TASKS[@]}; do
         for i in `seq 0 1 1`; do
-            output_path="${DATA_DIR}/${model//\//@}/${task}/report-${i}.csv"
-            python3 ${PWD}/bert_glue_finetune.py \
+            output_path="${DATA_DIR}/${task}/${model//\//@}/report-${i}.csv"
+            python3 $(dirname "${0}")/bert_glue_finetune.py \
                 --model "${model}" \
                 --task "${task}" \
                 --epochs "${EPOCHS}" \

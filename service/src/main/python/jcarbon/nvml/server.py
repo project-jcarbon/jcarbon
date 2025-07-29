@@ -8,7 +8,7 @@ import grpc
 
 from jcarbon.jcarbon_service_pb2 import ReadResponse, StartResponse, StopResponse, PurgeResponse
 from jcarbon.jcarbon_service_pb2_grpc import JCarbonService, add_JCarbonServiceServicer_to_server
-from jcarbon.nvml.sampler import create_report, NvmlSampler
+from jcarbon.nvml.sampler import NvmlSampler
 
 MAX_MESSAGE_LENGTH = 20 * 1024 * 1024
 PARENT_PIPE, CHILD_PIPE = Pipe()
@@ -30,7 +30,7 @@ def run_sampler(period):
         remaining = period - elapsed
         if (remaining > 0):
             sleep(remaining)
-    return sampler.samples
+    return sampler.create_report()
 
 
 class JCarbonNvmlService(JCarbonService):
@@ -38,6 +38,7 @@ class JCarbonNvmlService(JCarbonService):
         self.is_running = False
         self.report = None
         self.executor = futures.ThreadPoolExecutor(1)
+        self.sampling_future = None
 
     def Start(self, request, context):
         if not self.is_running:
@@ -56,7 +57,7 @@ class JCarbonNvmlService(JCarbonService):
         if self.is_running:
             logger.info('stop sampling')
             PARENT_PIPE.send(1)
-            self.report = create_report(self.sampling_future.result())
+            self.report = self.sampling_future.result()
             CHILD_PIPE.recv()
             self.sampling_future = None
             self.is_running = False

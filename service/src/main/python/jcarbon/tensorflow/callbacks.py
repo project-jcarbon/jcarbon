@@ -7,7 +7,7 @@ from tensorflow.keras.callbacks import Callback
 from jcarbon.client import JCarbonClient
 from jcarbon.report import to_dataframe
 
-from jcarbon.nvml.sampler import create_report, NvmlSampler
+from jcarbon.nvml.sampler import NvmlSampler
 
 DEFAULT_PERIOD_MS = 10
 DEFAULT_PERIOD_SECS = 2
